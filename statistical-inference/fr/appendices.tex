@@ -1,0 +1,85 @@
+\begin{appendices}
+\chapter{Countable - Uncountable}
+\section{Uncountable intervals}%
+\label{sec:Uncountable intervals}
+The goal of this section is to show that every interval in $R$ is uncountable.
+Before we prove it, let's introduce another useful proposition that will help
+us to prove what we want.
+\begin{prop}[$(0, 1)$ interval is uncountable]\label{prop:0-1-interval-is-uncountable}
+    The interval $[0, 1] \subset \R$ of any form (i.e $[0, 1]$,  $[0, 1[$,  $]0, 1]$,  $]0, 1[$) is uncountable. 
+\end{prop}
+\begin{newproof} 
+    It is clear that $[0, 1] = ]0, 1[ \cup \{0\} \cup \{1\}$, $[0, 1[ = ]0, 1[
+    \cup \{0\}$, $]0, 1] = ]0, 1[ \cup \{1\}$. Then it is enough to show that
+    $]0, 1[$ interval is uncountable in order to show that the intervals listed
+    previously are uncountable as well.
+
+    Let's suppose that $I = ]0, 1[ \subset \R$ is countable. That is
+    to say that there exists a bijection between $\N$ and $I$. Let's build this bijection, i.e 1 to 1 correspondence between each number in $\N$ and $I$:
+    \begin{align*}
+        f: \N && \longrightarrow && I \\
+              && && \\
+        0 && \longmapsto && 0.04001000\ldots \\
+        1 && \longmapsto && 0.00000100\ldots \\
+        2 && \longmapsto && 0.02300100\ldots \\
+        \vdots && &&
+    \end{align*}
+    For every $n \in \N$ and $i \in \N$, we denote $f(n)_{i}$ $i^{\text{th}}$ 
+    number after the dot of the number in $I$ that is given by  $f(n)$. For
+    example, $f(2)$ gives  $0.02000100\ldots$, then $f(n)_{2} = 2$ because it
+    is the second number after the dot of the  $f(2) = 0.0\underline{2}000100\ldots$.
+    Let's introduce the shift function:
+    \begin{align*}
+        s: \{0, 1, 2, \ldots, 9\} &\longrightarrow \{0, 1, 2, 3, \ldots, 9\} \\
+        n &\longmapsto s(n) = \begin{cases}
+            n + 1 & \text{if } n \le 8\\
+            0 & \text{if } n = 9
+        \end{cases}
+    .\end{align*}
+    It is clear that $s$ is bijective. And $s$ provides a successor of a number
+    except for $9$ (i.e $f(1) = 2$,  $f(5) = 6$,  $f(9) = 0$). However, the
+    main point of $s$ is to provide the number different from  $n$ itself.
+
+    Then we construct the next number in the next way:
+    \[
+        N = 0.s(f(0)_{1})s(f(1)_{2})s(f(2)_{3})s(f(3)_{4})\ldots = 0.114\ldots
+    \] 
+    It is clear that for all $n \in N$, $f(n) \neq N$ because $N$ differs by
+    one digit of its decimal writing from each number of  $f(n)$. Thus, there
+    does not exist $n \in \N$ such that $f(n) = N$, in the same time,  $N$ is a
+    real number in the  $]0, 1[$ interval. Absurd, because we supposed that
+    $]0, 1[ = I$ is countable for every number from  $\alpha \in ]0, 1[$ there
+    exist a number  $n \in N$ such that  $f(n) = \alpha$.
+
+    Hence, $]0, 1[$ is uncountable.
+    
+\end{newproof}
+
+\begin{prop}[Every non-empty interval in $\R$ is uncountable]\label{prop:any-r-interval-is-uncountable}
+    Let $a, b \in \R$ two real numbers such that $a < b$, then every interval
+    $[a, b]$ of any form (open, closed, etc.) is uncountable.
+\end{prop}
+\begin{newproof}
+    We introduce two functions for $s \in \R^{*}_+$ and $t \in \R$:
+   \begin{align*}
+        f_s: \R &\longrightarrow \R \\
+       x &\longmapsto  f_s(x) = sx
+   \end{align*}
+   called \emph{scaling function} and 
+   \begin{align*}
+       g_t: \R &\longrightarrow \R \\
+       x &\longmapsto g_t(x) = x + t
+   .\end{align*}
+   called \emph{shifting function}.
+
+   It is clear that both $f_s$ and  $g_t$ are bijective. Let  $a < b \in \R$.
+   Let's denote $l := b - a$ the length of the interval  $[a, b]$, then 
+   \[
+   f_{\frac{1}{l}}\circ g_{-a}([a, b]) = [0, 1]
+    \]
+    . 
+    That is to say, the interval $[a, b]$ is bijective to $[0, 1]$ due to the fact that $\forall t \in \R, \, s \in \R^*_+,$ $g_t$ is bijective and $f_s$ is bijective. Hence, their composition is also bijective.
+
+    We apply \cref{prop:0-1-interval-is-uncountable} and conclude that $[a, b]$ is uncountable.
+\end{newproof}
+\end{appendices}

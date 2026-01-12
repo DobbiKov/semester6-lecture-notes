@@ -1,0 +1,19 @@
+\documentclass[a4paper]{book}
+\usepackage[backend=bibtex]{biblatex}
+\usepackage[toc,page]{appendix}
+\addbibresource{refs.bib}
+\input{preamble.tex}
+\title{Notes de Inference Statistique}
+
+
+\begin{document}
+\pagenumbering{roman}
+\maketitle
+\tableofcontents
+\pagenumbering{arabic}
+\input{lec2.tex}
+
+\nocite{*}
+\printbibliography
+
+\end{document}

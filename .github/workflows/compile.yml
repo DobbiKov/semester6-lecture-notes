@@ -33,7 +33,7 @@ jobs:
         chmod 600 ~/.ssh/id_ed25519
         git config --global core.sshCommand "ssh -i ~/.ssh/id_ed25519 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 
-        git clone --depth=1 --branch gh-pages git@github.com:dobbikov/semester5-lecture-notes.git "$GITHUB_WORKSPACE/deploy"
+        git clone --depth=1 --branch gh-pages git@github.com:dobbikov/semester6-lecture-notes.git "$GITHUB_WORKSPACE/deploy"
 
         # (*) To add a file, add the following command for that file
         cp -f statistical-inference/fr/main.pdf "$GITHUB_WORKSPACE/deploy/statistical-inference-amphi.pdf"

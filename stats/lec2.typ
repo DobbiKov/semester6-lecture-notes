@@ -176,7 +176,7 @@ $ log L_n (hat(theta)) = sup_(theta in Theta) log L_n (theta) $
 #rmk[
   $hat(theta)$ est une variable aléatoire
   #import "figures/remarque-max-vraisemblance.typ":diagram as remarque-max-vraisemblance
-  #remarque-max-vraisemblance(width: 400pt),
+  #remarque-max-vraisemblance(width: 400pt)
   // Image placeholder: \incfig{remarque-max-vraisemblance-1}
   // #figure(
   //   caption: "remarque-max-vraisemblance-1"

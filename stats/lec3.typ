@@ -197,8 +197,8 @@ Soit $g(theta)$ le paramètre d'intérêt où  $g: Theta -> RR$
   $
   &forall theta #h(0.5em) E_theta(T) = g(theta) \
   =>& partial/(partial theta) E_theta (T) = g'(theta) \
-  sscript(T=T(X_1)) <=>& partial/(partial theta) int_S T(x) f_theta (x) d x = g'(theta) \
-  sscript((H)) <=>& int_S T(x) (partial/(partial theta) f_theta (x))/(f_theta (x)) f_theta (x) d x = g' (theta) \
+  script(T=T(X_1)) <=>& partial/(partial theta) int_S T(x) f_theta (x) d x = g'(theta) \
+  script((H)) <=>& int_S T(x) (partial/(partial theta) f_theta (x))/(f_theta (x)) f_theta (x) d x = g' (theta) \
   <=>& int_S (T(x) - g(theta)) (partial/(partial theta) f_theta (x))/(f_theta (x)) f_theta (x) d x = g'(theta)
   $ 
 ]

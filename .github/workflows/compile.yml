@@ -18,12 +18,6 @@ jobs:
         latexmk_shell_escape: true
         working_directory: statistical-inference/fr/
 
-    - name: Stats Amphi Typst
-      uses: ammar-ahmed22/compile-typst-action@v2
-      with:
-        source_paths: 'stats/main.typ'
-        output_paths: 'stats/main.pdf'
-
     - name: Check PDF files
       run: |
         file statistical-inference/fr/main.pdf | grep -q ' PDF '

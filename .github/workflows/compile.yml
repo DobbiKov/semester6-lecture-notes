@@ -18,9 +18,16 @@ jobs:
         latexmk_shell_escape: true
         working_directory: statistical-inference/fr/
 
+    - name: Stats Amphi Typst
+      uses: ammar-ahmed22/compile-typst-action@v2
+      with:
+        source_paths: 'stats/main.typ'
+        output_paths: 'stats/main.pdf'
+
     - name: Check PDF files
       run: |
         file statistical-inference/fr/main.pdf | grep -q ' PDF '
+        file stats/main.pdf | grep -q ' PDF '
         
     - name: Upload to GitHub pages
       run: |
@@ -37,6 +44,7 @@ jobs:
 
         # (*) To add a file, add the following command for that file
         cp -f statistical-inference/fr/main.pdf "$GITHUB_WORKSPACE/deploy/statistical-inference-amphi.pdf"
+        cp -f stats/main.pdf "$GITHUB_WORKSPACE/deploy/stats-amphi.pdf"
 
         cd "$GITHUB_WORKSPACE/deploy"
 

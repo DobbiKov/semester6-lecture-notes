@@ -1,0 +1,21 @@
+\chapter{Lecture 3: Information de Foster, efficacité}
+Soit $(P_{\theta})_{\theta \in \Theta}$, $\Theta \subset \R^p$ (identifiable, donnée). On note $f_{\theta}$ densité de  $P_{\theta}$
+ \[
+     \operatorname{Supp} f_{\theta} = \{ x \in E, \, f_{\theta}(x) > 0 \}
+\] 
+
+Étant donné $(X_1, \ldots, X_n)$, i.i.d. de loi $P_{\theta}$ et  $\theta
+\mapsto L(\theta) = \prod_{i=1}^{n} f_{\theta}(X_i) $ la vraisemblance de
+l'échantillon. Sur $\operatorname{Supp} f_{\theta}$ on peut calculer  
+\[
+    \log L_n(\theta) = \sum_{i=1}^{n} \log f_{\theta}(X_i)
+\] 
+\[
+    \hat{\theta} = \operatorname{argmax}_{\theta \in \Theta} \log L_n(\theta)
+\] 
+
+\begin{prop}[propriété de l'EMV]
+    Si $\hat{\theta}$ EMV\footnote{\textbf{EMV} = \textbf{E}stimateur de \textbf{M}aximum de \textbf{V}raisemblance } de $\theta$,  $g(\hat{\theta})$ est un EMV de $g(\theta)$
+\end{prop}
+
+Objectif:

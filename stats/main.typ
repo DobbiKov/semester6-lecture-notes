@@ -28,5 +28,5 @@
 #include "lec1.typ"
 #include "lec2.typ"
 #include "lec3.typ"
-
+#include "lec4.typ"
 

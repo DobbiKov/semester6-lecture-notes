@@ -11,16 +11,16 @@ jobs:
       uses: actions/checkout@v3
 
       # (*) To add a file, add the following section for it
-    - name: Stats Amphi
-      uses: xu-cheng/latex-action@v3
-      with:
-        root_file: main.tex
-        latexmk_shell_escape: true
-        working_directory: statistical-inference/fr/
+    # - name: Stats Amphi
+    #   uses: xu-cheng/latex-action@v3
+    #   with:
+    #     root_file: main.tex
+    #     latexmk_shell_escape: true
+    #     working_directory: statistical-inference/fr/
 
     - name: Check PDF files
       run: |
-        file statistical-inference/fr/main.pdf | grep -q ' PDF '
+        # file statistical-inference/fr/main.pdf | grep -q ' PDF '
         file stats/main.pdf | grep -q ' PDF '
         
     - name: Upload to GitHub pages
@@ -37,7 +37,7 @@ jobs:
         git clone --depth=1 --branch gh-pages git@github.com:dobbikov/semester6-lecture-notes.git "$GITHUB_WORKSPACE/deploy"
 
         # (*) To add a file, add the following command for that file
-        cp -f statistical-inference/fr/main.pdf "$GITHUB_WORKSPACE/deploy/statistical-inference-amphi.pdf"
+        # cp -f statistical-inference/fr/main.pdf "$GITHUB_WORKSPACE/deploy/statistical-inference-amphi.pdf"
         cp -f stats/main.pdf "$GITHUB_WORKSPACE/deploy/stats-amphi.pdf"
 
         cd "$GITHUB_WORKSPACE/deploy"

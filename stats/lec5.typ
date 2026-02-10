@@ -156,6 +156,12 @@ $
 
 == Interprétation
 // fig 1 here
+
+#grid(columns: (50%, 50%),
+[
+  #image("figures/interv-confiance.png")
+],
+[
  $I C = [B inf(X_1, ..., X_n), B sup(X_1, ..., X_n)]$ formule mathématique qui g´arantit le niveau  $1 - alpha$.
  On observe  $X_1 = x_1, X_2 = x_2, ..., X_n = x_n$, une réalisation de l'échantillon aléatoire. On calcule 
  $I C = [2.3; 5.1]$ de niveau de confiance $95%$ ($alpha = 5%$).
@@ -169,4 +175,14 @@ $
  $
  cancel(P(theta in [2.3, 5.1]) = 95%) "car " theta "un nombre"
  $ 
+]
+)
 
+== Méthode pivotale
+$(X_1, ..., X_n)$ i.i.d. d'espérance  $theta in RR$, de variance  $sigma^2(theta)$. Soit  $hat(theta)$, asymptotiqument normal: 
+ $
+sqrt(n) (hat(theta)_n - theta) -->^(cal(L))_(n -> +infinity) cal(N) (0, sigma^2(theta)) \
+<=> (sqrt(n) (hat(theta)_n - theta))/(sigma(theta)) -->^(cal(L))_(n -> +infinity) cal(N) (0, 1)
+$ 
+
+Par définition des quantiles gaussiens, $q_alpha = Phi^(-1) (alpha)$ où  $Phi$ f.r. de  $cal(N) (0, 1)$

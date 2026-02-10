@@ -186,3 +186,27 @@ sqrt(n) (hat(theta)_n - theta) -->^(cal(L))_(n -> +infinity) cal(N) (0, sigma^2(
 $ 
 
 Par définition des quantiles gaussiens, $q_alpha = Phi^(-1) (alpha)$ où  $Phi$ f.r. de  $cal(N) (0, 1)$
+
+#grid(columns: (50%, 50%),
+[
+$
+P(q_(alpha/2) <= (sqrt(n) (hat(theta) - theta))/sigma(theta) <= q_(1 - alpha/2)) -->_(n -> +infinity) 1 - alpha
+$ 
+],
+[
+  #image("figures/methode-pivotale.png")
+]
+)
+
+- *pivot ou statistique pivotale* = $(sqrt(n) (hat(theta) - theta))/(hat(sigma))$ statistique centrée réduite issue de  $hat(theta)$, où  $sigma^2(theta)$ estimé par  $hat(sigma)^2$, #underline[consistant] pour estimer $sigma^2(theta)$. 
+
+  Si c'est le cas, 
+  $
+  underbrace( (sqrt(n) (hat(theta) - theta))/(sigma(theta)), -->^(cal(L))_(hat(theta) "as. normal") cal(N) (0, 1) ) times underbrace( (sigma^2(theta))/(hat(sigma)^2), -->^(P)_("estimateur consistant") 1) -->^(cal(L))_(n -> +infinity) cal(N) (0, 1) " par lemme de Slutsky"
+  $ 
+- on en déduit 
+  $
+P(q_(alpha/2) <= (sqrt(n) (hat(theta) - theta))/hat(sigma)(theta) <= q_(1 - alpha/2)) -->_(n -> +infinity) 1 - alpha \
+P(hat(theta) - 1/(sqrt(n))hat(sigma)q_(1 - alpha/2) <= theta <= hat(theta) - 1/(sqrt(n)) hat(sigma) q_(alpha/2)) --> 1 - alpha
+  $ 
+

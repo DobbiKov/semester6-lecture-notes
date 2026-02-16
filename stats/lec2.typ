@@ -177,11 +177,13 @@ $ log L_n (hat(theta)) = sup_(theta in Theta) log L_n (theta) $
   $hat(theta)$ est une variable aléatoire
   #import "figures/remarque-max-vraisemblance.typ":diagram as remarque-max-vraisemblance
   #remarque-max-vraisemblance(width: 400pt)
-  // Image placeholder: \incfig{remarque-max-vraisemblance-1}
+  //
+  // Image placeholder: \incfig{remarque-max-vraisemblance}
   // #figure(
   //   caption: "remarque-max-vraisemblance-1"
   // ) <fig:remarque-max-vraisemblance-1>
 ]
+fdsa
 
 #ex[
   - $Bern(theta)$, $f_theta (x) = theta^x (1 - theta)^(1 - x)$, $X_i$ à valeurs 0-1

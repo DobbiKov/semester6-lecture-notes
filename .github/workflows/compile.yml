@@ -20,9 +20,9 @@ jobs:
 
     - name: Check PDF files
       run: |
-        # file statistical-inference/fr/main.pdf | grep -q ' PDF '
         file stats/main.pdf | grep -q ' PDF '
         file ode-prep-partiel/main.pdf | grep -q ' PDF '
+# file statistical-inference/fr/main.pdf | grep -q ' PDF '
         
     - name: Upload to GitHub pages
       run: |

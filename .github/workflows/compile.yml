@@ -22,6 +22,7 @@ jobs:
       run: |
         # file statistical-inference/fr/main.pdf | grep -q ' PDF '
         file stats/main.pdf | grep -q ' PDF '
+        file ode-prep-partiel/main.pdf | grep -q ' PDF '
         
     - name: Upload to GitHub pages
       run: |
@@ -39,6 +40,7 @@ jobs:
         # (*) To add a file, add the following command for that file
         # cp -f statistical-inference/fr/main.pdf "$GITHUB_WORKSPACE/deploy/statistical-inference-amphi.pdf"
         cp -f stats/main.pdf "$GITHUB_WORKSPACE/deploy/stats-amphi.pdf"
+        cp -f stats/main.pdf "$GITHUB_WORKSPACE/deploy/ode-prep-partiel-td.pdf"
 
         cd "$GITHUB_WORKSPACE/deploy"
 

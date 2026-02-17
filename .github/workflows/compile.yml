@@ -40,7 +40,7 @@ jobs:
         # (*) To add a file, add the following command for that file
         # cp -f statistical-inference/fr/main.pdf "$GITHUB_WORKSPACE/deploy/statistical-inference-amphi.pdf"
         cp -f stats/main.pdf "$GITHUB_WORKSPACE/deploy/stats-amphi.pdf"
-        cp -f stats/main.pdf "$GITHUB_WORKSPACE/deploy/ode-prep-partiel-td.pdf"
+        cp -f ode-prep-partiel/main.pdf "$GITHUB_WORKSPACE/deploy/ode-prep-partiel-td.pdf"
 
         cd "$GITHUB_WORKSPACE/deploy"
 

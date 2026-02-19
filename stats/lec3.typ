@@ -162,7 +162,7 @@ overbracket(int f_theta (x) d x, = 1) = 0
   $ 
 ]
 
-== Inp. de Fisher et derivé seconde
+== Information de Fisher et derivée seconde
 #prop[
   En ajoutant que $theta |-> f_theta (x)$ est  $C^2$ et que  $(H)$ vrai pour  $(theta^2)/(partial theta^2)$ alors l'info de Fisher s'écrit encore 
    $

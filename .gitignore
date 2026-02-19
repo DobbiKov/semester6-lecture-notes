@@ -21,5 +21,5 @@
 !**/figures/*.pdf
 !figures/*.pdf
 */.DS_Store
-!pdfs/stats.pdf
-!pdf/ode-prep-patiel-td.pdf
+!docs/stats.pdf
+!docs/ode-prep-patiel-td.pdf

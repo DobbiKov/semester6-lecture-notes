@@ -1,0 +1,371 @@
+\documentclass[10pt,a4paper,landscape]{article}
+\usepackage[margin=1cm]{geometry}
+\usepackage{multicol}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{mathrsfs}
+\usepackage{xcolor}
+\usepackage{mdframed}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{bm}
+\usepackage{amsfonts}
+\usepackage{hyperref}
+
+% Colors
+\definecolor{defblue}{RGB}{30, 90, 180}
+\definecolor{thmred}{RGB}{180, 30, 30}
+\definecolor{exgreen}{RGB}{20, 130, 60}
+\definecolor{propviolet}{RGB}{120, 30, 160}
+\definecolor{headercolor}{RGB}{40, 60, 100}
+\definecolor{lightgray}{RGB}{245,245,245}
+\definecolor{accentgold}{RGB}{180,140,0}
+
+% Environments
+\newmdenv[backgroundcolor=blue!6, linecolor=defblue, linewidth=1pt, roundcorner=3pt, skipabove=2pt, skipbelow=2pt, innertopmargin=3pt, innerbottommargin=3pt, innerleftmargin=4pt, innerrightmargin=4pt]{defbox}
+\newmdenv[backgroundcolor=red!5, linecolor=thmred, linewidth=1pt, roundcorner=3pt, skipabove=2pt, skipbelow=2pt, innertopmargin=3pt, innerbottommargin=3pt, innerleftmargin=4pt, innerrightmargin=4pt]{thmbox}
+\newmdenv[backgroundcolor=violet!5, linecolor=propviolet, linewidth=1pt, roundcorner=3pt, skipabove=2pt, skipbelow=2pt, innertopmargin=3pt, innerbottommargin=3pt, innerleftmargin=4pt, innerrightmargin=4pt]{propbox}
+\newmdenv[backgroundcolor=green!5, linecolor=exgreen, linewidth=0.7pt, roundcorner=3pt, skipabove=2pt, skipbelow=2pt, innertopmargin=2pt, innerbottommargin=2pt, innerleftmargin=4pt, innerrightmargin=4pt]{exbox}
+
+% Title commands
+\newcommand{\sectiontitle}[1]{%
+  \noindent\colorbox{headercolor}{\makebox[\linewidth-2\fboxsep][l]{\color{white}\textbf{\small #1}}}%
+  \vspace{2pt}%
+}
+\newcommand{\deftitle}[1]{\textcolor{defblue}{\textbf{Déf.~(#1)}}}
+\newcommand{\thmtitle}[1]{\textcolor{thmred}{\textbf{Thm.~(#1)}}}
+\newcommand{\proptitle}[1]{\textcolor{propviolet}{\textbf{Prop.~(#1)}}}
+\newcommand{\lemtitle}[1]{\textcolor{exgreen}{\textbf{Lem.~(#1)}}}
+
+% Math shortcuts
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\Var}{\mathrm{Var}}
+\newcommand{\Cov}{\mathrm{Cov}}
+\newcommand{\PP}{\mathbb{P}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\htheta}{\hat{\theta}}
+\newcommand{\cvL}{\xrightarrow{\mathcal{L}}}
+\newcommand{\cvP}{\xrightarrow{\mathbb{P}}}
+\newcommand{\cvps}{\xrightarrow{\text{p.s.}}}
+\newcommand{\Ind}{\mathbf{1}}
+\newcommand{\Fn}{\hat{F}_n}
+
+\pagestyle{empty}
+\setlength{\parindent}{0pt}
+\setlength{\columnsep}{8pt}
+
+\begin{document}
+
+\begin{center}
+{\large\bfseries\color{headercolor} Fiche de Révision — Statistiques Mathématiques}
+\end{center}
+\vspace{-4pt}
+
+\begin{multicols}{4}
+
+%────────────────────────────────
+\sectiontitle{1. Modèle Statistique}
+
+\begin{defbox}
+\deftitle{Modèle statistique}\\
+$(\Omega, \mathcal{A}, \mathcal{P})$ avec $\mathcal{P} = \{P_\theta;\, \theta\in\Theta\}$.
+\begin{itemize}[leftmargin=*,nosep]
+  \item \textbf{Paramétrique}: $\exists p\in\mathbb{N}^*$, $\Theta\subset\R^p$
+  \item \textbf{Non-paramétrique}: sinon
+\end{itemize}
+\end{defbox}
+
+\begin{defbox}
+\deftitle{Identifiabilité}\\
+$\theta \mapsto P_\theta$ est \textbf{injective}.
+\end{defbox}
+
+\begin{defbox}
+\deftitle{Estimateur}\\
+$\htheta = h(X_1,\ldots,X_n)$ mesurable, indépendant de $\theta$.
+\end{defbox}
+
+%────────────────────────────────
+\sectiontitle{2. Qualité d'un Estimateur}
+
+\begin{defbox}
+\deftitle{Biais}
+$$B(\htheta,\theta) = \E[\htheta] - \theta$$
+Sans biais $\Leftrightarrow$ $B=0$.
+\end{defbox}
+
+\begin{defbox}
+\deftitle{Risque quadratique (MSE)}
+$$R(\htheta,\theta) = \E[(\htheta-\theta)^2]$$
+\end{defbox}
+
+\begin{thmbox}
+\thmtitle{Décomposition Biais-Variance}
+$$\boxed{R(\htheta,\theta) = B(\htheta,\theta)^2 + \Var(\htheta)}$$
+\textit{Preuve}: développement de $(\htheta-\theta)^2$ autour de $\E[\htheta]$.
+\end{thmbox}
+
+\begin{defbox}
+\deftitle{Consistance}
+$$\htheta_n \cvP \theta \quad (n\to+\infty)$$
+\textbf{Forte}: $\htheta_n \cvps \theta$.\\
+\textbf{Outil}: si $R(\htheta_n,\theta)\to 0 \Rightarrow$ consistant (Bienaymé-Tchebychev).
+\end{defbox}
+
+%────────────────────────────────
+\sectiontitle{3. Méthode des Moments}
+
+\begin{defbox}
+\deftitle{Moments}
+\begin{itemize}[leftmargin=*,nosep]
+  \item Théorique ord. $k$: $\mu_k = \E[X_i^k]$
+  \item Empirique ord. $k$: $\hat{\mu}_k = \frac{1}{n}\sum_{i=1}^n X_i^k$
+\end{itemize}
+Par LGN: $\hat{\mu}_k \cvP \mu_k$.
+\end{defbox}
+
+\begin{propbox}
+\proptitle{Principe}\\
+Si $\theta = \mathcal{L}(\mu_1,\ldots,\mu_k)$, alors
+$$\hat{\theta}_{MM} = \mathcal{L}(\hat{\mu}_1,\ldots,\hat{\mu}_k)$$
+est consistant (par LAC).
+\end{propbox}
+
+\begin{exbox}
+\textcolor{exgreen}{\textbf{Exemples}}
+\begin{itemize}[leftmargin=*,nosep]
+  \item $\mathrm{Bern}(\theta)$: $\hat{\theta}=\bar{X}$
+  \item $\mathrm{Exp}(\theta)$: $\hat{\theta}=1/\bar{X}$
+  \item $f_\theta(x)=\theta x^{\theta-1}\Ind_{[0,1]}$: $\hat{\theta}=\frac{\bar{X}}{1-\bar{X}}$
+  \item \textbf{Variance empirique}: $\hat{\sigma}^2 = \frac{1}{n}\sum(X_i-\bar{X})^2$\\
+  Biais: $-\frac{1}{n}\sigma^2$ (asymptotiquement sans biais)
+\end{itemize}
+\end{exbox}
+
+%────────────────────────────────
+\sectiontitle{4. Maximum de Vraisemblance}
+
+\begin{defbox}
+\deftitle{Vraisemblance \& log-vraisemblance}
+$$L_n(\theta) = \prod_{i=1}^n f_\theta(X_i)$$
+$$\ell_n(\theta) = \log L_n(\theta) = \sum_{i=1}^n \log f_\theta(X_i)$$
+\end{defbox}
+
+\begin{defbox}
+\deftitle{EMV}
+$$\hat{\theta}_{MV} = \arg\max_{\theta\in\Theta}\, \ell_n(\theta)$$
+Équation de vraisemblance: $\ell_n'(\theta)=0$
+\end{defbox}
+
+\begin{propbox}
+\proptitle{Invariance de l'EMV}\\
+Si $\htheta$ est EMV de $\theta$, alors $g(\htheta)$ est EMV de $g(\theta)$.
+\end{propbox}
+
+\begin{exbox}
+\textcolor{exgreen}{\textbf{Exemples EMV}}
+\begin{itemize}[leftmargin=*,nosep]
+  \item $\mathrm{Bern}(\theta)$: $\hat{\theta}^{MV}=\bar{X}$
+  \item $\mathrm{Exp}(\theta)$: $\hat{\theta}^{MV}=1/\bar{X}$
+  \item $f_\theta(x)=\frac{3}{\theta}x^2 e^{-x^3/\theta}$: $\hat{\theta}=\frac{1}{n}\sum X_i^3$
+\end{itemize}
+\end{exbox}
+
+%────────────────────────────────
+\sectiontitle{5. Modèle Régulier \& Information de Fisher}
+
+\begin{defbox}
+\deftitle{Modèle régulier}\\
+$(P_\theta)$ régulier si:
+\begin{enumerate}[leftmargin=*,nosep,label=\arabic*.]
+  \item $\Theta$ ouvert, $\theta\mapsto f_\theta(x)$ est $C^1$
+  \item $\mathrm{Supp}(f_\theta)$ indépendant de $\theta$
+  \item Hypothèse $(H)$: dérivation sous le signe $\int$
+\end{enumerate}
+\end{defbox}
+
+\begin{defbox}
+\deftitle{Score}
+$$S_n(\theta) = \frac{\partial}{\partial\theta}\ell_n(\theta) = \sum_{i=1}^n \frac{\partial}{\partial\theta}\log f_\theta(X_i)$$
+\end{defbox}
+
+\begin{defbox}
+\deftitle{Information de Fisher}
+$$I(\theta) = \E_\theta\!\left[\left(\frac{\partial}{\partial\theta}\log f_\theta(X_1)\right)^{\!2}\right] = \int_S \frac{(\partial_\theta f_\theta)^2}{f_\theta}\,d\mu$$
+$$I_n(\theta) = n\,I(\theta) = \Var_\theta(S_n(\theta))$$
+\end{defbox}
+
+\begin{propbox}
+\proptitle{Score centré} Sous $(H)$:
+$$\E_\theta\!\left[\frac{\partial}{\partial\theta}\log f_\theta(X_1)\right] = 0$$
+\end{propbox}
+
+\begin{propbox}
+\proptitle{Dérivée seconde} Sous $(H)$:
+$$I_n(\theta) = -\E_\theta\!\left[\frac{\partial^2}{\partial\theta^2}\ell_n(\theta)\right]$$
+\end{propbox}
+
+\begin{exbox}
+\textcolor{exgreen}{\textbf{Exemples $I(\theta)$}}
+\begin{itemize}[leftmargin=*,nosep]
+  \item $\mathrm{Exp}(\theta)$: $I(\theta)=1/\theta^2$
+  \item $\mathrm{Bern}(\theta)$: $I(\theta)=\frac{1}{\theta(1-\theta)}$
+  \item $\mathcal{P}(\theta)$: $I(\theta)=1/\theta$
+\end{itemize}
+\end{exbox}
+
+%────────────────────────────────
+\sectiontitle{6. Inégalité de Cramér–Rao}
+
+\begin{thmbox}
+\thmtitle{Borne de Cramér–Rao}\\
+Modèle régulier, $I(\theta)>0$. Pour tout estimateur $T$ sans biais de $g(\theta)$ avec $\E_\theta[T^2]<+\infty$:
+$$\boxed{\Var_\theta(T) \geq \frac{[g'(\theta)]^2}{I_n(\theta)} = \frac{[g'(\theta)]^2}{n\,I(\theta)}}$$
+\textit{Preuve}: Cauchy-Schwarz sur $\langle T-g(\theta),\, \partial_\theta\log f_\theta\rangle_{P_\theta}$.
+\end{thmbox}
+
+\begin{defbox}
+\deftitle{Estimateur efficace}\\
+$T$ est \textbf{efficace} si $\Var_\theta(T) = \frac{[g'(\theta)]^2}{I_n(\theta)}$ (égalité dans CR).
+\end{defbox}
+
+%────────────────────────────────
+\sectiontitle{7. Convergences}
+
+\begin{defbox}
+\deftitle{Normalité asymptotique}\\
+$\htheta_n$ est asymptotiquement normal si:
+$$\sqrt{n}(\htheta_n - \theta) \cvL \mathcal{N}(0,\sigma^2(\theta))$$
+Remarque: normalité asymptotique $\Rightarrow$ consistance.
+\end{defbox}
+
+\begin{propbox}
+\proptitle{Lemme de Slutsky}\\
+Si $X_n\cvL X$ et $Y_n\cvL c$ (constante), alors:
+\begin{itemize}[leftmargin=*,nosep]
+  \item $X_n+Y_n\cvL X+c$
+  \item $X_nY_n\cvL cX$
+  \item $X_n/Y_n\cvL X/c$ si $c\neq 0$
+\end{itemize}
+\end{propbox}
+
+\begin{thmbox}
+\thmtitle{$\delta$-méthode}\\
+Si $\sqrt{n}(Z_n-\mu)\cvL \mathcal{N}(0,\tau^2)$ et $g$ dérivable en $\mu$, $g'(\mu)\neq 0$:
+$$\boxed{\sqrt{n}[g(Z_n)-g(\mu)] \cvL \mathcal{N}(0,[g'(\mu)]^2\tau^2)}$$
+\end{thmbox}
+
+\begin{thmbox}
+\thmtitle{TLC (rappel)}\\
+$(X_i)$ i.i.d., $\E[X_i]=\mu$, $\Var(X_i)=\sigma^2<+\infty$:
+$$\sqrt{n}(\bar{X}-\mu)\cvL \mathcal{N}(0,\sigma^2)$$
+\end{thmbox}
+
+\begin{propbox}
+\proptitle{Convergence des couples}\\
+$\begin{pmatrix}X_n\\Y_n\end{pmatrix}\cvP \begin{pmatrix}X\\Y\end{pmatrix} \Leftrightarrow X_n\cvP X$ et $Y_n\cvP Y$\\[2pt]
+\textbf{Attention}: faux pour la convergence en loi!
+\end{propbox}
+
+\begin{propbox}
+\proptitle{LAC (Lemme des app. continues)}\\
+Si $X_n\cvP X$ et $g$ continue, alors $g(X_n)\cvP g(X)$.\\
+Idem pour $\cvL$ (et pour les couples).
+\end{propbox}
+
+%────────────────────────────────
+\sectiontitle{8. Fonction de Répartition Empirique}
+
+\begin{defbox}
+\deftitle{F.R. empirique}
+$$\Fn(x) = \frac{1}{n}\sum_{i=1}^n \Ind_{X_i\leq x}$$
+$n\,\Fn(x)\sim\mathrm{Bin}(n,F(x))$
+\end{defbox}
+
+\begin{propbox}
+\proptitle{Propriétés de $\Fn$}
+\begin{itemize}[leftmargin=*,nosep]
+  \item $\Fn(x)\cvP F(x)$ (LGN, consistance)
+  \item $\sqrt{n}(\Fn(x)-F(x))\cvL \mathcal{N}(0,F(x)(1-F(x)))$ (TLC)
+  \item \textbf{Glivenko-Cantelli}: $\sup_{x}|\Fn(x)-F(x)|\cvP 0$
+\end{itemize}
+\end{propbox}
+
+\begin{defbox}
+\deftitle{Quantile empirique}\\
+$\hat{q}_{n,\alpha} = \Fn^{-1}(\alpha) = X_{(\lceil n\alpha\rceil)}$\\
+où $X_{(1)}\leq\cdots\leq X_{(n)}$ est l'échantillon ordonné.
+\end{defbox}
+
+%────────────────────────────────
+\sectiontitle{9. Intervalles de Confiance}
+
+\begin{defbox}
+\deftitle{Intervalle de confiance}\\
+$[B_\inf, B_\sup]$ (bornes aléatoires, ne dépendent pas de $\theta$) tel que:
+$$\PP(\theta\in[B_\inf, B_\sup])\geq 1-\alpha$$
+\begin{itemize}[leftmargin=*,nosep]
+  \item \textbf{Exact}: égalité $=1-\alpha$
+  \item \textbf{Asymptotique}: $\PP(\ldots)\to 1-\alpha$
+  \item En pratique: $\alpha = 5\%$ ou $1\%$
+\end{itemize}
+\end{defbox}
+
+\begin{thmbox}
+\thmtitle{Méthode pivotale}\\
+Si $\sqrt{n}(\htheta_n-\theta)/\hat{\sigma}\cvL \mathcal{N}(0,1)$, alors:
+$$\boxed{IC_{1-\alpha} = \left[\htheta_n - \frac{q_{1-\alpha/2}\,\hat\sigma}{\sqrt{n}}\,,\; \htheta_n - \frac{q_{\alpha/2}\,\hat\sigma}{\sqrt{n}}\right]}$$
+où $q_\beta = \Phi^{-1}(\beta)$ quantile gaussien.\\[2pt]
+\textbf{Symétrie}: $q_{1-\alpha/2}=-q_{\alpha/2}$, donc largeur $= \frac{2q_{1-\alpha/2}\hat\sigma}{\sqrt{n}}$.
+\end{thmbox}
+
+\begin{exbox}
+\textcolor{exgreen}{\textbf{IC pour proportion}} $X_i\sim\mathrm{Bern}(\theta)$:\\
+$\hat\sigma^2 = \hat\theta(1-\hat\theta)$, pivot: $\frac{\sqrt{n}(\bar X-\theta)}{\sqrt{\hat\theta(1-\hat\theta)}}\cvL\mathcal{N}(0,1)$\\[3pt]
+\textcolor{exgreen}{\textbf{IC pour $\mathrm{Exp}(\theta)$}} ($\hat\theta=1/\bar X$):\\
+$\frac{\sqrt{n}(\hat\theta-\theta)}{\hat\theta}\cvL\mathcal{N}(0,1)$ (Slutsky+$\delta$-méthode)\\
+$IC = \hat\theta\!\left[1 \pm \frac{q_{1-\alpha/2}}{\sqrt{n}}\right]$
+\end{exbox}
+
+%────────────────────────────────
+\sectiontitle{10. Efficacité Asymptotique}
+
+\begin{propbox}
+\proptitle{Asymptotiquement efficace}\\
+$\htheta_n$ asymptotiquement efficace si:
+$$n\,\Var(\htheta_n)\xrightarrow{n\to\infty} \frac{1}{I(\theta)}$$
+L'EMV est généralement asymptotiquement efficace.
+\end{propbox}
+
+\begin{thmbox}
+\thmtitle{Pivot de Slutsky}\\
+Si $\hat\sigma^2$ est consistant pour $\sigma^2(\theta)$:
+$$\frac{\sqrt{n}(\htheta_n-\theta)}{\hat\sigma}\cvL\mathcal{N}(0,1)$$
+\textit{Preuve}: Slutsky + $\frac{\sigma(\theta)}{\hat\sigma}\cvP 1$.
+\end{thmbox}
+
+%────────────────────────────────
+\sectiontitle{Aide-Mémoire Rapide}
+
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Objet} & \textbf{Formule clé}\\
+\midrule
+Biais & $\E[\htheta]-\theta$\\
+MSE & $B^2+\Var(\htheta)$\\
+I. Fisher & $\E[(\partial_\theta\log f)^2]$\\
+$I_n$ & $nI(\theta)$\\
+BCR & $\Var(T)\geq [g'(\theta)]^2/I_n$\\
+$\delta$-méthode & $(g'(\mu))^2\tau^2$\\
+IC asympt. & $\htheta\pm q_{1-\alpha/2}\hat\sigma/\sqrt{n}$\\
+\bottomrule
+\end{tabular}
+
+\vspace{4pt}
+\textbf{Quantiles $\mathcal{N}(0,1)$ usuels}\\
+$q_{0.975}=1.96$, $q_{0.995}=2.576$, $q_{0.95}=1.645$
+
+\end{multicols}
+\end{document}

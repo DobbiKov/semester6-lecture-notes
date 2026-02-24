@@ -300,7 +300,7 @@ MPI_Recv(&data, count, MPI_TYPE, source,
 \vspace{2pt}
 {\scriptsize Types: \texttt{MPI\_INT \; MPI\_DOUBLE \; MPI\_FLOAT \; MPI\_CHAR}}
 
-{\scriptsize \texttt{count} = size of array, \texttt{source} = rank (id) to who we send or receive from, \texttt{tag} = don't know, set to 0}
+{\scriptsize \texttt{count} = size of array, \texttt{dest}, \texttt{source} = rank (id) to who we send or receive from, \texttt{tag} = don't know, set to 0}
 \end{highlightbox}
 
 \begin{sectionbox}{{ Pattern: Ping-Pong (pairs 0$\leftrightarrow$1, 2$\leftrightarrow$3\,...) }}

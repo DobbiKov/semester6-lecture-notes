@@ -1,6 +1,6 @@
 \documentclass[8pt,a4paper,landscape]{article}
 
-\usepackage[landscape,margin=8mm]{geometry}
+\usepackage[landscape,margin=8mm,includefoot]{geometry}
 \usepackage{multicol}
 \usepackage{listings}
 \usepackage{xcolor}
@@ -26,7 +26,13 @@
 \pagestyle{fancy}
 \fancyhf{}
 \renewcommand{\headrulewidth}{0pt}
-\fancyfoot[C]{\footnotesize\color{gray} OpenMP / MPI / AVX Cheat Sheet --- \thepage}
+\setlength{\footskip}{14pt}
+\fancyfoot[C]{\color{gray} done by Yehor Korotenko}
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \renewcommand{\headrulewidth}{0pt}
+  \fancyfoot[C]{\footnotesize\color{gray} done by Yehor Korotenko (dobbikov.com)}
+}
 
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{1pt}
@@ -115,6 +121,7 @@
 \colorbox{titlebg}{\makebox[\textwidth][c]{\color{white}\Large\bfseries\strut OPENMP \;---\; Shared Memory Parallelism (threads)}}
 \end{center}
 \vspace{2mm}
+
 
 \begin{multicols}{3}
 
@@ -262,7 +269,7 @@ mpirun -np 4 ./prog
 \end{lstlisting}
 \end{sectionbox}
 
-\begin{sectionbox}{Basics: Init, Rank, Size, Finalize}
+\begin{sectionbox}{{Basics: Init, Rank, Size, Finalize}}
 \begin{lstlisting}
 #include "mpi.h"
 
@@ -281,7 +288,7 @@ int main(int argc, char **argv) {
 \end{lstlisting}
 \end{sectionbox}
 
-\begin{highlightbox}{Send \& Recv (blocking, point-to-point)}
+\begin{highlightbox}{{ Send \& Recv (blocking, point-to-point) }}
 \begin{lstlisting}
 MPI_Send(&data, count, MPI_TYPE, dest,
          tag, MPI_COMM_WORLD);
@@ -292,9 +299,11 @@ MPI_Recv(&data, count, MPI_TYPE, source,
 \end{lstlisting}
 \vspace{2pt}
 {\scriptsize Types: \texttt{MPI\_INT \; MPI\_DOUBLE \; MPI\_FLOAT \; MPI\_CHAR}}
+
+{\scriptsize \texttt{count} = size of array, \texttt{source} = rank (id) to who we send or receive from, \texttt{tag} = don't know, set to 0}
 \end{highlightbox}
 
-\begin{sectionbox}{Pattern: Ping-Pong (pairs 0$\leftrightarrow$1, 2$\leftrightarrow$3\,...)}
+\begin{sectionbox}{{ Pattern: Ping-Pong (pairs 0$\leftrightarrow$1, 2$\leftrightarrow$3\,...) }}
 \begin{lstlisting}
 int msg;
 if (rank%2==0 && rank+1<size) {
@@ -303,13 +312,13 @@ if (rank%2==0 && rank+1<size) {
            MPI_COMM_WORLD);
   MPI_Recv(&msg,1,MPI_INT,rank+1,0,
            MPI_COMM_WORLD,MPI_STATUS_IGNORE);
-} else if (rank%2==1) {
+\} else if (rank%2==1) {
   MPI_Recv(&msg,1,MPI_INT,rank-1,0,
            MPI_COMM_WORLD,MPI_STATUS_IGNORE);
   msg += 10 * rank;
   MPI_Send(&msg,1,MPI_INT,rank-1,0,
            MPI_COMM_WORLD);
-}
+\}
 \end{lstlisting}
 \end{sectionbox}
 
@@ -413,7 +422,7 @@ g++ -O1 -mavx2 -mfma prog.cpp -o prog
 \end{lstlisting}
 \end{sectionbox}
 
-\begin{highlightbox}{Types, Load, Store, Arithmetic}
+\begin{highlightbox}{{ Types, Load, Store, Arithmetic }}
 \begin{lstlisting}
 #include "immintrin.h"
 
@@ -540,6 +549,9 @@ for (; i < dim; i++) dst[i] = src[i];
 \textbf{Speed} & $\times$cores & $\times$nodes & $\times$8 float \\
 \end{tabular}
 \end{highlightbox}
+
+AVX parallelizes within a core, OpenMP parallelizes across cores on one
+machine, and MPI parallelizes across machines.
 
 \end{multicols}
 

@@ -8,3 +8,4 @@ My lecture notes taken during my semester6.
 3. [ODEs perp partiel](https://dobbikov.github.io/semester6-lecture-notes/ode-prep-partiel-td.pdf)
 4. [Stats CheatSheet](https://dobbikov.github.io/semester6-lecture-notes/stats-cheatsheet.pdf)
 5. [Algo Visually](https://dobbikov.github.io/semester6-lecture-notes/algo.html)
+6. [Algo CheatSheet](https://dobbikov.github.io/semester6-lecture-notes/algo-cheatsheet.pdf)

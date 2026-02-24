@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Distributed Systems — Interactive Animated Textbook</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{overflow:hidden;background:#0B1121;}
+::-webkit-scrollbar{width:6px;}
+::-webkit-scrollbar-track{background:#0F1729;}
+::-webkit-scrollbar-thumb{background:#334155;border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:#475569;}
+button{font-family:inherit;}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+
+// ─── Animation Engine ───
+function useAnimation(steps, autoPlaySpeed = 1200) {
+  const [step, setStep] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const timer = useRef(null);
+
+  useEffect(() => {
+    if (playing && step < steps.length - 1) {
+      timer.current = setTimeout(() => setStep(s => s + 1), autoPlaySpeed);
+    } else if (step >= steps.length - 1) {
+      setPlaying(false);
+    }
+    return () => clearTimeout(timer.current);
+  }, [playing, step, steps.length, autoPlaySpeed]);
+
+  const reset = () => { setPlaying(false); setStep(0); };
+  const next = () => { if (step < steps.length - 1) setStep(s => s + 1); };
+  const prev = () => { if (step > 0) setStep(s => s - 1); };
+  const play = () => setPlaying(true);
+  const pause = () => setPlaying(false);
+
+  return { step, playing, reset, next, prev, play, pause, total: steps.length };
+}
+
+function Controls({ anim, color }) {
+  const bg = "#0F1729";
+  const btn = (onClick, label, disabled = false) => (
+    <button onClick={onClick} disabled={disabled} style={{
+      background: disabled ? "#1a2332" : "#1e293b", border: `1px solid ${disabled ? "#1a2332" : color}44`,
+      color: disabled ? "#334155" : color, cursor: disabled ? "default" : "pointer",
+      padding: "5px 12px", borderRadius: 4, fontSize: 12, fontFamily: "'JetBrains Mono', monospace", transition: "all 0.15s"
+    }}>{label}</button>
+  );
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 0", flexWrap: "wrap" }}>
+      {btn(anim.reset, "⟳ Reset")}
+      {btn(anim.prev, "◀ Prev", anim.step === 0)}
+      {anim.playing ? btn(anim.pause, "⏸ Pause") : btn(anim.play, "▶ Play", anim.step >= anim.total - 1)}
+      {btn(anim.next, "Next ▶", anim.step >= anim.total - 1)}
+      <span style={{ fontSize: 11, color: "#64748b", fontFamily: "monospace", marginLeft: 8 }}>
+        Step {anim.step + 1} / {anim.total}
+      </span>
+    </div>
+  );
+}
+
+function AnimContainer({ children, narration, color }) {
+  return (
+    <div style={{ background: "#0D1525", border: "1px solid #1e293b", borderRadius: 8, overflow: "hidden" }}>
+      <div style={{ padding: 20, display: "flex", justifyContent: "center" }}>{children}</div>
+      {narration && (
+        <div style={{ padding: "12px 20px", borderTop: "1px solid #1e293b", background: `${color}08`, fontSize: 13, fontFamily: "'JetBrains Mono', monospace", color: "#cbd5e1", lineHeight: 1.6, minHeight: 48 }}>
+          {narration}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Helpers ───
+const lerp = (a, b, t) => a + (b - a) * Math.min(1, Math.max(0, t));
+const C = { bg: "#0D1525", line: "#334155", text: "#94a3b8", white: "#f1f5f9" };
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Causality
+// ═══════════════════════════════════════════════
+function CausalityAnim({ color }) {
+  const steps = [
+    { desc: "Three processes P1, P2, P3 run independently. No events yet." },
+    { desc: "P1 performs local event e1. This is an internal action on P1." },
+    { desc: "P1 sends message m1 to P2. The send is part of e1's causal future." },
+    { desc: "P2 receives m1 → event e2. Since e1 (send) happened before e2 (receive), we have e1 → e2." },
+    { desc: "P2 sends message m2 to P3 after e2." },
+    { desc: "P3 receives m2 → event e3. By transitivity: e1 → e2 → e3, so e1 → e3." },
+    { desc: "P1 does local event e4. e4 has NO causal link to e2 or e3 → e4 ∥ e2 and e4 ∥ e3 (concurrent)." },
+    { desc: "Summary: e1→e2→e3 (causal chain). e4∥e2, e4∥e3 (concurrent). Causality = partial order on events." },
+  ];
+  const anim = useAnimation(steps);
+  const s = anim.step;
+
+  return (
+    <div>
+      <AnimContainer narration={steps[s].desc} color={color}>
+        <svg viewBox="0 0 500 220" style={{ width: "100%", maxHeight: 220 }}>
+          <defs>
+            <marker id="ca" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill={color} /></marker>
+            <marker id="ca2" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#4ECDC4" /></marker>
+          </defs>
+          {/* Process lines */}
+          {["P1","P2","P3"].map((p,i) => (
+            <g key={p}>
+              <text x="12" y={50+i*70+4} fill={C.text} fontSize="12" fontFamily="monospace">{p}</text>
+              <line x1="45" y1={50+i*70} x2="480" y2={50+i*70} stroke={C.line} strokeWidth="2"/>
+            </g>
+          ))}
+          {/* e1 */}
+          {s >= 1 && <><circle cx="100" cy="50" r="7" fill={color}><animate attributeName="r" from="0" to="7" dur="0.3s"/></circle><text x="90" y="35" fill={color} fontSize="10" fontFamily="monospace">e1</text></>}
+          {/* m1 arrow */}
+          {s >= 2 && <line x1="107" y1="57" x2={s>=3?"218":"160"} y2={s>=3?"113":"85"} stroke={color} strokeWidth="1.5" markerEnd="url(#ca)" strokeDasharray="5" opacity="0.8"/>}
+          {s >= 2 && s < 3 && <text x="140" y="75" fill={color} fontSize="9" fontFamily="monospace">m1 ✉</text>}
+          {/* e2 */}
+          {s >= 3 && <><circle cx="225" cy="120" r="7" fill={color}><animate attributeName="r" from="0" to="7" dur="0.3s"/></circle><text x="215" y="105" fill={color} fontSize="10" fontFamily="monospace">e2</text></>}
+          {s >= 3 && <text x="135" y="80" fill="#22D3EE" fontSize="9" fontFamily="monospace">e1 → e2</text>}
+          {/* m2 arrow */}
+          {s >= 4 && <line x1="232" y1="127" x2={s>=5?"338":"285"} y2={s>=5?"183":"155"} stroke={color} strokeWidth="1.5" markerEnd="url(#ca)" strokeDasharray="5" opacity="0.8"/>}
+          {/* e3 */}
+          {s >= 5 && <><circle cx="345" cy="190" r="7" fill={color}><animate attributeName="r" from="0" to="7" dur="0.3s"/></circle><text x="335" y="175" fill={color} fontSize="10" fontFamily="monospace">e3</text></>}
+          {s >= 5 && <text x="260" y="155" fill="#22D3EE" fontSize="9" fontFamily="monospace">e2 → e3</text>}
+          {/* e4 */}
+          {s >= 6 && <><circle cx="300" cy="50" r="7" fill="#4ECDC4"><animate attributeName="r" from="0" to="7" dur="0.3s"/></circle><text x="290" y="35" fill="#4ECDC4" fontSize="10" fontFamily="monospace">e4</text></>}
+          {s >= 6 && <>
+            <line x1="300" y1="58" x2="225" y2="112" stroke="#4ECDC4" strokeWidth="1" strokeDasharray="3" opacity="0.4"/>
+            <text x="240" y="75" fill="#4ECDC4" fontSize="9" fontFamily="monospace">e4 ∥ e2</text>
+          </>}
+          {/* Summary highlights */}
+          {s >= 7 && <>
+            <rect x="85" y="30" width="275" height="175" rx="8" fill="none" stroke="#22D3EE" strokeWidth="1" strokeDasharray="4" opacity="0.3"/>
+            <text x="380" y="50" fill="#22D3EE" fontSize="10" fontFamily="monospace">causal</text>
+            <text x="380" y="65" fill="#22D3EE" fontSize="10" fontFamily="monospace">chain ↓</text>
+            <text x="380" y="130" fill="#4ECDC4" fontSize="10" fontFamily="monospace">concurrent</text>
+            <text x="380" y="145" fill="#4ECDC4" fontSize="10" fontFamily="monospace">events ↗</text>
+          </>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Lamport Clocks
+// ═══════════════════════════════════════════════
+function LamportAnim({ color }) {
+  const steps = [
+    { desc: "Two processes P1 and P2, both start with Lamport clock C = 0.", c1: 0, c2: 0 },
+    { desc: "P1 does local event a. Rule: C = C+1. P1's clock becomes 1.", c1: 1, c2: 0, ev: "e1" },
+    { desc: "P1 sends message to P2 with timestamp C=1 attached.", c1: 1, c2: 0, msg: true },
+    { desc: "P2 receives msg(ts=1). Rule: C = max(C, ts) + 1 = max(0,1)+1 = 2.", c1: 1, c2: 2, recv: true },
+    { desc: "P2 does local event. C = C+1 = 3.", c1: 1, c2: 3 },
+    { desc: "P1 does local event. C = C+1 = 2. Note: P1(C=2) and P2(C=2) were concurrent — same timestamp!", c1: 2, c2: 3, concurrent: true },
+    { desc: "Key insight: e1→e2 implies L(e1)<L(e2), but L(a)<L(b) does NOT imply a→b. Lamport clocks cannot detect concurrency.", c1: 2, c2: 3 },
+  ];
+  const anim = useAnimation(steps);
+  const s = anim.step;
+  const st = steps[s];
+
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 480 180" style={{ width: "100%", maxHeight: 180 }}>
+          <defs><marker id="la" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill={color}/></marker></defs>
+          <text x="12" y="54" fill={C.text} fontSize="11" fontFamily="monospace">P1</text>
+          <line x1="45" y1="50" x2="460" y2="50" stroke={C.line} strokeWidth="2"/>
+          <text x="12" y="134" fill={C.text} fontSize="11" fontFamily="monospace">P2</text>
+          <line x1="45" y1="130" x2="460" y2="130" stroke={C.line} strokeWidth="2"/>
+
+          {/* Clock displays */}
+          <rect x="390" y="32" width="70" height="25" rx="4" fill="#1e293b" stroke={color} strokeWidth="1" opacity="0.6"/>
+          <text x="398" y="50" fill={color} fontSize="11" fontFamily="monospace">C₁ = {st.c1}</text>
+          <rect x="390" y="112" width="70" height="25" rx="4" fill="#1e293b" stroke="#4ECDC4" strokeWidth="1" opacity="0.6"/>
+          <text x="398" y="130" fill="#4ECDC4" fontSize="11" fontFamily="monospace">C₂ = {st.c2}</text>
+
+          {/* Events on P1 */}
+          {s >= 1 && <circle cx="100" cy="50" r="6" fill={color}/>}
+          {s >= 1 && <text x="88" y="38" fill={color} fontSize="9" fontFamily="monospace">C=1</text>}
+          {s >= 5 && <circle cx="280" cy="50" r="6" fill={st.concurrent ? "#ef4444" : color}/>}
+          {s >= 5 && <text x="268" y="38" fill={st.concurrent ? "#ef4444" : color} fontSize="9" fontFamily="monospace">C=2</text>}
+
+          {/* Message */}
+          {(s === 2) && <>
+            <line x1="106" y1="56" x2="180" y2="95" stroke={color} strokeWidth="1.5" strokeDasharray="4" opacity="0.7"/>
+            <text x="130" y="73" fill={color} fontSize="9" fontFamily="monospace">msg(1) ✉</text>
+          </>}
+          {s >= 3 && <line x1="106" y1="56" x2="194" y2="124" stroke={color} strokeWidth="1.5" markerEnd="url(#la)" strokeDasharray="4" opacity="0.6"/>}
+
+          {/* Events on P2 */}
+          {s >= 3 && <circle cx="200" cy="130" r="6" fill="#4ECDC4"/>}
+          {s >= 3 && <text x="185" y="155" fill="#4ECDC4" fontSize="9" fontFamily="monospace">C=2</text>}
+          {s >= 4 && <circle cx="260" cy="130" r="6" fill="#4ECDC4"/>}
+          {s >= 4 && <text x="248" y="155" fill="#4ECDC4" fontSize="9" fontFamily="monospace">C=3</text>}
+
+          {/* Concurrent highlight */}
+          {s >= 5 && st.concurrent && <>
+            <line x1="280" y1="58" x2="200" y2="122" stroke="#ef4444" strokeWidth="1" strokeDasharray="3" opacity="0.5"/>
+            <text x="215" y="90" fill="#ef4444" fontSize="9" fontFamily="monospace">same ts! concurrent</text>
+          </>}
+
+          {/* Final note */}
+          {s >= 6 && <text x="60" y="175" fill="#64748b" fontSize="10" fontFamily="monospace">⚠ L(a){"<"}L(b) ⇏ a→b   |   a→b ⇒ L(a){"<"}L(b) ✓</text>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Vector Clocks
+// ═══════════════════════════════════════════════
+function VectorAnim({ color }) {
+  const steps = [
+    { desc: "Three processes start with vector clocks [0,0,0]. Each position tracks that process's knowledge.", v: [[0,0,0],[0,0,0],[0,0,0]] },
+    { desc: "P1 local event: increment own position → [1,0,0].", v: [[1,0,0],[0,0,0],[0,0,0]], ev: [0] },
+    { desc: "P1 sends msg to P2, attaching vector [1,0,0].", v: [[1,0,0],[0,0,0],[0,0,0]], msg: [0,1] },
+    { desc: "P2 receives: V = max([0,0,0],[1,0,0]) = [1,0,0], then increment own → [1,1,0].", v: [[1,0,0],[1,1,0],[0,0,0]], ev: [1] },
+    { desc: "P2 sends msg to P3 with [1,1,0].", v: [[1,0,0],[1,1,0],[0,0,0]], msg: [1,2] },
+    { desc: "P3 receives: V = max([0,0,0],[1,1,0]) = [1,1,0], increment → [1,1,1].", v: [[1,0,0],[1,1,0],[1,1,1]], ev: [2] },
+    { desc: "P1 local event → [2,0,0]. Compare: [2,0,0] vs [1,1,0] — neither ≤ other → CONCURRENT! Vector clocks detect this.", v: [[2,0,0],[1,1,0],[1,1,1]], ev: [0], compare: true },
+    { desc: "[1,0,0] ≤ [1,1,1] (componentwise) → P1's first event causally precedes P3's event. Vector clocks capture exact causality!", v: [[2,0,0],[1,1,0],[1,1,1]], final: true },
+  ];
+  const anim = useAnimation(steps);
+  const s = anim.step;
+  const st = steps[s];
+  const fmtV = (v) => `[${v.join(",")}]`;
+
+  const py = [44, 104, 164];
+  const evX = [100, 220, 350];
+
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 500 210" style={{ width: "100%", maxHeight: 210 }}>
+          <defs><marker id="va" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#A78BFA"/></marker></defs>
+          {["P1","P2","P3"].map((p,i) => (
+            <g key={p}>
+              <text x="8" y={py[i]+4} fill={C.text} fontSize="11" fontFamily="monospace">{p}</text>
+              <line x1="40" y1={py[i]} x2="470" y2={py[i]} stroke={C.line} strokeWidth="2"/>
+              {/* Current vector */}
+              <rect x="400" y={py[i]-12} width="68" height="22" rx="3" fill="#1e293b" stroke={["#E8A838","#4ECDC4","#FF6B6B"][i]} strokeWidth="0.8"/>
+              <text x="406" y={py[i]+4} fill={["#E8A838","#4ECDC4","#FF6B6B"][i]} fontSize="9" fontFamily="monospace">{fmtV(st.v[i])}</text>
+            </g>
+          ))}
+          {/* Events */}
+          {s >= 1 && <circle cx={evX[0]} cy={py[0]} r="5" fill="#E8A838"/>}
+          {s >= 1 && <text x={evX[0]-20} y={py[0]-12} fill="#E8A838" fontSize="8" fontFamily="monospace">[1,0,0]</text>}
+          {(s===2) && <line x1={evX[0]+5} y1={py[0]+5} x2={170} y2={py[1]-10} stroke="#A78BFA" strokeWidth="1.5" strokeDasharray="4"/>}
+          {s >= 3 && <>
+            <line x1={evX[0]+5} y1={py[0]+5} x2={evX[1]-5} y2={py[1]-5} stroke="#A78BFA" strokeWidth="1.5" markerEnd="url(#va)" strokeDasharray="4" opacity="0.5"/>
+            <circle cx={evX[1]} cy={py[1]} r="5" fill="#4ECDC4"/>
+            <text x={evX[1]-20} y={py[1]-12} fill="#4ECDC4" fontSize="8" fontFamily="monospace">[1,1,0]</text>
+          </>}
+          {(s===4) && <line x1={evX[1]+5} y1={py[1]+5} x2={290} y2={py[2]-10} stroke="#A78BFA" strokeWidth="1.5" strokeDasharray="4"/>}
+          {s >= 5 && <>
+            <line x1={evX[1]+5} y1={py[1]+5} x2={evX[2]-5} y2={py[2]-5} stroke="#A78BFA" strokeWidth="1.5" markerEnd="url(#va)" strokeDasharray="4" opacity="0.5"/>
+            <circle cx={evX[2]} cy={py[2]} r="5" fill="#FF6B6B"/>
+            <text x={evX[2]-20} y={py[2]+18} fill="#FF6B6B" fontSize="8" fontFamily="monospace">[1,1,1]</text>
+          </>}
+          {s >= 6 && <>
+            <circle cx="300" cy={py[0]} r="5" fill={st.compare?"#ef4444":"#E8A838"}/>
+            <text x="278" y={py[0]-12} fill={st.compare?"#ef4444":"#E8A838"} fontSize="8" fontFamily="monospace">[2,0,0]</text>
+          </>}
+          {s >= 6 && st.compare && <>
+            <line x1="300" y1={py[0]+8} x2="220" y2={py[1]-8} stroke="#ef4444" strokeWidth="1" strokeDasharray="3" opacity="0.6"/>
+            <text x="240" y={py[0]+30} fill="#ef4444" fontSize="8" fontFamily="monospace">∥ concurrent!</text>
+          </>}
+          {s >= 7 && st.final && <>
+            <line x1={evX[0]} y1={py[0]+8} x2={evX[2]} y2={py[2]-8} stroke="#22D3EE" strokeWidth="1.5" strokeDasharray="4" opacity="0.6"/>
+            <text x="170" y="200" fill="#22D3EE" fontSize="9" fontFamily="monospace">✓ V(a) ≤ V(b) ⟺ a → b (exact causality!)</text>
+          </>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Basic Diffusion (Flooding)
+// ═══════════════════════════════════════════════
+function FloodingAnim({ color }) {
+  const nodes = [{id:"A",x:200,y:40},{id:"B",x:100,y:120},{id:"C",x:300,y:120},{id:"D",x:200,y:200}];
+  const edges = [[0,1],[0,2],[1,2],[1,3],[2,3]];
+  const steps = [
+    { desc: "Network with 4 nodes (A,B,C,D) and 5 edges. A will initiate flooding.", informed: [0], msgs: [] },
+    { desc: "A sends message to all neighbors: B and C.", informed: [0], msgs: [[0,1],[0,2]] },
+    { desc: "B and C receive. They are now informed. Both forward to their uninformed neighbors.", informed: [0,1,2], msgs: [[1,2],[1,3],[2,1],[2,3]] },
+    { desc: "B→C: C already informed (ignored). C→B: B already informed (ignored). B→D: D receives. C→D: D already got it from B (ignored).", informed: [0,1,2,3], msgs: [[1,3]] },
+    { desc: "All nodes informed! Total messages sent across edges: at most 2×|E| = 10, but effective messages = 5. Time = O(diameter).", informed: [0,1,2,3], msgs: [], done: true },
+  ];
+  const anim = useAnimation(steps, 1500);
+  const s = anim.step;
+  const st = steps[s];
+
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 400 240" style={{ width: "100%", maxHeight: 240 }}>
+          {edges.map(([a,b],i) => (
+            <line key={i} x1={nodes[a].x} y1={nodes[a].y} x2={nodes[b].x} y2={nodes[b].y} stroke={C.line} strokeWidth="1.5"/>
+          ))}
+          {st.msgs.map(([a,b],i) => {
+            const dx = nodes[b].x-nodes[a].x, dy = nodes[b].y-nodes[a].y;
+            const len = Math.sqrt(dx*dx+dy*dy);
+            return <line key={`m${i}`} x1={nodes[a].x+dx*0.15} y1={nodes[a].y+dy*0.15} x2={nodes[a].x+dx*0.7} y2={nodes[a].y+dy*0.7} stroke={color} strokeWidth="2" strokeDasharray="4" opacity="0.8"/>;
+          })}
+          {nodes.map((n,i) => {
+            const inf = st.informed.includes(i);
+            return (
+              <g key={n.id}>
+                <circle cx={n.x} cy={n.y} r="20" fill={inf ? color : "#1e293b"} stroke={inf ? color : C.line} strokeWidth="2" opacity={inf ? (i===0?1:0.75) : 0.5}>
+                  {inf && <animate attributeName="opacity" from="0.3" to={i===0?1:0.75} dur="0.4s"/>}
+                </circle>
+                <text x={n.x-5} y={n.y+5} fill={inf?"#0f172a":"#94a3b8"} fontSize="13" fontWeight="bold" fontFamily="monospace">{n.id}</text>
+              </g>
+            );
+          })}
+          {st.done && <text x="110" y="235" fill="#22D3EE" fontSize="10" fontFamily="monospace">✓ All informed | Msgs ≤ 2|E| | Time = O(diam)</text>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Tree Diffusion
+// ═══════════════════════════════════════════════
+function TreeDiffusionAnim({ color }) {
+  const nodes = [{id:"A",x:200,y:30},{id:"B",x:110,y:100},{id:"C",x:290,y:100},{id:"D",x:65,y:170},{id:"E",x:155,y:170}];
+  const treeEdges = [[0,1],[0,2],[1,3],[1,4]];
+  const steps = [
+    { desc: "Pre-built spanning tree rooted at A. Edges: A→B, A→C, B→D, B→E. Only N-1=4 messages needed!", active: [0], msgs: [] },
+    { desc: "A sends to children B and C (2 messages).", active: [0], msgs: [[0,1],[0,2]] },
+    { desc: "B and C receive. B forwards to children D and E (2 messages). C is a leaf — done.", active: [0,1,2], msgs: [[1,3],[1,4]] },
+    { desc: "D and E receive. All 5 nodes informed with exactly 4 messages (N-1). No duplicates!", active: [0,1,2,3,4], msgs: [], done: true },
+  ];
+  const anim = useAnimation(steps, 1500);
+  const s = anim.step; const st = steps[s];
+
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 400 210" style={{ width: "100%", maxHeight: 210 }}>
+          {treeEdges.map(([a,b],i) => (
+            <line key={i} x1={nodes[a].x} y1={nodes[a].y} x2={nodes[b].x} y2={nodes[b].y} stroke={color} strokeWidth="2" opacity="0.4"/>
+          ))}
+          {st.msgs.map(([a,b],i) => {
+            const na=nodes[a],nb=nodes[b];
+            return <line key={`m${i}`} x1={na.x} y1={na.y+15} x2={(na.x+nb.x)/2} y2={(na.y+nb.y)/2} stroke="#E8A838" strokeWidth="2.5" strokeDasharray="5"/>;
+          })}
+          {nodes.map((n,i) => (
+            <g key={n.id}>
+              <circle cx={n.x} cy={n.y} r="18" fill={st.active.includes(i)?color:"#1e293b"} stroke={color} strokeWidth="2" opacity={st.active.includes(i)?0.9:0.3}/>
+              <text x={n.x-5} y={n.y+5} fill={st.active.includes(i)?"#0f172a":"#64748b"} fontSize="12" fontWeight="bold" fontFamily="monospace">{n.id}</text>
+            </g>
+          ))}
+          {st.done && <text x="100" y="205" fill="#22D3EE" fontSize="10" fontFamily="monospace">✓ Exactly N-1 = 4 messages. Optimal!</text>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Ack Wave (Termination in diffusion)
+// ═══════════════════════════════════════════════
+function AckWaveAnim({ color }) {
+  const steps = [
+    { desc: "Tree: A→B→D, A→C. Diffusion starts at root A.", phase: "init" },
+    { desc: "Phase 1 — Diffusion: A sends to B and C.", phase: "diff1" },
+    { desc: "B sends to D. C is a leaf.", phase: "diff2" },
+    { desc: "Phase 2 — Ack wave: D is a leaf → sends ACK to B. C is a leaf → sends ACK to A.", phase: "ack1" },
+    { desc: "B received ACK from all children (D) → sends ACK to A.", phase: "ack2" },
+    { desc: "A received ACKs from B and C → DIFFUSION COMPLETE! The initiator knows everyone received the message.", phase: "done" },
+  ];
+  const anim = useAnimation(steps, 1500);
+  const s = anim.step;
+  const nodes = [{id:"A",x:200,y:35},{id:"B",x:120,y:105},{id:"C",x:280,y:105},{id:"D",x:120,y:175}];
+
+  return (
+    <div>
+      <AnimContainer narration={steps[s].desc} color={color}>
+        <svg viewBox="0 0 400 210" style={{ width: "100%", maxHeight: 210 }}>
+          <line x1="200" y1="35" x2="120" y2="105" stroke={C.line} strokeWidth="2"/>
+          <line x1="200" y1="35" x2="280" y2="105" stroke={C.line} strokeWidth="2"/>
+          <line x1="120" y1="105" x2="120" y2="175" stroke={C.line} strokeWidth="2"/>
+          {/* Diffusion arrows (down) */}
+          {s >= 1 && <><line x1="190" y1="50" x2="135" y2="90" stroke={color} strokeWidth="2" strokeDasharray="4"/><line x1="210" y1="50" x2="265" y2="90" stroke={color} strokeWidth="2" strokeDasharray="4"/></>}
+          {s >= 2 && <line x1="120" y1="120" x2="120" y2="160" stroke={color} strokeWidth="2" strokeDasharray="4"/>}
+          {/* Ack arrows (up) */}
+          {s >= 3 && <><line x1="120" y1="162" x2="120" y2="122" stroke="#22D3EE" strokeWidth="2" strokeDasharray="4"/><text x="130" y="145" fill="#22D3EE" fontSize="9" fontFamily="monospace">ACK</text></>}
+          {s >= 3 && <><line x1="268" y1="92" x2="215" y2="50" stroke="#22D3EE" strokeWidth="2" strokeDasharray="4"/><text x="250" y="68" fill="#22D3EE" fontSize="9" fontFamily="monospace">ACK</text></>}
+          {s >= 4 && <><line x1="132" y1="92" x2="188" y2="50" stroke="#22D3EE" strokeWidth="2" strokeDasharray="4"/><text x="140" y="68" fill="#22D3EE" fontSize="9" fontFamily="monospace">ACK</text></>}
+          {/* Nodes */}
+          {nodes.map((n,i) => (
+            <g key={n.id}>
+              <circle cx={n.x} cy={n.y} r="18" fill={s>=5&&i===0?"#22D3EE":s>=(i<=2?1:2)?color:"#1e293b"} stroke={color} strokeWidth="2" opacity={s>=1?0.9:0.4}/>
+              <text x={n.x-5} y={n.y+5} fill="#0f172a" fontSize="12" fontWeight="bold" fontFamily="monospace">{n.id}</text>
+            </g>
+          ))}
+          {s>=5 && <text x="125" y="205" fill="#22D3EE" fontSize="11" fontFamily="monospace">✓ COMPLETE — 2(N-1) total msgs</text>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: DFS Token (Sequential Exploration)
+// ═══════════════════════════════════════════════
+function DFSTokenAnim({ color }) {
+  const nodes = [{id:"A",x:80,y:60},{id:"B",x:240,y:60},{id:"C",x:240,y:170},{id:"D",x:80,y:170}];
+  const allEdges = [[0,1],[1,2],[2,3],[0,3],[0,2]];
+  const steps = [
+    { desc: "Network: 4 nodes, 5 edges. Token starts at A (root of future spanning tree).", token: 0, tree: [], visited: [0] },
+    { desc: "Token at A. Pick unvisited neighbor → B. Edge A→B added to tree.", token: 1, tree: [[0,1]], visited: [0,1] },
+    { desc: "Token at B. Pick unvisited neighbor → C. Edge B→C added to tree.", token: 2, tree: [[0,1],[1,2]], visited: [0,1,2] },
+    { desc: "Token at C. Neighbors: A(visited), B(visited), D(unvisited) → go to D. Edge C→D added.", token: 3, tree: [[0,1],[1,2],[2,3]], visited: [0,1,2,3] },
+    { desc: "Token at D. All neighbors visited → BACKTRACK to C.", token: 2, tree: [[0,1],[1,2],[2,3]], visited: [0,1,2,3], back: true },
+    { desc: "Token at C. All visited → backtrack to B → backtrack to A. DFS spanning tree complete!", token: 0, tree: [[0,1],[1,2],[2,3]], visited: [0,1,2,3], done: true },
+  ];
+  const anim = useAnimation(steps, 1500);
+  const s = anim.step; const st = steps[s];
+
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 360 220" style={{ width: "100%", maxHeight: 220 }}>
+          {allEdges.map(([a,b],i) => (
+            <line key={i} x1={nodes[a].x} y1={nodes[a].y} x2={nodes[b].x} y2={nodes[b].y} stroke={C.line} strokeWidth="1.5" opacity="0.3"/>
+          ))}
+          {st.tree.map(([a,b],i) => (
+            <line key={`t${i}`} x1={nodes[a].x} y1={nodes[a].y} x2={nodes[b].x} y2={nodes[b].y} stroke={color} strokeWidth="3"/>
+          ))}
+          {nodes.map((n,i) => (
+            <g key={n.id}>
+              <circle cx={n.x} cy={n.y} r="20" fill={st.visited.includes(i)?color:"#1e293b"} stroke={color} strokeWidth="2" opacity={st.visited.includes(i)?0.8:0.3}/>
+              <text x={n.x-5} y={n.y+5} fill={st.visited.includes(i)?"#0f172a":"#64748b"} fontSize="13" fontWeight="bold" fontFamily="monospace">{n.id}</text>
+            </g>
+          ))}
+          {/* Token indicator */}
+          <circle cx={nodes[st.token].x} cy={nodes[st.token].y-28} r="9" fill="#E8A838" stroke="#fff" strokeWidth="1.5">
+            <animate attributeName="cy" from={nodes[st.token].y-32} to={nodes[st.token].y-28} dur="0.3s"/>
+          </circle>
+          <text x={nodes[st.token].x-3} y={nodes[st.token].y-25} fill="#0f172a" fontSize="8" fontWeight="bold">T</text>
+          {st.back && <text x="280" y="130" fill="#E8A838" fontSize="10" fontFamily="monospace">↩ backtrack</text>}
+          {st.done && <text x="65" y="215" fill="#22D3EE" fontSize="10" fontFamily="monospace">✓ DFS tree built | O(|E|) msgs | O(|E|) time</text>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Parallel Exploration (Flooding tree)
+// ═══════════════════════════════════════════════
+function FloodingTreeAnim({ color }) {
+  const nodes = [{id:"A",x:200,y:40},{id:"B",x:100,y:120},{id:"C",x:300,y:120},{id:"D",x:200,y:200}];
+  const steps = [
+    { desc: "A floods: sends to all neighbors (B, C, D).", claimed: [0], tree: [], wave: [[0,1],[0,2],[0,3]] },
+    { desc: "B,C,D all receive from A first → parent=A. Tree: A→B, A→C, A→D.", claimed: [0,1,2,3], tree: [[0,1],[0,2],[0,3]], wave: [] },
+    { desc: "B forwards to C,D. But they're already claimed → REJECT. C and D similarly reject cross-messages.", claimed: [0,1,2,3], tree: [[0,1],[0,2],[0,3]], rejected: true },
+    { desc: "BFS spanning tree complete! First message to each node determines the parent. O(|E|) messages, O(diameter) time.", claimed: [0,1,2,3], tree: [[0,1],[0,2],[0,3]], done: true },
+  ];
+  const anim = useAnimation(steps, 1500);
+  const s = anim.step; const st = steps[s];
+  const allEdges = [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]];
+
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 400 240" style={{ width: "100%", maxHeight: 240 }}>
+          {allEdges.map(([a,b],i) => (
+            <line key={i} x1={nodes[a].x} y1={nodes[a].y} x2={nodes[b].x} y2={nodes[b].y} stroke={C.line} strokeWidth="1" opacity="0.3"/>
+          ))}
+          {(st.tree||[]).map(([a,b],i) => (
+            <line key={`t${i}`} x1={nodes[a].x} y1={nodes[a].y} x2={nodes[b].x} y2={nodes[b].y} stroke={color} strokeWidth="3"/>
+          ))}
+          {st.rejected && <>
+            <line x1="108" y1="120" x2="292" y2="120" stroke="#ef4444" strokeWidth="1" strokeDasharray="4" opacity="0.5"/>
+            <text x="170" y="140" fill="#ef4444" fontSize="9" fontFamily="monospace">rejected ✗</text>
+          </>}
+          {nodes.map((n,i) => (
+            <g key={n.id}>
+              <circle cx={n.x} cy={n.y} r="20" fill={st.claimed.includes(i)?color:"#1e293b"} stroke={color} strokeWidth="2" opacity={st.claimed.includes(i)?0.85:0.3}/>
+              <text x={n.x-5} y={n.y+5} fill={st.claimed.includes(i)?"#0f172a":"#64748b"} fontSize="13" fontWeight="bold" fontFamily="monospace">{n.id}</text>
+            </g>
+          ))}
+          {st.done && <text x="80" y="235" fill="#22D3EE" fontSize="10" fontFamily="monospace">✓ BFS tree | O(|E|) msgs | O(diameter) time</text>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Bellman-Ford
+// ═══════════════════════════════════════════════
+function BellmanFordAnim({ color }) {
+  const nodes = [{id:"A",x:60,y:90},{id:"B",x:170,y:90},{id:"C",x:280,y:90},{id:"D",x:390,y:90}];
+  const edges = [[0,1],[1,2],[2,3],[0,2]]; // A-C shortcut
+  const steps = [
+    { desc: "Network: A—B—C—D with shortcut A—C. Goal: shortest-path tree from A.", dist: [0,"∞","∞","∞"], parent: [null,null,null,null] },
+    { desc: "Round 1: A (d=0) broadcasts. B hears d=0+1=1 → parent=A. C hears d=0+1=1 via shortcut → parent=A.", dist: [0,1,1,"∞"], parent: [null,"A","A",null] },
+    { desc: "Round 2: B (d=1) tells C d=2 — but C already has d=1, ignore. C (d=1) tells D d=2 → parent=C.", dist: [0,1,1,2], parent: [null,"A","A","C"] },
+    { desc: "Round 3: No updates → CONVERGED. Shortest-path tree: A→B(d=1), A→C(d=1, via shortcut), C→D(d=2).", dist: [0,1,1,2], parent: [null,"A","A","C"], done: true },
+  ];
+  const anim = useAnimation(steps, 2000);
+  const s = anim.step; const st = steps[s];
+
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 460 180" style={{ width: "100%", maxHeight: 180 }}>
+          {edges.map(([a,b],i) => {
+            const isShortcut = a===0 && b===2;
+            return isShortcut ?
+              <path key={i} d={`M ${nodes[a].x} ${nodes[a].y-15} Q ${(nodes[a].x+nodes[b].x)/2} 25 ${nodes[b].x} ${nodes[b].y-15}`} fill="none" stroke="#E8A838" strokeWidth="1.5" strokeDasharray="4"/> :
+              <line key={i} x1={nodes[a].x} y1={nodes[a].y} x2={nodes[b].x} y2={nodes[b].y} stroke={C.line} strokeWidth="2"/>;
+          })}
+          {/* Tree edges */}
+          {st.parent[1]==="A" && <line x1={nodes[0].x} y1={nodes[0].y} x2={nodes[1].x} y2={nodes[1].y} stroke={color} strokeWidth="3"/>}
+          {st.parent[2]==="A" && <path d={`M ${nodes[0].x} ${nodes[0].y-15} Q ${(nodes[0].x+nodes[2].x)/2} 25 ${nodes[2].x} ${nodes[2].y-15}`} fill="none" stroke={color} strokeWidth="3"/>}
+          {st.parent[3]==="C" && <line x1={nodes[2].x} y1={nodes[2].y} x2={nodes[3].x} y2={nodes[3].y} stroke={color} strokeWidth="3"/>}
+          {nodes.map((n,i) => (
+            <g key={n.id}>
+              <circle cx={n.x} cy={n.y} r="22" fill={st.dist[i]!=="∞"?color:"#1e293b"} stroke={color} strokeWidth="2" opacity={st.dist[i]!=="∞"?0.85:0.3}/>
+              <text x={n.x-5} y={n.y+5} fill={st.dist[i]!=="∞"?"#0f172a":"#64748b"} fontSize="13" fontWeight="bold" fontFamily="monospace">{n.id}</text>
+              <text x={n.x-10} y={n.y+38} fill={color} fontSize="10" fontFamily="monospace">d={st.dist[i]}</text>
+              {st.parent[i] && <text x={n.x-15} y={n.y-28} fill="#22D3EE" fontSize="9" fontFamily="monospace">←{st.parent[i]}</text>}
+            </g>
+          ))}
+          {st.done && <text x="80" y="175" fill="#22D3EE" fontSize="10" fontFamily="monospace">✓ Shortest-path tree | O(N²|E|) msgs | O(N) rounds</text>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Centralised Mutex
+// ═══════════════════════════════════════════════
+function CentralisedMutexAnim({ color }) {
+  const steps = [
+    { desc: "Coordinator holds access. P1, P2, P3 want critical section (CS).", queue: [], inCS: null, msgs: [] },
+    { desc: "P1 sends REQUEST to coordinator.", queue: [], inCS: null, msgs: ["P1→REQ"] },
+    { desc: "CS is free → coordinator sends GRANT to P1. P1 enters CS.", queue: [], inCS: "P1", msgs: ["GRANT→P1"] },
+    { desc: "P2 sends REQUEST. CS is busy (P1 inside) → P2 is queued.", queue: ["P2"], inCS: "P1", msgs: ["P2→REQ"] },
+    { desc: "P3 also requests → queued behind P2.", queue: ["P2","P3"], inCS: "P1", msgs: ["P3→REQ"] },
+    { desc: "P1 sends RELEASE. Coordinator dequeues P2, sends GRANT.", queue: ["P3"], inCS: "P2", msgs: ["P1→REL","GRANT→P2"] },
+    { desc: "P2 releases. Coordinator grants to P3. 3 messages per CS entry (REQ+GRANT+REL).", queue: [], inCS: "P3", msgs: ["GRANT→P3"], done: true },
+  ];
+  const anim = useAnimation(steps, 1500);
+  const s = anim.step; const st = steps[s];
+
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 400 220" style={{ width: "100%", maxHeight: 220 }}>
+          {/* Coordinator */}
+          <rect x="155" y="15" width="90" height="40" rx="8" fill={color} opacity="0.9"/>
+          <text x="165" y="40" fill="#0f172a" fontSize="11" fontWeight="bold" fontFamily="monospace">COORD</text>
+          {/* Queue */}
+          <rect x="280" y="15" width="100" height="40" rx="6" fill="#1e293b" stroke={C.line}/>
+          <text x="290" y="30" fill={C.text} fontSize="9" fontFamily="monospace">Queue:</text>
+          <text x="290" y="45" fill={color} fontSize="10" fontFamily="monospace">{st.queue.length?st.queue.join(", "):"(empty)"}</text>
+          {/* CS indicator */}
+          <rect x="10" y="15" width="80" height="40" rx="6" fill={st.inCS?"#22D3EE20":"#1e293b"} stroke={st.inCS?"#22D3EE":"#334155"}/>
+          <text x="20" y="32" fill={C.text} fontSize="9" fontFamily="monospace">In CS:</text>
+          <text x="20" y="47" fill={st.inCS?"#22D3EE":"#64748b"} fontSize="11" fontWeight="bold" fontFamily="monospace">{st.inCS||"none"}</text>
+          {/* Processes */}
+          {["P1","P2","P3"].map((p,i) => (
+            <g key={p}>
+              <circle cx={80+i*120} cy="160" r="25" fill={st.inCS===p?"#22D3EE":color} stroke={color} strokeWidth="2" opacity={st.inCS===p?0.9:0.5}/>
+              <text x={68+i*120} y="165" fill="#0f172a" fontSize="13" fontWeight="bold" fontFamily="monospace">{p}</text>
+            </g>
+          ))}
+          {/* Messages */}
+          {st.msgs.includes("P1→REQ") && <line x1="95" y1="135" x2="185" y2="60" stroke={color} strokeWidth="1.5" strokeDasharray="4"/>}
+          {st.msgs.includes("GRANT→P1") && <line x1="185" y1="60" x2="95" y2="135" stroke="#22D3EE" strokeWidth="1.5" strokeDasharray="4"/>}
+          {st.msgs.includes("P2→REQ") && <line x1="200" y1="135" x2="200" y2="60" stroke={color} strokeWidth="1.5" strokeDasharray="4"/>}
+          {st.msgs.includes("P3→REQ") && <line x1="305" y1="135" x2="220" y2="60" stroke={color} strokeWidth="1.5" strokeDasharray="4"/>}
+          {st.msgs.includes("P1→REL") && <text x="60" y="110" fill="#F472B6" fontSize="9" fontFamily="monospace">RELEASE</text>}
+          {st.msgs.includes("GRANT→P2") && <line x1="200" y1="60" x2="200" y2="135" stroke="#22D3EE" strokeWidth="2" strokeDasharray="4"/>}
+          {st.msgs.includes("GRANT→P3") && <line x1="215" y1="60" x2="305" y2="135" stroke="#22D3EE" strokeWidth="2" strokeDasharray="4"/>}
+          {st.done && <text x="70" y="210" fill="#22D3EE" fontSize="10" fontFamily="monospace">3 msgs/CS entry | ⚠ Single point of failure</text>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Lamport Mutex
+// ═══════════════════════════════════════════════
+function LamportMutexAnim({ color }) {
+  const steps = [
+    { desc: "P1 and P2 both want the CS. They'll use Lamport's timestamp-based algorithm." },
+    { desc: "P1 broadcasts REQUEST(ts=3) to P2 and P3. Adds (P1,3) to own queue." },
+    { desc: "P2 broadcasts REQUEST(ts=5) to P1 and P3. Adds (P2,5) to own queue." },
+    { desc: "Everyone receives. All queues: [(P1,3), (P2,5)]. P3 replies to both (not competing)." },
+    { desc: "P2 sees P1 has lower ts (3<5) → replies to P1. P1 sees P2 has higher ts → replies to P2." },
+    { desc: "P1 has all replies + lowest timestamp in queue → ENTERS CS!" },
+    { desc: "P1 finishes CS → broadcasts RELEASE. All remove (P1,3). P2 now has lowest → ENTERS CS." },
+    { desc: "Cost: 3(N-1) messages per CS entry. REQUEST + REPLY + RELEASE to each process." },
+  ];
+  const anim = useAnimation(steps, 1800);
+  const s = anim.step;
+  const procs = [{id:"P1",x:80,y:40},{id:"P2",x:80,y:105},{id:"P3",x:80,y:170}];
+
+  return (
+    <div>
+      <AnimContainer narration={steps[s].desc} color={color}>
+        <svg viewBox="0 0 500 210" style={{ width: "100%", maxHeight: 210 }}>
+          {procs.map((p,i) => (
+            <g key={p.id}>
+              <text x="12" y={p.y+4} fill={C.text} fontSize="11" fontFamily="monospace">{p.id}</text>
+              <line x1="50" y1={p.y} x2="480" y2={p.y} stroke={C.line} strokeWidth="2"/>
+            </g>
+          ))}
+          {/* P1 request */}
+          {s >= 1 && <><circle cx="110" cy="40" r="5" fill={color}/><text x="95" y="30" fill={color} fontSize="8" fontFamily="monospace">REQ(3)</text></>}
+          {s >= 1 && <><line x1="115" y1="45" x2="155" y2="100" stroke={color} strokeWidth="1" strokeDasharray="3"/><line x1="115" y1="45" x2="155" y2="165" stroke={color} strokeWidth="1" strokeDasharray="3"/></>}
+          {/* P2 request */}
+          {s >= 2 && <><circle cx="130" cy="105" r="5" fill="#4ECDC4"/><text x="115" y="95" fill="#4ECDC4" fontSize="8" fontFamily="monospace">REQ(5)</text></>}
+          {s >= 2 && <><line x1="135" y1="100" x2="175" y2="45" stroke="#4ECDC4" strokeWidth="1" strokeDasharray="3"/><line x1="135" y1="110" x2="175" y2="165" stroke="#4ECDC4" strokeWidth="1" strokeDasharray="3"/></>}
+          {/* Queue display */}
+          {s >= 3 && <rect x="350" y="60" width="130" height="50" rx="4" fill="#1e293b" stroke={C.line}/>}
+          {s >= 3 && s < 7 && <><text x="358" y="78" fill={C.text} fontSize="8" fontFamily="monospace">All queues:</text><text x="358" y="96" fill={color} fontSize="9" fontFamily="monospace">[(P1,3), (P2,5)]</text></>}
+          {s >= 7 && <><text x="358" y="78" fill={C.text} fontSize="8" fontFamily="monospace">After release:</text><text x="358" y="96" fill="#4ECDC4" fontSize="9" fontFamily="monospace">[(P2,5)]</text></>}
+          {/* Replies */}
+          {s >= 3 && <><circle cx="200" cy="170" r="4" fill="#22D3EE"/><text x="205" y="168" fill="#22D3EE" fontSize="7" fontFamily="monospace">REPLY</text></>}
+          {s >= 4 && <>
+            <line x1="210" y1="100" x2="250" y2="45" stroke="#22D3EE" strokeWidth="1" strokeDasharray="3"/>
+            <text x="220" y="70" fill="#22D3EE" fontSize="7" fontFamily="monospace">REPLY(5&gt;3)</text>
+          </>}
+          {/* P1 in CS */}
+          {s >= 5 && s < 7 && <rect x="260" y="30" width="55" height="20" rx="4" fill={color} opacity="0.3"/>}
+          {s >= 5 && s < 7 && <text x="268" y="44" fill={color} fontSize="8" fontWeight="bold" fontFamily="monospace">IN CS</text>}
+          {/* Release */}
+          {s >= 6 && <><circle cx="330" cy="40" r="4" fill="#F472B6"/><text x="338" y="38" fill="#F472B6" fontSize="7" fontFamily="monospace">REL</text></>}
+          {/* P2 in CS */}
+          {s >= 6 && <rect x="360" y="95" width="55" height="20" rx="4" fill="#4ECDC4" opacity="0.3"/>}
+          {s >= 6 && <text x="368" y="109" fill="#4ECDC4" fontSize="8" fontWeight="bold" fontFamily="monospace">IN CS</text>}
+          {/* Cost */}
+          {s >= 7 && <text x="90" y="205" fill="#22D3EE" fontSize="10" fontFamily="monospace">Cost: 3(N-1) = 6 msgs for N=3 | Fully distributed</text>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Ricart-Agrawala
+// ═══════════════════════════════════════════════
+function RicartAgrawalaAnim({ color }) {
+  const steps = [
+    { desc: "P1 (ts=3) and P2 (ts=5) both want the CS. Ricart-Agrawala optimizes Lamport's algorithm." },
+    { desc: "Both broadcast REQUEST to each other (and P3). P1 sends REQ(3), P2 sends REQ(5)." },
+    { desc: "P2 receives REQ(3) from P1. Since 5 > 3, P2 has lower priority → REPLIES immediately." },
+    { desc: "P1 receives REQ(5) from P2. Since 3 < 5, P1 has higher priority → DEFERS reply (holds it)." },
+    { desc: "P3 replies to both (not competing). P1 now has all N-1 replies → ENTERS CS!" },
+    { desc: "P1 exits CS → sends DEFERRED REPLY to P2. P2 now has all replies → enters CS." },
+    { desc: "Only 2(N-1) messages! No separate RELEASE needed — deferred replies serve that purpose." },
+  ];
+  const anim = useAnimation(steps, 1800);
+  const s = anim.step;
+
+  return (
+    <div>
+      <AnimContainer narration={steps[s].desc} color={color}>
+        <svg viewBox="0 0 500 170" style={{ width: "100%", maxHeight: 170 }}>
+          <text x="12" y="44" fill={C.text} fontSize="11" fontFamily="monospace">P1(3)</text>
+          <line x1="58" y1="40" x2="480" y2="40" stroke={C.line} strokeWidth="2"/>
+          <text x="12" y="94" fill={C.text} fontSize="11" fontFamily="monospace">P2(5)</text>
+          <line x1="58" y1="90" x2="480" y2="90" stroke={C.line} strokeWidth="2"/>
+          <text x="12" y="144" fill={C.text} fontSize="11" fontFamily="monospace">P3</text>
+          <line x1="58" y1="140" x2="480" y2="140" stroke={C.line} strokeWidth="2"/>
+          {/* Requests */}
+          {s >= 1 && <>
+            <circle cx="100" cy="40" r="5" fill={color}/><circle cx="100" cy="90" r="5" fill="#4ECDC4"/>
+            <line x1="105" y1="45" x2="145" y2="85" stroke={color} strokeWidth="1" strokeDasharray="3"/>
+            <line x1="105" y1="85" x2="145" y2="45" stroke="#4ECDC4" strokeWidth="1" strokeDasharray="3"/>
+          </>}
+          {/* P2 replies immediately */}
+          {s >= 2 && <>
+            <circle cx="170" cy="90" r="4" fill="#22D3EE"/>
+            <line x1="175" y1="85" x2="215" y2="45" stroke="#22D3EE" strokeWidth="1.5" strokeDasharray="3"/>
+            <text x="178" y="78" fill="#22D3EE" fontSize="8" fontFamily="monospace">REPLY ✓</text>
+          </>}
+          {/* P1 defers */}
+          {s >= 3 && <>
+            <text x="155" y="36" fill="#E8A838" fontSize="8" fontFamily="monospace">defer ⏳</text>
+            <rect x="150" y="25" width="52" height="22" rx="3" fill="none" stroke="#E8A838" strokeWidth="1" strokeDasharray="3"/>
+          </>}
+          {/* P3 replies */}
+          {s >= 4 && <>
+            <line x1="200" y1="135" x2="230" y2="45" stroke="#22D3EE" strokeWidth="1" strokeDasharray="3"/>
+            <line x1="200" y1="135" x2="230" y2="95" stroke="#22D3EE" strokeWidth="1" strokeDasharray="3"/>
+          </>}
+          {/* P1 in CS */}
+          {s >= 4 && s < 6 && <rect x="250" y="30" width="55" height="20" rx="4" fill={color} opacity="0.3"/>}
+          {s >= 4 && s < 6 && <text x="258" y="44" fill={color} fontSize="8" fontWeight="bold" fontFamily="monospace">IN CS</text>}
+          {/* Deferred reply */}
+          {s >= 5 && <>
+            <circle cx="320" cy="40" r="4" fill="#22D3EE"/>
+            <line x1="325" y1="45" x2="365" y2="85" stroke="#22D3EE" strokeWidth="2" strokeDasharray="3"/>
+            <text x="328" y="62" fill="#22D3EE" fontSize="8" fontFamily="monospace">deferred REPLY</text>
+          </>}
+          {s >= 5 && <rect x="370" y="80" width="50" height="20" rx="4" fill="#4ECDC4" opacity="0.3"/>}
+          {s >= 5 && <text x="376" y="94" fill="#4ECDC4" fontSize="8" fontWeight="bold" fontFamily="monospace">CS</text>}
+          {s >= 6 && <text x="80" y="165" fill="#22D3EE" fontSize="10" fontFamily="monospace">✓ 2(N-1) msgs — saves N-1 vs Lamport!</text>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Token Ring Mutex
+// ═══════════════════════════════════════════════
+function TokenRingAnim({ color }) {
+  const angles = [0,1,2,3].map(i => (i * Math.PI * 2) / 4 - Math.PI/2);
+  const cx = 180, cy = 100, r = 65;
+  const nodes = angles.map((a,i) => ({ x: cx + r * Math.cos(a), y: cy + r * Math.sin(a), id: `P${i+1}` }));
+  const steps = [
+    { desc: "Token circulates on a logical ring P1→P2→P3→P4→P1. Only the token holder can enter CS.", token: 0, inCS: false },
+    { desc: "P1 has the token but doesn't need CS → passes to P2.", token: 1, inCS: false },
+    { desc: "P2 wants CS → holds the token and enters critical section!", token: 1, inCS: true },
+    { desc: "P2 finishes CS → passes token to P3.", token: 2, inCS: false },
+    { desc: "P3 doesn't need CS → passes to P4.", token: 3, inCS: false },
+    { desc: "P4 doesn't need CS → passes to P1. Full cycle. Best case: 0 msgs (have token). Worst: N-1 msgs.", token: 0, inCS: false, done: true },
+  ];
+  const anim = useAnimation(steps, 1200);
+  const s = anim.step; const st = steps[s];
+
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 400 210" style={{ width: "100%", maxHeight: 210 }}>
+          <circle cx={cx} cy={cy} r={r} fill="none" stroke={C.line} strokeWidth="2" strokeDasharray="6"/>
+          {/* Direction arrows */}
+          <text x={cx+r+5} y={cy+15} fill={color} fontSize="12" opacity="0.5">↓</text>
+          <text x={cx-r-15} y={cy-5} fill={color} fontSize="12" opacity="0.5">↑</text>
+          {nodes.map((n,i) => (
+            <g key={n.id}>
+              <circle cx={n.x} cy={n.y} r="20" fill={st.inCS && st.token===i ? "#22D3EE" : color} stroke={color} strokeWidth="2" opacity={st.token===i?1:0.4}/>
+              <text x={n.x-8} y={n.y+5} fill="#0f172a" fontSize="11" fontWeight="bold" fontFamily="monospace">{n.id}</text>
+            </g>
+          ))}
+          {/* Token */}
+          <circle cx={nodes[st.token].x + 22} cy={nodes[st.token].y - 18} r="11" fill="#E8A838" stroke="#fff" strokeWidth="2">
+            <animate attributeName="r" from="7" to="11" dur="0.3s"/>
+          </circle>
+          <text x={nodes[st.token].x + 17} y={nodes[st.token].y - 14} fill="#0f172a" fontSize="9" fontWeight="bold" fontFamily="monospace">T</text>
+          {st.inCS && <text x={nodes[st.token].x-15} y={nodes[st.token].y+35} fill="#22D3EE" fontSize="9" fontFamily="monospace">IN CS</text>}
+          {/* Legend */}
+          <text x="290" y="60" fill={C.text} fontSize="9" fontFamily="monospace">Best: 0 msgs</text>
+          <text x="290" y="75" fill={C.text} fontSize="9" fontFamily="monospace">Worst: N-1 msgs</text>
+          <text x="290" y="95" fill="#E8A838" fontSize="9" fontFamily="monospace">● = token</text>
+          {st.done && <text x="100" y="200" fill="#22D3EE" fontSize="10" fontFamily="monospace">✓ Simple, fair, but token loss = problem</text>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Fault Types
+// ═══════════════════════════════════════════════
+function FaultTypesAnim({ color }) {
+  const steps = [
+    { desc: "Distributed systems face different types of faults. Let's see each one.", level: 0 },
+    { desc: "CRASH fault: a process stops completely. Like a teammate who drops the course. Easiest to handle — you know they're gone.", level: 1 },
+    { desc: "OMISSION fault: a process sometimes fails to send or receive messages. Like someone who misses some emails. Harder — it looks alive but is unreliable.", level: 2 },
+    { desc: "BYZANTINE fault: a process behaves arbitrarily — may lie, send contradictory info. Like a saboteur. Hardest to handle.", level: 3 },
+    { desc: "Hierarchy: Crash ⊂ Omission ⊂ Byzantine. Tolerating f Byzantine faults needs 3f+1 nodes; crash faults need only 2f+1.", level: 4 },
+  ];
+  const anim = useAnimation(steps, 2000);
+  const s = anim.step;
+
+  return (
+    <div>
+      <AnimContainer narration={steps[s].desc} color={color}>
+        <svg viewBox="0 0 420 190" style={{ width: "100%", maxHeight: 190 }}>
+          {/* Byzantine */}
+          {s >= 3 && <rect x="20" y="10" width="380" height="170" rx="12" fill="none" stroke="#F472B6" strokeWidth="2.5" opacity="0.7"><animate attributeName="opacity" from="0" to="0.7" dur="0.5s"/></rect>}
+          {s >= 3 && <text x="30" y="30" fill="#F472B6" fontSize="11" fontFamily="monospace" fontWeight="bold">Byzantine</text>}
+          {/* Omission */}
+          {s >= 2 && <rect x="50" y="40" width="320" height="130" rx="10" fill="none" stroke="#E8A838" strokeWidth="2" opacity="0.7"><animate attributeName="opacity" from="0" to="0.7" dur="0.5s"/></rect>}
+          {s >= 2 && <text x="60" y="58" fill="#E8A838" fontSize="11" fontFamily="monospace" fontWeight="bold">Omission</text>}
+          {/* Crash */}
+          {s >= 1 && <rect x="80" y="68" width="260" height="92" rx="8" fill="none" stroke="#4ECDC4" strokeWidth="2" opacity="0.7"><animate attributeName="opacity" from="0" to="0.7" dur="0.5s"/></rect>}
+          {s >= 1 && <text x="90" y="86" fill="#4ECDC4" fontSize="11" fontFamily="monospace" fontWeight="bold">Crash</text>}
+          {/* Icons inside */}
+          {s >= 1 && <text x="160" y="120" fill="#4ECDC4" fontSize="28">💀</text>}
+          {s >= 2 && <text x="110" y="148" fill="#E8A838" fontSize="22">📭</text>}
+          {s >= 3 && <text x="310" y="148" fill="#F472B6" fontSize="22">🎭</text>}
+          {/* Tolerances */}
+          {s >= 4 && <>
+            <text x="100" y="185" fill="#94a3b8" fontSize="9" fontFamily="monospace">Crash: 2f+1 nodes</text>
+            <text x="260" y="185" fill="#94a3b8" fontSize="9" fontFamily="monospace">Byzantine: 3f+1 nodes</text>
+          </>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Replication
+// ═══════════════════════════════════════════════
+function ReplicationAnim({ color }) {
+  const steps = [
+    { desc: "3 replicas (R1, R2, R3) serve a database. Client sends writes to all.", alive: [true,true,true], writing: false },
+    { desc: "Client writes data. All 3 replicas process and store the update.", alive: [true,true,true], writing: true },
+    { desc: "R1 crashes! But R2 and R3 continue serving reads and writes.", alive: [false,true,true], writing: false },
+    { desc: "Client's requests are now handled by R2 and R3. Service continues without interruption.", alive: [false,true,true], writing: true },
+    { desc: "R1 recovers and synchronises with R2/R3 to catch up on missed writes. System back to full strength!", alive: [true,true,true], writing: false, recovered: true },
+  ];
+  const anim = useAnimation(steps, 1800);
+  const s = anim.step; const st = steps[s];
+
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 380 200" style={{ width: "100%", maxHeight: 200 }}>
+          {/* Client */}
+          <rect x="15" y="75" width="65" height="45" rx="8" fill={color} opacity="0.7"/>
+          <text x="22" y="102" fill="#0f172a" fontSize="11" fontWeight="bold" fontFamily="monospace">Client</text>
+          {/* Replicas */}
+          {["R1","R2","R3"].map((r,i) => {
+            const y = 25 + i * 65;
+            const alive = st.alive[i];
+            return (
+              <g key={r}>
+                <rect x="180" y={y} width="65" height="40" rx="6" fill={alive?"#4ECDC4":"#1e293b"} stroke={alive?"#4ECDC4":"#ef4444"} strokeWidth="2" opacity={alive?0.9:0.4}/>
+                <text x="200" y={y+25} fill={alive?"#0f172a":"#ef4444"} fontSize="11" fontWeight="bold" fontFamily="monospace">{r}</text>
+                {!alive && <>
+                  <line x1="175" y1={y-2} x2="250" y2={y+42} stroke="#ef4444" strokeWidth="2.5"/>
+                  <line x1="250" y1={y-2} x2="175" y2={y+42} stroke="#ef4444" strokeWidth="2.5"/>
+                </>}
+                {alive && st.writing && <line x1="80" y1="97" x2="175" y2={y+20} stroke={color} strokeWidth="2" strokeDasharray="4"/>}
+                {alive && <text x="260" y={y+25} fill={alive?"#4ECDC4":"#ef4444"} fontSize="9" fontFamily="monospace">{alive?"✓ serving":"✗ down"}</text>}
+              </g>
+            );
+          })}
+          {st.recovered && <text x="260" y="45" fill="#22D3EE" fontSize="9" fontFamily="monospace">↻ synced!</text>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Termination Problem
+// ═══════════════════════════════════════════════
+function TerminationProblemAnim({ color }) {
+  const steps = [
+    { desc: "P1 and P2 are doing work. How does a manager know when ALL work is truly done?", p1: "active", p2: "active", msg: false },
+    { desc: "P1 sends a message to P2 and becomes idle.", p1: "idle", p2: "active", msg: true },
+    { desc: "P2 finishes its work and becomes idle too.", p1: "idle", p2: "idle", msg: true },
+    { desc: "Manager checks: 'Is everyone idle?' → YES. But message m is still IN TRANSIT to P2!", p1: "idle", p2: "idle", msg: true, check: true },
+    { desc: "P2 receives m → becomes ACTIVE again! The naive check was WRONG. This is the termination problem.", p1: "idle", p2: "active", msg: false, wrong: true },
+  ];
+  const anim = useAnimation(steps, 2000);
+  const s = anim.step; const st = steps[s];
+
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 420 170" style={{ width: "100%", maxHeight: 170 }}>
+          {["P1","P2"].map((p,i) => {
+            const x = 80 + i * 200;
+            const state = i===0 ? st.p1 : st.p2;
+            const col = state==="active" ? "#E8A838" : color;
+            return (
+              <g key={p}>
+                <circle cx={x} cy="80" r="35" fill={`${col}20`} stroke={col} strokeWidth="2.5"/>
+                <text x={x-10} y="85" fill={col} fontSize="13" fontWeight="bold" fontFamily="monospace">{p}</text>
+                <text x={x-15} y="130" fill={state==="active"?"#E8A838":"#22D3EE"} fontSize="10" fontFamily="monospace">{state}</text>
+              </g>
+            );
+          })}
+          {/* Message in transit */}
+          {st.msg && <>
+            <circle cx="180" cy="72" r="10" fill="#E8A838"><animate attributeName="cx" from="130" to="230" dur="2s" repeatCount="indefinite"/></circle>
+            <text x="175" y="76" fill="#0f172a" fontSize="9" fontWeight="bold" fontFamily="monospace">m</text>
+            <text x="155" y="55" fill="#E8A838" fontSize="9" fontFamily="monospace">in transit!</text>
+          </>}
+          {/* Manager check */}
+          {st.check && <>
+            <rect x="290" y="40" width="120" height="65" rx="6" fill="#1e293b" stroke="#ef4444" strokeWidth="1.5"/>
+            <text x="300" y="60" fill="#ef4444" fontSize="10" fontFamily="monospace">Manager says:</text>
+            <text x="300" y="78" fill="#ef4444" fontSize="10" fontFamily="monospace">"All idle!"</text>
+            <text x="300" y="96" fill="#ef4444" fontSize="10" fontWeight="bold" fontFamily="monospace">WRONG ✗</text>
+          </>}
+          {st.wrong && <text x="100" y="165" fill="#ef4444" fontSize="11" fontFamily="monospace">⚠ Need smarter detection: check messages in transit too!</text>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Dijkstra-Safra Token Termination
+// ═══════════════════════════════════════════════
+function TokenTerminationAnim({ color }) {
+  const angles = [0,1,2].map(i => (i * Math.PI * 2) / 3 - Math.PI/2);
+  const cx = 180, cy = 95, rr = 60;
+  const nodes = angles.map((a,i) => ({ x: cx + rr * Math.cos(a), y: cy + rr * Math.sin(a) }));
+  const steps = [
+    { desc: "Ring: P1→P2→P3. White token starts at P1. All processes idle.", token: 0, tokenColor: "white", states: ["idle","idle","idle"] },
+    { desc: "P1 is idle → passes white token to P2.", token: 1, tokenColor: "white", states: ["idle","idle","idle"] },
+    { desc: "P2 is idle, no messages sent → passes white token to P3.", token: 2, tokenColor: "white", states: ["idle","idle","idle"] },
+    { desc: "P3 is idle BUT sent a message since last seeing the token → token turns BLACK.", token: 2, tokenColor: "black", states: ["idle","idle","idle"], taint: true },
+    { desc: "Black token returns to P1. Tainted! Can't declare termination. Reset token to white, try again.", token: 0, tokenColor: "white", states: ["idle","idle","idle"], reset: true },
+    { desc: "Round 2: P1 idle → white to P2. P2 idle, no msgs → white to P3.", token: 2, tokenColor: "white", states: ["idle","idle","idle"] },
+    { desc: "P3 idle, NO new messages this round → token stays WHITE. Returns to P1.", token: 0, tokenColor: "white", states: ["idle","idle","idle"] },
+    { desc: "Full white round completed + all idle → TERMINATION DETECTED! ✓", token: 0, tokenColor: "white", states: ["idle","idle","idle"], done: true },
+  ];
+  const anim = useAnimation(steps, 1500);
+  const s = anim.step; const st = steps[s];
+
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 400 200" style={{ width: "100%", maxHeight: 200 }}>
+          <circle cx={cx} cy={cy} r={rr} fill="none" stroke={C.line} strokeWidth="2" strokeDasharray="5"/>
+          {nodes.map((n,i) => (
+            <g key={i}>
+              <circle cx={n.x} cy={n.y} r="22" fill={`${color}40`} stroke={color} strokeWidth="2"/>
+              <text x={n.x-8} y={n.y+5} fill={color} fontSize="11" fontWeight="bold" fontFamily="monospace">P{i+1}</text>
+              <text x={n.x-10} y={n.y+18} fill={C.text} fontSize="8" fontFamily="monospace">{st.states[i]}</text>
+            </g>
+          ))}
+          {/* Token */}
+          {(() => {
+            const tn = nodes[st.token];
+            const tc = st.tokenColor === "white" ? "#fff" : "#1e293b";
+            const ts = st.tokenColor === "white" ? color : "#94a3b8";
+            return (
+              <g>
+                <circle cx={tn.x + 28} cy={tn.y - 20} r="12" fill={tc} stroke={ts} strokeWidth="2.5">
+                  <animate attributeName="r" from="8" to="12" dur="0.3s"/>
+                </circle>
+                <text x={tn.x + 23} y={tn.y - 16} fill={st.tokenColor==="white"?"#0f172a":"#fff"} fontSize="10" fontWeight="bold" fontFamily="monospace">{st.tokenColor==="white"?"W":"B"}</text>
+              </g>
+            );
+          })()}
+          {st.taint && <text x="280" y="60" fill="#ef4444" fontSize="10" fontFamily="monospace">⚠ TAINTED!</text>}
+          {st.reset && <text x="280" y="60" fill="#E8A838" fontSize="10" fontFamily="monospace">↻ Reset, retry</text>}
+          {st.done && <>
+            <rect x={cx-70} y={cy-12} width="140" height="24" rx="6" fill={`${color}30`} stroke={color}/>
+            <text x={cx-58} y={cy+5} fill="#22D3EE" fontSize="11" fontWeight="bold" fontFamily="monospace">TERMINATED ✓</text>
+          </>}
+          {/* Legend */}
+          <rect x="300" y="130" width="90" height="55" rx="4" fill="#1e293b" stroke={C.line}/>
+          <circle cx="315" cy="148" r="6" fill="#fff" stroke={color}/><text x="326" y="152" fill={C.text} fontSize="8" fontFamily="monospace">White</text>
+          <circle cx="315" cy="168" r="6" fill="#1e293b" stroke="#94a3b8"/><text x="326" y="172" fill={C.text} fontSize="8" fontFamily="monospace">Black</text>
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// MAP: visual key → animation component
+// ═══════════════════════════════════════════════
+const ANIM_MAP = {
+  causality: CausalityAnim,
+  lamport: LamportAnim,
+  vector: VectorAnim,
+  flooding: FloodingAnim,
+  "tree-diffusion": TreeDiffusionAnim,
+  "ack-wave": AckWaveAnim,
+  "dfs-token": DFSTokenAnim,
+  "flooding-tree": FloodingTreeAnim,
+  "bellman-ford": BellmanFordAnim,
+  "centralised-mutex": CentralisedMutexAnim,
+  "lamport-mutex": LamportMutexAnim,
+  "ricart-agrawala": RicartAgrawalaAnim,
+  "token-ring": TokenRingAnim,
+  "fault-types": FaultTypesAnim,
+  replication: ReplicationAnim,
+  "termination-problem": TerminationProblemAnim,
+  "token-termination": TokenTerminationAnim,
+};
+
+// ─── DATA (unchanged from before) ───
+const PILLARS = [
+  {
+    id: "clocks", title: "Logical Clocks", color: "#E8A838", icon: "⏱",
+    subtopics: [
+      { id: "causality", title: "Causality & Causal Relation", visual: "causality",
+        definition: "Causality defines a partial order on events. Event a causally precedes b (a → b) if: (1) same process and a before b, (2) a is send and b is matching receive, or (3) transitivity. Events are concurrent (a ∥ b) if neither precedes the other.",
+        intuition: "Dominoes: if A knocks over B, A caused B. Two dominoes in separate rooms falling simultaneously are concurrent — no causal link. We track this via message passing, not wall clocks.",
+        example: "P1 sends m to P2 (e1→e2). P2 sends m' to P3 (e2→e3). Transitivity: e1→e3. P1 does e4 after sending m but before hearing back: e4∥e2, e4∥e3.",
+        complexity: null },
+      { id: "lamport", title: "Lamport Clocks (Scalar)", visual: "lamport",
+        definition: "Single integer per process. Rules: (1) local event: C=C+1. (2) send: attach C. (3) receive msg(t): C=max(C,t)+1. If a→b then L(a)<L(b), but NOT the converse.",
+        intuition: "Personal counter — increment on every action, sync up on message receive. Guarantees causal ordering but can't detect concurrency.",
+        example: "P1: C=0→1 (event), sends msg(1). P2: C=0, receives → max(0,1)+1=2. Both may reach C=2 independently — can't tell if concurrent.",
+        complexity: "O(1) space, O(1) per event" },
+      { id: "vector", title: "Vector Clocks (Fidge-Mattern)", visual: "vector",
+        definition: "Vector of N integers. Rules: (1) local: V[i]++. (2) send: attach V. (3) receive(W): V[j]=max(V[j],W[j]) ∀j, then V[i]++. a→b ⟺ V(a)<V(b) componentwise.",
+        intuition: "Each process tracks a scoreboard of everyone's progress. On receive, merge scoreboards. Can determine EXACT causal relationships by comparing vectors.",
+        example: "P1=[1,0,0] sends to P2→[1,1,0]. P2 sends to P3→[1,1,1]. P1 does event→[2,0,0]. Compare [2,0,0] vs [1,1,0]: neither ≤ → concurrent!",
+        complexity: "O(N) space per process, O(N) per message" },
+    ],
+  },
+  {
+    id: "diffusion", title: "Diffusion Algorithms", color: "#4ECDC4", icon: "📡",
+    subtopics: [
+      { id: "basic", title: "Basic Diffusion (Flooding)", visual: "flooding",
+        definition: "Initiator sends to all neighbors. Each first-time receiver forwards to all neighbors except sender. Duplicates ignored.",
+        intuition: "Rumor in a village: tell your friends, they tell theirs. Everyone hears eventually, some hear twice and ignore.",
+        example: "A→B,C. B→C(dup),D. C→B(dup). D receives from B. All informed.",
+        complexity: "Msgs: O(|E|). Time: O(diameter)" },
+      { id: "tree", title: "Tree-based Diffusion", visual: "tree-diffusion",
+        definition: "Diffuse over a pre-built spanning tree. Root sends to children, they forward to their children. No cycles means no duplicates. Exactly N-1 messages.",
+        intuition: "Phone tree: boss → managers → team leads → teams. No one called twice.",
+        example: "Tree A→B,C and B→D,E. 4 messages for 5 nodes. Optimal!",
+        complexity: "Msgs: N-1. Time: O(tree height)" },
+      { id: "termination", title: "Termination Detection in Diffusion", visual: "ack-wave",
+        definition: "Leaves send ACK up. Internal nodes wait for all child ACKs before ACKing parent. Root gets all ACKs → complete.",
+        intuition: "Phone tree confirmation: leaves confirm, managers wait for all team confirmations, then confirm to boss.",
+        example: "Tree A→B→D, A→C. D acks B, C acks A, B acks A. Root knows all done.",
+        complexity: "N-1 extra ACKs. Total: 2(N-1)" },
+    ],
+  },
+  {
+    id: "spanning", title: "Spanning Tree Construction", color: "#FF6B6B", icon: "🌳",
+    subtopics: [
+      { id: "seq", title: "Sequential Exploration (Token)", visual: "dfs-token",
+        definition: "DFS with a token. Visit unvisited neighbor, mark parent edge. Dead end → backtrack. Produces DFS spanning tree.",
+        intuition: "Maze exploration with string — unroll forward, backtrack on dead ends. String = tree edges.",
+        example: "A→B→C (dead end, backtrack)→D. Tree: A→B→C, B→D.",
+        complexity: "Msgs: O(|E|). Time: O(|E|) — sequential" },
+      { id: "par", title: "Parallel Exploration (Flooding)", visual: "flooding-tree",
+        definition: "Root floods. First message to each node claims it (parent=sender). Later messages rejected. BFS-like spanning tree.",
+        intuition: "Pour water at root — first stream to reach each node claims it.",
+        example: "A floods to B,C,D. All claim parent=A. Cross-edges rejected.",
+        complexity: "Msgs: O(|E|). Time: O(diameter)" },
+      { id: "bf", title: "Synchronised Waves (Bellman-Ford)", visual: "bellman-ford",
+        definition: "Rounds: each node broadcasts distance. Neighbors update if shorter path found. Converges in N-1 rounds. Shortest-path tree.",
+        intuition: "Everyone shouts distance from center. Update if neighbor offers shorter route.",
+        example: "A-B-C-D with A-C shortcut. C gets d=1 from A directly. D gets d=2 via C.",
+        complexity: "Msgs: O(N×|E|). Time: O(N) rounds" },
+    ],
+  },
+  {
+    id: "mutex", title: "Mutual Exclusion", color: "#A78BFA", icon: "🔒",
+    subtopics: [
+      { id: "central", title: "Centralised Solution", visual: "centralised-mutex",
+        definition: "Coordinator receives REQUEST, sends GRANT if free or queues. Process sends RELEASE when done.",
+        intuition: "Bathroom with key at reception. Ask, wait, use, return.",
+        example: "P1 gets grant. P2,P3 queued. P1 releases → P2 granted.",
+        complexity: "3 msgs/entry. Single point of failure" },
+      { id: "lamp-m", title: "Lamport's Algorithm (Timestamps)", visual: "lamport-mutex",
+        definition: "Broadcast timestamped REQUEST. Maintain ordered queue. Enter when: all replied AND your request is smallest. Broadcast RELEASE on exit.",
+        intuition: "Numbered tickets — lowest ticket + all acknowledgments = your turn.",
+        example: "P1(ts=3), P2(ts=5). P1 enters first. On release, P2 proceeds.",
+        complexity: "3(N-1) msgs per entry" },
+      { id: "ra", title: "Ricart & Agrawala", visual: "ricart-agrawala",
+        definition: "Broadcast REQUEST. Receivers reply immediately if not competing or lower priority; defer reply otherwise. Enter on N-1 replies. Exit: send deferred replies.",
+        intuition: "Smart ticket system — only hold your reply if you have priority. Saves the separate RELEASE phase.",
+        example: "P1(3) vs P2(5). P2 replies immediately. P1 defers. P1 enters, then sends deferred reply.",
+        complexity: "2(N-1) msgs per entry" },
+      { id: "tok-m", title: "Token-based Algorithm", visual: "token-ring",
+        definition: "Token circulates on logical ring. Only token holder enters CS. Pass if not needed.",
+        intuition: "Talking stick in a circle. Hold to speak, pass when done.",
+        example: "P1→P2 (P2 holds, enters CS)→P3→P1.",
+        complexity: "Best: 0 msgs. Worst: N-1 msgs" },
+    ],
+  },
+  {
+    id: "fault", title: "Fault Tolerance", color: "#F472B6", icon: "🛡",
+    subtopics: [
+      { id: "types", title: "Types of Faults", visual: "fault-types",
+        definition: "Crash (stop), Omission (drop messages), Byzantine (arbitrary). Crash⊂Omission⊂Byzantine. Tolerance: 2f+1 for crash, 3f+1 for Byzantine.",
+        intuition: "Group project: dropout (crash), unreliable emailer (omission), active saboteur (Byzantine).",
+        example: "f=1 Byzantine → need 4 nodes. f=1 crash → need 3 nodes.",
+        complexity: null },
+      { id: "repl", title: "Redundancy & Replication", visual: "replication",
+        definition: "Replicate services across nodes. Active (all process) or passive (primary + backups). Challenge: consistency.",
+        intuition: "Backup copies in different buildings. Hard part: keeping them in sync.",
+        example: "3 replicas. R1 crashes. R2,R3 continue. R1 recovers and syncs.",
+        complexity: null },
+    ],
+  },
+  {
+    id: "termination", title: "Termination Detection", color: "#22D3EE", icon: "🏁",
+    subtopics: [
+      { id: "prob", title: "The Termination Problem", visual: "termination-problem",
+        definition: "Terminated = all idle + no messages in transit. Challenge: no global view. A message in transit can reactivate an idle process.",
+        intuition: "Office: everyone looks idle but there's a task in the mailroom about to wake someone up.",
+        example: "P1,P2 idle. Message m in transit to P2. Naive check says done — wrong!",
+        complexity: null },
+      { id: "ds", title: "Token-based Detection (Dijkstra-Safra)", visual: "token-termination",
+        definition: "Token on ring. Tainted (black) if process sent message since last token visit. Full white round + all idle → terminated. Else reset.",
+        intuition: "Night watchman patrol. Everyone sleeping + no one stirred (white token) = building empty. If disturbed → patrol again.",
+        example: "Round 1: P3 tainted → black token → retry. Round 2: all clean → white → terminated!",
+        complexity: "O(N) msgs/round" },
+    ],
+  },
+];
+
+// ─── Section Component ───
+function Section({ title, icon, children, color }) {
+  return (
+    <div style={{ marginBottom: 28 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12, paddingBottom: 8, borderBottom: `2px solid ${color}33` }}>
+        <span style={{ fontSize: 18 }}>{icon}</span>
+        <h3 style={{ margin: 0, fontSize: 15, fontFamily: "'JetBrains Mono', monospace", color, fontWeight: 600 }}>{title}</h3>
+      </div>
+      <div style={{ paddingLeft: 4, fontSize: 14, lineHeight: 1.7, color: "#cbd5e1" }}>{children}</div>
+    </div>
+  );
+}
+
+// ─── Main App ───
+function App() {
+  const [activePillar, setActivePillar] = useState("clocks");
+  const [activeSubtopic, setActiveSubtopic] = useState(0);
+  const [studied, setStudied] = useState({});
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  const pillar = PILLARS.find(p => p.id === activePillar);
+  const subtopic = pillar?.subtopics[activeSubtopic];
+  const AnimComponent = subtopic ? ANIM_MAP[subtopic.visual] : null;
+  const studiedKey = `${activePillar}-${activeSubtopic}`;
+  const totalTopics = PILLARS.reduce((s, p) => s + p.subtopics.length, 0);
+  const studiedCount = Object.keys(studied).length;
+
+  const toggleStudied = () => setStudied(prev => {
+    const next = { ...prev };
+    next[studiedKey] ? delete next[studiedKey] : (next[studiedKey] = true);
+    return next;
+  });
+
+  return (
+    <div style={{ display: "flex", height: "100vh", fontFamily: "'IBM Plex Sans', system-ui, sans-serif", background: "#0B1121", color: "#e2e8f0", overflow: "hidden" }}>
+      {/* Sidebar */}
+      <div style={{ width: sidebarOpen ? 280 : 0, minWidth: sidebarOpen ? 280 : 0, background: "#0F1729", borderRight: "1px solid #1e293b", display: "flex", flexDirection: "column", transition: "all 0.3s ease", overflow: "hidden" }}>
+        <div style={{ padding: "20px 16px 12px", borderBottom: "1px solid #1e293b" }}>
+          <h1 style={{ margin: 0, fontSize: 16, fontFamily: "'JetBrains Mono', monospace", color: "#f1f5f9", fontWeight: 700 }}>Distributed Systems</h1>
+          <p style={{ margin: "6px 0 0", fontSize: 11, color: "#64748b", fontFamily: "monospace" }}>Interactive Animated Textbook</p>
+          <div style={{ marginTop: 12, background: "#1e293b", borderRadius: 6, height: 6, overflow: "hidden" }}>
+            <div style={{ width: `${(studiedCount / totalTopics) * 100}%`, height: "100%", background: "linear-gradient(90deg, #4ECDC4, #22D3EE)", borderRadius: 6, transition: "width 0.4s ease" }} />
+          </div>
+          <p style={{ margin: "4px 0 0", fontSize: 10, color: "#64748b", fontFamily: "monospace" }}>{studiedCount}/{totalTopics} studied</p>
+        </div>
+        <div style={{ flex: 1, overflowY: "auto", padding: "8px 0" }}>
+          {PILLARS.map(p => (
+            <div key={p.id}>
+              <button onClick={() => { setActivePillar(p.id); setActiveSubtopic(0); }} style={{ display: "flex", alignItems: "center", gap: 10, width: "100%", padding: "10px 16px", border: "none", background: activePillar === p.id ? `${p.color}15` : "transparent", color: activePillar === p.id ? p.color : "#94a3b8", cursor: "pointer", fontSize: 13, fontFamily: "'JetBrains Mono', monospace", fontWeight: activePillar === p.id ? 600 : 400, textAlign: "left", borderLeft: activePillar === p.id ? `3px solid ${p.color}` : "3px solid transparent", transition: "all 0.2s" }}>
+                <span>{p.icon}</span><span>{p.title}</span>
+              </button>
+              {activePillar === p.id && p.subtopics.map((st, i) => {
+                const sk = `${p.id}-${i}`;
+                return (
+                  <button key={i} onClick={() => setActiveSubtopic(i)} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "6px 16px 6px 42px", border: "none", background: activeSubtopic === i ? `${p.color}10` : "transparent", color: activeSubtopic === i ? "#f1f5f9" : "#64748b", cursor: "pointer", fontSize: 12, fontFamily: "inherit", textAlign: "left", transition: "all 0.2s" }}>
+                    <span style={{ fontSize: 10, color: studied[sk] ? "#22D3EE" : "#334155" }}>{studied[sk] ? "●" : "○"}</span>
+                    <span style={{ lineHeight: 1.3 }}>{st.title}</span>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+        <div style={{ padding: "12px 16px", borderTop: "1px solid #1e293b", fontSize: 10, color: "#475569", fontFamily: "monospace" }}>
+          Safety, Liveness & Complexity apply to all algorithms
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column" }}>
+        <div style={{ padding: "12px 24px", borderBottom: "1px solid #1e293b", display: "flex", alignItems: "center", justifyContent: "space-between", background: "#0D1525", flexWrap: "wrap", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} style={{ background: "none", border: "1px solid #334155", color: "#94a3b8", cursor: "pointer", padding: "4px 8px", borderRadius: 4, fontSize: 14 }}>{sidebarOpen ? "◀" : "▶"}</button>
+            <span style={{ fontSize: 12, color: "#64748b", fontFamily: "monospace" }}>{pillar?.icon} {pillar?.title}</span>
+            <span style={{ color: "#334155" }}>›</span>
+            <span style={{ fontSize: 13, color: "#f1f5f9", fontWeight: 500 }}>{subtopic?.title}</span>
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <button onClick={() => activeSubtopic > 0 && setActiveSubtopic(activeSubtopic - 1)} disabled={activeSubtopic === 0} style={{ background: "#1e293b", border: "none", color: activeSubtopic === 0 ? "#334155" : "#94a3b8", cursor: activeSubtopic === 0 ? "default" : "pointer", padding: "5px 12px", borderRadius: 4, fontSize: 12, fontFamily: "monospace" }}>← Prev</button>
+            <button onClick={() => pillar && activeSubtopic < pillar.subtopics.length - 1 && setActiveSubtopic(activeSubtopic + 1)} disabled={!pillar || activeSubtopic >= pillar.subtopics.length - 1} style={{ background: "#1e293b", border: "none", color: (!pillar || activeSubtopic >= pillar.subtopics.length - 1) ? "#334155" : "#94a3b8", cursor: (!pillar || activeSubtopic >= pillar.subtopics.length - 1) ? "default" : "pointer", padding: "5px 12px", borderRadius: 4, fontSize: 12, fontFamily: "monospace" }}>Next →</button>
+            <button onClick={toggleStudied} style={{ background: studied[studiedKey] ? "#22D3EE20" : "#1e293b", border: studied[studiedKey] ? "1px solid #22D3EE" : "1px solid #334155", color: studied[studiedKey] ? "#22D3EE" : "#94a3b8", cursor: "pointer", padding: "5px 14px", borderRadius: 4, fontSize: 12, fontFamily: "monospace", transition: "all 0.2s" }}>{studied[studiedKey] ? "✓ Studied" : "Mark studied"}</button>
+          </div>
+        </div>
+
+        <div style={{ flex: 1, overflowY: "auto", padding: "28px 36px" }}>
+          {subtopic && (
+            <div style={{ maxWidth: 800 }}>
+              <h2 style={{ margin: "0 0 8px", fontSize: 26, fontWeight: 700, color: pillar.color, fontFamily: "'JetBrains Mono', monospace" }}>{subtopic.title}</h2>
+              <p style={{ margin: "0 0 28px", fontSize: 13, color: "#64748b", fontFamily: "monospace" }}>{pillar.title} — Subtopic {activeSubtopic + 1} of {pillar.subtopics.length}</p>
+
+              <Section title="Definition" icon="📖" color={pillar.color}>
+                <p style={{ margin: 0 }}>{subtopic.definition}</p>
+              </Section>
+
+              <Section title="Intuition" icon="💡" color={pillar.color}>
+                <div style={{ background: `${pillar.color}08`, border: `1px solid ${pillar.color}25`, borderRadius: 8, padding: "14px 18px" }}>
+                  <p style={{ margin: 0, fontStyle: "italic", color: "#e2e8f0" }}>{subtopic.intuition}</p>
+                </div>
+              </Section>
+
+              <Section title="Interactive Animation" icon="🎬" color={pillar.color}>
+                {AnimComponent ? <AnimComponent color={pillar.color} key={`${activePillar}-${activeSubtopic}`} /> : <p>Animation not available</p>}
+              </Section>
+
+              <Section title="Example" icon="🧪" color={pillar.color}>
+                <div style={{ background: "#111827", borderLeft: `3px solid ${pillar.color}`, borderRadius: "0 6px 6px 0", padding: "14px 18px", fontFamily: "'JetBrains Mono', monospace", fontSize: 12.5, lineHeight: 1.8, color: "#d1d5db" }}>
+                  {subtopic.example}
+                </div>
+              </Section>
+
+              {subtopic.complexity && (
+                <Section title="Complexity" icon="📊" color={pillar.color}>
+                  <div style={{ display: "inline-block", background: "#1e293b", borderRadius: 6, padding: "10px 18px", fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: "#22D3EE" }}>
+                    {subtopic.complexity}
+                  </div>
+                </Section>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+
+</script>
+</body>
+</html>

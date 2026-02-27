@@ -3,6 +3,8 @@ typst compile ode-prep-patiel/main.typ
 typst compile stats/main.typ
 pdflatex stats-cheatsheet/main.tex
 
-mv ode-prep-patiel/main.pdf docs/ode-prep-partiel-td.pdf
-mv stats/main.pdf docs/stats.pdf
-mv stats-cheatsheet/main.pdf docs/stats-cheatsheet.pdf
+rm -f docs/ode-prep-partiel-td.pdf docs/stats.pdf docs/stats-cheatsheet.pdf
+
+cp ode-prep-patiel/main.pdf docs/ode-prep-partiel-td.pdf
+cp stats/main.pdf docs/stats.pdf
+cp stats-cheatsheet/main.pdf docs/stats-cheatsheet.pdf

@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Adjoint — A Visual Exploration</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0f14;
+    --panel: #13161e;
+    --border: #1f2535;
+    --text: #c8d0e8;
+    --muted: #5a6180;
+    --accent-x: #e05a7a;
+    --accent-y: #4db8e8;
+    --accent-ax: #f0a050;
+    --accent-adj: #7ed8a0;
+    --accent-inner: #c07af0;
+    --glow-x: rgba(224,90,122,0.18);
+    --glow-y: rgba(77,184,232,0.18);
+    --glow-adj: rgba(126,216,160,0.18);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* subtle grid bg */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page { position: relative; z-index: 1; max-width: 860px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  /* Header */
+  header { margin-bottom: 56px; }
+  .eyebrow { font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3.2rem);
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1.15;
+    color: #e8eaf4;
+    margin-bottom: 16px;
+  }
+  .subtitle { font-size: 13px; color: var(--muted); line-height: 1.7; max-width: 480px; }
+
+  /* Key idea card */
+  .idea-card {
+    border: 1px solid var(--border);
+    background: var(--panel);
+    border-radius: 2px;
+    padding: 28px 32px;
+    margin-bottom: 48px;
+    position: relative;
+    overflow: hidden;
+  }
+  .idea-card::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    background: linear-gradient(to bottom, var(--accent-x), var(--accent-adj));
+  }
+  .idea-card .label { font-size: 10px; letter-spacing: .15em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+  .formula-big {
+    font-size: clamp(15px, 2.5vw, 20px);
+    letter-spacing: .04em;
+    line-height: 1.8;
+    color: #e8eaf4;
+  }
+  .tag-x { color: var(--accent-x); }
+  .tag-y { color: var(--accent-y); }
+  .tag-ax { color: var(--accent-ax); }
+  .tag-adj { color: var(--accent-adj); }
+  .tag-inner { color: var(--accent-inner); }
+
+  /* Section title */
+  .section-title {
+    font-size: 11px; letter-spacing: .14em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 20px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  /* Canvas zone */
+  .viz-wrap {
+    border: 1px solid var(--border);
+    background: var(--panel);
+    border-radius: 2px;
+    padding: 24px;
+    margin-bottom: 48px;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    border-radius: 2px;
+    cursor: crosshair;
+    touch-action: none;
+  }
+
+  /* Controls */
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 20px;
+  }
+
+  .control-group { display: flex; flex-direction: column; gap: 8px; }
+  .control-group label {
+    font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
+  }
+
+  .slider-row { display: flex; align-items: center; gap: 10px; }
+  input[type=range] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 2px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    background: var(--text);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  input[type=range]::-webkit-slider-thumb:hover { background: #fff; }
+  .slider-val { font-size: 12px; width: 42px; text-align: right; color: var(--text); }
+
+  /* Info panel */
+  .info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  @media (max-width: 520px) { .info-grid { grid-template-columns: 1fr; } }
+
+  .info-box {
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 16px 18px;
+    font-size: 12px;
+  }
+  .info-box .box-label { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .info-box .val { font-size: 18px; color: #e8eaf4; font-weight: 500; }
+  .info-box .eq { font-size: 11px; color: var(--muted); margin-top: 4px; }
+  .highlight-equal { color: var(--accent-adj); }
+
+  /* Explainer steps */
+  .steps { display: flex; flex-direction: column; gap: 0; margin-bottom: 48px; }
+  .step {
+    border: 1px solid var(--border);
+    border-bottom: none;
+    padding: 22px 28px;
+    display: flex; gap: 20px; align-items: flex-start;
+    transition: background .2s;
+  }
+  .step:last-child { border-bottom: 1px solid var(--border); }
+  .step:hover { background: var(--panel); }
+  .step-num {
+    font-size: 11px; color: var(--muted);
+    min-width: 20px; padding-top: 2px;
+    font-family: 'Playfair Display', serif; font-style: italic;
+  }
+  .step-body { flex: 1; }
+  .step-body p { font-size: 13px; line-height: 1.7; color: var(--text); }
+  .step-body .math { font-size: 12px; color: var(--muted); margin-top: 6px; }
+
+  /* Legend */
+  .legend {
+    display: flex; flex-wrap: wrap; gap: 16px;
+    margin-top: 16px;
+  }
+  .legend-item { display: flex; align-items: center; gap: 7px; font-size: 11px; color: var(--muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  /* Hint */
+  .hint { font-size: 11px; color: var(--muted); margin-top: 12px; text-align: center; letter-spacing: .04em; }
+
+  /* Tab-like selector for mode */
+  .mode-tabs { display: flex; gap: 0; margin-bottom: 20px; }
+  .mode-tab {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px; letter-spacing: .08em;
+    padding: 8px 20px; cursor: pointer;
+    border: 1px solid var(--border);
+    border-right: none;
+    background: transparent; color: var(--muted);
+    transition: all .15s;
+  }
+  .mode-tab:last-child { border-right: 1px solid var(--border); }
+  .mode-tab.active { background: var(--panel); color: var(--text); }
+  .mode-tab:hover:not(.active) { color: var(--text); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <p class="eyebrow">Linear Algebra · Visual Note</p>
+    <h1>The Adjoint A*</h1>
+    <p class="subtitle">The adjoint lets you "move a matrix to the other side" of an inner product, without changing the result.</p>
+  </header>
+
+  <div class="idea-card">
+    <div class="label">The core identity</div>
+    <div class="formula-big">
+      ⟨ <span class="tag-x">x</span>, <span class="tag-ax">A</span><span class="tag-y">y</span> ⟩ &nbsp;=&nbsp; ⟨ <span class="tag-adj">A*</span><span class="tag-x">x</span>, <span class="tag-y">y</span> ⟩
+    </div>
+    <div style="margin-top:14px; font-size:12px; color:var(--muted); line-height:1.7">
+      Both sides give the <em>same scalar</em>. On the left, <span class="tag-ax">A</span> acts on <span class="tag-y">y</span>. 
+      On the right, <span class="tag-adj">A*</span> acts on <span class="tag-x">x</span> instead.
+      The adjoint is defined by this property — it's whatever makes this equality hold.
+    </div>
+  </div>
+
+  <!-- Explainer -->
+  <div class="section-title">How to think about it</div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">01</div>
+      <div class="step-body">
+        <p>The <strong style="color:var(--text)">inner product</strong> ⟨x, y⟩ measures "how much x and y point in the same direction." It returns a single real number (for Hermitian matrices).</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">02</div>
+      <div class="step-body">
+        <p>When you write ⟨<span class="tag-x">x</span>, <span class="tag-ax">A</span><span class="tag-y">y</span>⟩, you first transform <span class="tag-y">y</span> with <span class="tag-ax">A</span>, then measure against <span class="tag-x">x</span>.</p>
+        <p class="math">Think: "after A stretches y, how much does it align with x?"</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">03</div>
+      <div class="step-body">
+        <p>The adjoint <span class="tag-adj">A*</span> is the unique operator such that you get the same number by transforming <span class="tag-x">x</span> instead of <span class="tag-y">y</span>.</p>
+        <p class="math">⟨<span class="tag-x">x</span>, <span class="tag-ax">A</span><span class="tag-y">y</span>⟩ = ⟨<span class="tag-adj">A*</span><span class="tag-x">x</span>, <span class="tag-y">y</span>⟩ &nbsp;— always, for all x and y.</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">04</div>
+      <div class="step-body">
+        <p>In coordinates: <span class="tag-adj">A*</span> is obtained by transposing A and conjugating its entries. For real matrices, A* = A<sup>T</sup>.</p>
+        <p class="math">(A*)ᵢⱼ = conj(Aⱼᵢ)</p>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-num">05</div>
+      <div class="step-body">
+        <p>When <span class="tag-adj">A* = A</span>, the matrix is <strong style="color:var(--accent-adj)">Hermitian</strong>: it treats both "slots" of the inner product identically. This forces eigenvalues to be real.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive canvas -->
+  <div class="section-title">Interactive demo — 2D real case</div>
+  <div class="viz-wrap">
+    <div class="mode-tabs">
+      <button class="mode-tab active" id="tab-general" onclick="setMode('general')">General A</button>
+      <button class="mode-tab" id="tab-hermitian" onclick="setMode('hermitian')">Hermitian A = A*</button>
+    </div>
+
+    <canvas id="canvas" height="420"></canvas>
+
+    <div class="hint">Drag the <span class="tag-x">x</span> or <span class="tag-y">y</span> vectors. Watch both inner products stay equal.</div>
+
+    <div class="controls">
+      <div class="control-group">
+        <label>A₁₁ &nbsp;&nbsp;<span style="color:var(--text)">row 1, col 1</span></label>
+        <div class="slider-row">
+          <input type="range" id="a11" min="-2" max="2" step="0.05" value="1.5">
+          <span class="slider-val" id="a11v">1.50</span>
+        </div>
+      </div>
+      <div class="control-group">
+        <label>A₁₂ &nbsp;&nbsp;<span style="color:var(--text)">row 1, col 2</span></label>
+        <div class="slider-row">
+          <input type="range" id="a12" min="-2" max="2" step="0.05" value="0.5">
+          <span class="slider-val" id="a12v">0.50</span>
+        </div>
+      </div>
+      <div class="control-group">
+        <label>A₂₁ &nbsp;&nbsp;<span style="color:var(--text)">row 2, col 1</span></label>
+        <div class="slider-row">
+          <input type="range" id="a21" min="-2" max="2" step="0.05" value="-0.5">
+          <span class="slider-val" id="a21v">-0.50</span>
+        </div>
+      </div>
+      <div class="control-group">
+        <label>A₂₂ &nbsp;&nbsp;<span style="color:var(--text)">row 2, col 2</span></label>
+        <div class="slider-row">
+          <input type="range" id="a22" min="-2" max="2" step="0.05" value="0.8">
+          <span class="slider-val" id="a22v">0.80</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-grid">
+      <div class="info-box">
+        <div class="box-label">⟨<span class="tag-x">x</span>, <span class="tag-ax">A</span><span class="tag-y">y</span>⟩</div>
+        <div class="val" id="inner1">—</div>
+        <div class="eq" id="inner1eq">left side</div>
+      </div>
+      <div class="info-box">
+        <div class="box-label">⟨<span class="tag-adj">A*</span><span class="tag-x">x</span>, <span class="tag-y">y</span>⟩</div>
+        <div class="val" id="inner2">—</div>
+        <div class="eq" id="inner2eq">right side — <span class="highlight-equal">always equal ✓</span></div>
+      </div>
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent-x)"></div> x (drag me)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent-y)"></div> y (drag me)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent-ax)"></div> Ay</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--accent-adj)"></div> A*x</div>
+      <div class="legend-item"><div class="legend-dot" style="background:rgba(255,255,255,.15)"></div> projection (inner product)</div>
+    </div>
+  </div>
+
+  <div style="font-size:12px; color:var(--muted); line-height:1.8; max-width:560px;">
+    In the <strong style="color:var(--text)">Hermitian mode</strong>, notice that <span class="tag-ax">Ay</span> and <span class="tag-adj">A*x</span> 
+    are "mirror images" of each other — because A* = A, 
+    the transformation is the same on both sides. This geometric symmetry is what it means for a matrix to be self-adjoint.
+  </div>
+
+</div>
+
+<script>
+// ─── State ───────────────────────────────────────────────────────────────────
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+let W, H, CX, CY, SCALE;
+let mode = 'general'; // 'general' | 'hermitian'
+
+// Vectors in "math" space (will be scaled to canvas)
+let vx = { x: 1.2, y: 0.4 };
+let vy = { x: 0.3, y: 1.1 };
+
+// Matrix A (real 2x2)
+let A = { a11: 1.5, a12: 0.5, a21: -0.5, a22: 0.8 };
+
+// Drag state
+let drag = null; // 'x' | 'y'
+
+// ─── Setup ───────────────────────────────────────────────────────────────────
+function resize() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  W = Math.min(rect.width - 48, 780);
+  H = 420;
+  canvas.width = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width = W + 'px';
+  canvas.style.height = H + 'px';
+  ctx.scale(dpr, dpr);
+  CX = W / 2; CY = H / 2;
+  SCALE = Math.min(W, H) / 5.5;
+  draw();
+}
+
+// ─── Math helpers ────────────────────────────────────────────────────────────
+function applyA(v) {
+  return { x: A.a11*v.x + A.a12*v.y, y: A.a21*v.x + A.a22*v.y };
+}
+function applyAstar(v) {
+  // A* = transpose (real case)
+  return { x: A.a11*v.x + A.a21*v.y, y: A.a12*v.x + A.a22*v.y };
+}
+function dot(a, b) { return a.x*b.x + a.y*b.y; }
+function len(v) { return Math.sqrt(v.x*v.x + v.y*v.y); }
+function norm(v) { const l = len(v)||1; return {x:v.x/l, y:v.y/l}; }
+function scale(v, s) { return {x:v.x*s, y:v.y*s}; }
+function add(a,b) { return {x:a.x+b.x, y:a.y+b.y}; }
+// project a onto b direction
+function project(a, b) {
+  const bn = norm(b);
+  const d = dot(a, bn);
+  return { pt: scale(bn, d), scalar: d };
+}
+
+// ─── Drawing helpers ─────────────────────────────────────────────────────────
+function toCanvas(v) {
+  return { x: CX + v.x * SCALE, y: CY - v.y * SCALE };
+}
+function fromCanvas(cx, cy) {
+  return { x: (cx - CX) / SCALE, y: (CY - cy) / SCALE };
+}
+
+function drawArrow(from, to, color, lineWidth=2, alpha=1, dashed=false) {
+  const f = toCanvas(from), t = toCanvas(to);
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.strokeStyle = color; ctx.fillStyle = color;
+  ctx.lineWidth = lineWidth;
+  if (dashed) ctx.setLineDash([5,4]);
+  ctx.beginPath(); ctx.moveTo(f.x, f.y); ctx.lineTo(t.x, t.y); ctx.stroke();
+  ctx.setLineDash([]);
+  // arrowhead
+  const dx = t.x-f.x, dy = t.y-f.y;
+  const angle = Math.atan2(dy, dx);
+  const size = 8;
+  ctx.beginPath();
+  ctx.moveTo(t.x, t.y);
+  ctx.lineTo(t.x - size*Math.cos(angle-0.35), t.y - size*Math.sin(angle-0.35));
+  ctx.lineTo(t.x - size*Math.cos(angle+0.35), t.y - size*Math.sin(angle+0.35));
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+function drawVectorLabel(v, label, color, offx=10, offy=-10) {
+  const c = toCanvas(v);
+  ctx.save();
+  ctx.font = '13px DM Mono, monospace';
+  ctx.fillStyle = color;
+  ctx.fillText(label, c.x + offx, c.y + offy);
+  ctx.restore();
+}
+
+function drawProjectionLine(a, onto, color) {
+  const { pt } = project(a, onto);
+  const orig = {x:0,y:0};
+  const ca = toCanvas(a), cp = toCanvas(pt);
+  ctx.save();
+  ctx.strokeStyle = color; ctx.globalAlpha = 0.25; ctx.lineWidth = 1;
+  ctx.setLineDash([3,4]);
+  ctx.beginPath(); ctx.moveTo(ca.x, ca.y); ctx.lineTo(cp.x, cp.y); ctx.stroke();
+  ctx.setLineDash([]);
+  // dot at projection point
+  ctx.globalAlpha = 0.5;
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.arc(cp.x, cp.y, 3.5, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+function drawDot(v, color, r=5) {
+  const c = toCanvas(v);
+  ctx.save();
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+function drawGlow(v, color, r=28) {
+  const c = toCanvas(v);
+  ctx.save();
+  const grad = ctx.createRadialGradient(c.x,c.y,0,c.x,c.y,r);
+  grad.addColorStop(0, color.replace(')', ',0.3)').replace('rgb','rgba'));
+  grad.addColorStop(1, 'transparent');
+  ctx.fillStyle = grad;
+  ctx.beginPath(); ctx.arc(c.x,c.y,r,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+// ─── Main draw ───────────────────────────────────────────────────────────────
+function draw() {
+  ctx.clearRect(0, 0, W, H);
+
+  // Background gradient
+  const bg = ctx.createLinearGradient(0,0,W,H);
+  bg.addColorStop(0, '#0d0f14');
+  bg.addColorStop(1, '#111420');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0,0,W,H);
+
+  // Grid
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,.04)'; ctx.lineWidth = 1;
+  const step = SCALE;
+  for (let x = CX % step; x < W; x += step) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y = CY % step; y < H; y += step) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+  ctx.restore();
+
+  // Axes
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,.1)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0,CY); ctx.lineTo(W,CY); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(CX,0); ctx.lineTo(CX,H); ctx.stroke();
+  ctx.restore();
+
+  const orig = {x:0,y:0};
+
+  // In Hermitian mode, enforce A* = A by making a12 = a21
+  let Ay = applyA(vy);
+  let Astarx = applyAstar(vx);
+
+  // ── Draw Ay vector ──
+  drawGlow(Ay, '#f0a050', 24);
+  drawArrow(orig, Ay, '#f0a050', 2, 0.85);
+  drawVectorLabel(Ay, 'Ay', '#f0a050', 8, -12);
+
+  // ── Draw A*x vector ──
+  drawGlow(Astarx, '#7ed8a0', 24);
+  drawArrow(orig, Astarx, '#7ed8a0', 2, 0.85);
+  drawVectorLabel(Astarx, 'A*x', '#7ed8a0', 8, -12);
+
+  // ── Show projection lines (inner products) ──
+  // ⟨x, Ay⟩: project Ay onto x direction, or show x · Ay geometrically
+  drawProjectionLine(vx, Ay, '#e05a7a');    // from x to Ay direction
+  drawProjectionLine(Astarx, vy, '#7ed8a0'); // from A*x to y direction
+
+  // ── Main vectors x and y ──
+  drawGlow(vx, '#e05a7a', 26);
+  drawArrow(orig, vx, '#e05a7a', 2.5);
+  drawVectorLabel(vx, 'x', '#e05a7a', 8, -12);
+
+  drawGlow(vy, '#4db8e8', 26);
+  drawArrow(orig, vy, '#4db8e8', 2.5);
+  drawVectorLabel(vy, 'y', '#4db8e8', 8, -12);
+
+  // ── Matrix label ──
+  ctx.save();
+  ctx.font = '11px DM Mono, monospace';
+  ctx.fillStyle = 'rgba(255,255,255,.25)';
+  ctx.fillText(`A = [[${A.a11.toFixed(2)}, ${A.a12.toFixed(2)}], [${A.a21.toFixed(2)}, ${A.a22.toFixed(2)}]]`, 14, H-14);
+  ctx.fillText(`A* = [[${A.a11.toFixed(2)}, ${A.a21.toFixed(2)}], [${A.a12.toFixed(2)}, ${A.a22.toFixed(2)}]]`, 14, H-30);
+  ctx.restore();
+
+  // ── Update numeric displays ──
+  const i1 = dot(vx, Ay);
+  const i2 = dot(Astarx, vy);
+  document.getElementById('inner1').textContent = i1.toFixed(4);
+  document.getElementById('inner2').textContent = i2.toFixed(4);
+}
+
+// ─── Sliders ─────────────────────────────────────────────────────────────────
+function syncSliders() {
+  ['a11','a12','a21','a22'].forEach(k => {
+    const el = document.getElementById(k);
+    const val = parseFloat(el.value);
+    document.getElementById(k+'v').textContent = val.toFixed(2);
+    A[k] = val;
+  });
+  draw();
+}
+
+['a11','a12','a21','a22'].forEach(k => {
+  document.getElementById(k).addEventListener('input', syncSliders);
+});
+
+// ─── Mode ─────────────────────────────────────────────────────────────────────
+function setMode(m) {
+  mode = m;
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-'+m).classList.add('active');
+
+  const a21El = document.getElementById('a21');
+  const a21vEl = document.getElementById('a21v');
+
+  if (m === 'hermitian') {
+    // Make A symmetric: a21 = a12
+    A.a21 = A.a12;
+    a21El.value = A.a12;
+    a21vEl.textContent = A.a12.toFixed(2);
+    a21El.disabled = true;
+    a21El.style.opacity = '0.35';
+    // listen to a12 to sync
+    document.getElementById('a12').addEventListener('input', mirrorSlider);
+  } else {
+    a21El.disabled = false;
+    a21El.style.opacity = '1';
+    document.getElementById('a12').removeEventListener('input', mirrorSlider);
+  }
+  draw();
+}
+
+function mirrorSlider() {
+  const v = parseFloat(document.getElementById('a12').value);
+  document.getElementById('a21').value = v;
+  document.getElementById('a21v').textContent = v.toFixed(2);
+  A.a21 = v;
+  draw();
+}
+
+// ─── Drag ─────────────────────────────────────────────────────────────────────
+function getEventPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  const scaleX = W / rect.width;
+  const scaleY = H / rect.height;
+  if (e.touches) {
+    return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
+  }
+  return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+}
+
+function hitTest(canvasPos, mathVec, radius = 18) {
+  const cp = toCanvas(mathVec);
+  const dx = canvasPos.x - cp.x, dy = canvasPos.y - cp.y;
+  return Math.sqrt(dx*dx+dy*dy) < radius;
+}
+
+canvas.addEventListener('mousedown', e => {
+  const p = getEventPos(e);
+  if (hitTest(p, vx)) drag = 'x';
+  else if (hitTest(p, vy)) drag = 'y';
+});
+canvas.addEventListener('mousemove', e => {
+  if (!drag) return;
+  const p = getEventPos(e);
+  const mv = fromCanvas(p.x, p.y);
+  // clamp
+  const mag = Math.sqrt(mv.x*mv.x+mv.y*mv.y);
+  const clamped = mag > 2.2 ? {x:mv.x/mag*2.2, y:mv.y/mag*2.2} : mv;
+  if (drag === 'x') vx = clamped;
+  else vy = clamped;
+  draw();
+});
+canvas.addEventListener('mouseup', () => drag = null);
+canvas.addEventListener('mouseleave', () => drag = null);
+
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  const p = getEventPos(e);
+  if (hitTest(p, vx)) drag = 'x';
+  else if (hitTest(p, vy)) drag = 'y';
+}, {passive:false});
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (!drag) return;
+  const p = getEventPos(e);
+  const mv = fromCanvas(p.x, p.y);
+  const mag = Math.sqrt(mv.x*mv.x+mv.y*mv.y);
+  const clamped = mag > 2.2 ? {x:mv.x/mag*2.2, y:mv.y/mag*2.2} : mv;
+  if (drag === 'x') vx = clamped;
+  else vy = clamped;
+  draw();
+}, {passive:false});
+canvas.addEventListener('touchend', () => drag = null);
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+window.addEventListener('resize', resize);
+resize();
+</script>
+</body>
+</html>

@@ -11,3 +11,14 @@ My lecture notes taken during my semester6.
 4. [Stats CheatSheet](https://dobbikov.github.io/semester6-lecture-notes/stats-cheatsheet.pdf)
 5. [Algo Visually](https://dobbikov.github.io/semester6-lecture-notes/algo.html)
 6. [Algo CheatSheet](https://dobbikov.github.io/semester6-lecture-notes/algo-cheatsheet.pdf)
+
+### Thoughts
+1. [Orthogonal Matrices](https://dobbikov.github.io/semester6-lecture-notes/orthogonal-matrices.pdf)
+2. [Adjoint Visually](https://dobbikov.github.io/semester6-lecture-notes/adjoint-visually.html)
+3. [Cosine Approximation: Least Squares Problem Example](https://dobbikov.github.io/semester6-lecture-notes/cos-approxim.html)
+
+
+
+
+
+

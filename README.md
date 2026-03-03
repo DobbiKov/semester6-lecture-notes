@@ -16,6 +16,7 @@ My lecture notes taken during my semester6.
 1. [Orthogonal Matrices](https://dobbikov.github.io/semester6-lecture-notes/orthogonal-matrices.pdf)
 2. [Adjoint Visually](https://dobbikov.github.io/semester6-lecture-notes/adjoint-visually.html)
 3. [Cosine Approximation: Least Squares Problem Example](https://dobbikov.github.io/semester6-lecture-notes/cos-approxim.html)
+4. [Normal Matrices Section](https://dobbikov.github.io/semester6-lecture-notes/normal-matrices.html)
 
 
 

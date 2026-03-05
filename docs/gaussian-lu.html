@@ -457,6 +457,84 @@ button:disabled { opacity: 0.38; cursor: not-allowed; }
   letter-spacing: 0.03em;
   white-space: nowrap;
 }
+
+/* ── B construction explainer ── */
+.construct-block {
+  background: #0c1c2d;
+  border: 1px solid var(--border);
+  border-left: 3px solid #3a6a8b;
+  border-radius: 3px;
+  padding: 12px 14px;
+  margin-top: 10px;
+}
+.construct-header {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #3a6a8b;
+  padding-bottom: 8px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #1a3a55;
+}
+.construct-formula {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  color: var(--blue);
+  margin-bottom: 10px;
+  letter-spacing: 0.03em;
+}
+.construct-formula .hi-alpha { color: var(--amber); font-weight: 600; }
+.construct-formula .hi-idx   { color: #3a9a9b; }
+.construct-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  flex-wrap: nowrap;
+  margin-bottom: 10px;
+}
+.construct-row::-webkit-scrollbar { height: 4px; }
+.construct-row::-webkit-scrollbar-track { background: var(--bg); }
+.construct-row::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+.construct-sym {
+  font-family: var(--mono);
+  font-size: 1rem;
+  color: var(--dim);
+  flex-shrink: 0;
+  padding: 0 3px;
+  align-self: center;
+}
+.construct-sym.eq { color: var(--blue); font-size: 1.05rem; }
+.construct-sym.alpha-sym { color: var(--amber); font-weight: 600; }
+.construct-mat-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+.construct-mat-lbl {
+  font-family: var(--mono);
+  font-size: 0.67rem;
+  text-align: center;
+  margin-bottom: 2px;
+  letter-spacing: 0.05em;
+}
+.construct-mat-lbl.blue  { color: #3a6a8b; }
+.construct-mat-lbl.amber { color: var(--amber); }
+.construct-mat-lbl.teal  { color: #3a9a9b; }
+.construct-mat-lbl.result { color: var(--blue); }
+.construct-effect {
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  color: var(--dim);
+  line-height: 1.7;
+  padding-top: 8px;
+  border-top: 1px solid #1a3a55;
+}
+.construct-effect .hi { color: var(--blue); }
+.construct-effect .hi-a { color: var(--amber); }
 </style>
 </head>
 <body>
@@ -532,9 +610,10 @@ button:disabled { opacity: 0.38; cursor: not-allowed; }
         <button class="primary" id="applyBtn" style="margin-top:10px; width:100%;">Apply Operation</button>
       </div>
 
-      <!-- B preview -->
+      <!-- B preview + construction -->
       <div class="preview-lbl">B Matrix Preview (next operation)</div>
       <div id="bPreviewDiv"></div>
+      <div id="bConstructDiv"></div>
     </div>
   </div>
 
@@ -865,6 +944,152 @@ function updateBPreview(){
 }
 
 // ════════════════════════════════════════════════════════════
+//  B matrix construction explainer
+// ════════════════════════════════════════════════════════════
+function updateBConstruct(){
+  const div = document.getElementById('bConstructDiv');
+  div.innerHTML='';
+  const {i,j,alpha,ok} = getParams();
+  if(!ok) return;
+
+  const block = document.createElement('div');
+  block.className = 'construct-block';
+
+  // ── Section header ────────────────────────────────────────
+  const hdr = document.createElement('div');
+  hdr.className = 'construct-header';
+  hdr.textContent = 'How B is constructed';
+  block.appendChild(hdr);
+
+  // ── Formula line: B = I + α · E_{ij} ─────────────────────
+  // E_{ij} = eᵢ·eⱼᵀ  is the n×n matrix with a single 1 at (i,j)
+  const fml = document.createElement('div');
+  fml.className = 'construct-formula';
+  fml.innerHTML =
+    `B &nbsp;=&nbsp; I &nbsp;+&nbsp; `+
+    `<span class="hi-alpha">\u03B1</span>`+
+    ` &nbsp;\u00B7&nbsp; `+
+    `E<span class="hi-idx"><sub>${i+1},${j+1}</sub></span>`+
+    `&nbsp;&nbsp;&mdash;&nbsp;&nbsp;`+
+    `E<sub>${i+1},${j+1}</sub> = e<sub>${i+1}</sub>\u00B7e<sub>${j+1}</sub><sup>T</sup>`;
+  block.appendChild(fml);
+
+  // ── Visual row: [I]  +  α · [E_{ij}]  =  [B] ─────────────
+  const Eij = Array.from({length:N}, (_,r) =>
+               Array.from({length:N}, (_,c) => (r===i && c===j) ? 1 : 0));
+  const B   = makeB(N, i, j, alpha);
+
+  function cMat(label, M, lblClass, greenBrack){
+    const w = document.createElement('div');
+    w.className = 'construct-mat-wrap';
+    const l = document.createElement('div');
+    l.className = 'construct-mat-lbl ' + lblClass;
+    l.textContent = label;
+    w.appendChild(l);
+    w.appendChild(renderMat(M, N, {greenBrack}));
+    return w;
+  }
+  function cSym(s, cls=''){
+    const sp = document.createElement('span');
+    sp.className = 'construct-sym' + (cls ? ' '+cls : '');
+    sp.textContent = s;
+    return sp;
+  }
+
+  const row = document.createElement('div');
+  row.className = 'construct-row';
+
+  row.appendChild(cMat('I', eye(N), 'blue', false));
+  row.appendChild(cSym('+'));
+  // α scalar badge
+  const abadge = document.createElement('span');
+  abadge.className = 'construct-sym alpha-sym';
+  abadge.textContent = fmt(alpha);
+  row.appendChild(abadge);
+  row.appendChild(cSym('\u00B7'));
+  row.appendChild(cMat(`E${subDigit(i+1)}\u2c7c${subDigit(j+1)}`, Eij, 'teal', false));
+  row.appendChild(cSym('=', 'eq'));
+  row.appendChild(cMat('B', B, 'result', true));
+
+  block.appendChild(row);
+
+  // ── What E_{ij} is: text ──────────────────────────────────
+  const eDesc = document.createElement('div');
+  eDesc.style.cssText='font-family:var(--mono);font-size:0.72rem;color:var(--dim);margin:6px 0 10px;line-height:1.6;';
+  eDesc.innerHTML =
+    `E<sub>${i+1},${j+1}</sub> &nbsp;=&nbsp; `+
+    `e<sub>${i+1}</sub> &middot; e<sub>${j+1}</sub><sup>T</sup> &nbsp;&mdash;&nbsp; `+
+    `column ${i+1} of identity &times; row ${j+1} of identity &nbsp;&Rightarrow;&nbsp; `+
+    `single 1 at position (${i+1},&thinsp;${j+1}), zeros elsewhere`;
+  block.appendChild(eDesc);
+
+  // ── Vectors: show eᵢ and eⱼᵀ explicitly ─────────────────
+  const vecRow = document.createElement('div');
+  vecRow.style.cssText='display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;overflow-x:auto;';
+
+  // eᵢ as column vector (n×1) rendered as n×1 matrix
+  const eiMat  = Array.from({length:N}, (_,r) => [r===i ? 1 : 0]);
+  const ejtMat = [Array.from({length:N}, (_,c) => c===j ? 1 : 0)];
+
+  function renderVec(M, rows, cols, lbl){
+    const w = document.createElement('div');
+    w.className = 'construct-mat-wrap';
+    const l = document.createElement('div');
+    l.className = 'construct-mat-lbl teal';
+    l.textContent = lbl;
+    w.appendChild(l);
+    // Build outer/table manually for non-square
+    const outer = document.createElement('div');
+    outer.className = 'matrix-outer';
+    const bl = document.createElement('div'); bl.className = 'bracket-l';
+    const br = document.createElement('div'); br.className = 'bracket-r';
+    const tbl = document.createElement('table'); tbl.className = 'mat-table';
+    for(let r=0;r<rows;r++){
+      const tr = document.createElement('tr');
+      for(let c=0;c<cols;c++){
+        const td = document.createElement('td');
+        const v = M[r][c];
+        td.textContent = fmt(v);
+        if(Math.abs(v)<1e-9) td.classList.add('zero');
+        else if(v===1) td.style.color='#3a9a9b';
+        tr.appendChild(td);
+      }
+      tbl.appendChild(tr);
+    }
+    outer.appendChild(bl); outer.appendChild(tbl); outer.appendChild(br);
+    w.appendChild(outer);
+    return w;
+  }
+
+  vecRow.appendChild(renderVec(eiMat,  N, 1, `e${subDigit(i+1)}`));
+  const mulSym = document.createElement('span');
+  mulSym.className='construct-sym'; mulSym.textContent='\u00B7';
+  vecRow.appendChild(mulSym);
+  vecRow.appendChild(renderVec(ejtMat, 1, N, `e${subDigit(j+1)}\u1D40`));
+  const eqSym = document.createElement('span');
+  eqSym.className='construct-sym eq'; eqSym.textContent='=';
+  vecRow.appendChild(eqSym);
+  vecRow.appendChild(cMat(`E${subDigit(i+1)}\u2c7c${subDigit(j+1)}`, Eij, 'teal', false));
+
+  block.appendChild(vecRow);
+
+  // ── Effect on a matrix ────────────────────────────────────
+  const eff = document.createElement('div');
+  eff.className = 'construct-effect';
+  eff.innerHTML =
+    `Effect of left-multiplying by B:<br>`+
+    `&nbsp;&nbsp;(B&middot;M)[row] &nbsp;= &nbsp;M[row]&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;`+
+      `<span class="hi">for row &ne; ${i+1}</span><br>`+
+    `&nbsp;&nbsp;(B&middot;M)[${i+1}]&nbsp;&nbsp; = &nbsp;M[${i+1}] &nbsp;+&nbsp; `+
+      `<span class="hi-a">${fmt(alpha)}</span>`+
+      ` &middot; M[${j+1}]&nbsp;&nbsp;`+
+      `<span class="hi">(only row ${i+1} changes)</span>`;
+  block.appendChild(eff);
+
+  div.appendChild(block);
+}
+
+// ════════════════════════════════════════════════════════════
 //  Accumulated L⁻¹ and L
 // ════════════════════════════════════════════════════════════
 function updateLinvL(){
@@ -1143,6 +1368,7 @@ function updateChainPanel(){
 function updateAll(){
   updateWorkingMatrix();
   updateBPreview();
+  updateBConstruct();
   updateLinvL();
   updateEquationLine();
   updateChainPanel();
@@ -1238,6 +1464,7 @@ document.getElementById('applyBtn').addEventListener('click', applyOp);
 ['rowI','rowJ','alphaVal'].forEach(id=>{
   document.getElementById(id).addEventListener('input',()=>{
     updateBPreview();
+    updateBConstruct();
     validateOp();
   });
 });

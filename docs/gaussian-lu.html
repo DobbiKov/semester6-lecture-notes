@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gaussian Elimination &amp; LU Decomposition</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0d1b2a;
+  --panel: #0f2235;
+  --cell-bg: #1a2e45;
+  --border: #2a4a6b;
+  --text: #c8d8e8;
+  --blue: #7eb8d4;
+  --dim: #2a5070;
+  --amber: #f0a500;
+  --amber-bg: #2a1e00;
+  --amber-border: #664800;
+  --green: #4a7c59;
+  --green-bg: #1a3024;
+  --red: #e05555;
+  --red-bg: #2a1515;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  padding: 24px 20px 40px;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: radial-gradient(circle, #2a4a6b 1px, transparent 1px);
+  background-size: 24px 24px;
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* ── Typography helpers ── */
+.mono { font-family: var(--mono); }
+.label {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--dim);
+}
+.section-title {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #3a6a8b;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 14px;
+}
+
+/* ── Header ── */
+header {
+  text-align: center;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+header h1 {
+  font-family: var(--mono);
+  font-size: 1.3rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--blue);
+  font-weight: 600;
+}
+header p {
+  margin-top: 5px;
+  font-size: 0.82rem;
+  color: #3a6a8b;
+  letter-spacing: 0.05em;
+  font-family: var(--mono);
+}
+
+/* ── Panels ── */
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 16px;
+}
+
+/* ── Top controls ── */
+.top-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 10px 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  flex-wrap: wrap;
+}
+
+/* ── Form elements ── */
+select, input[type="number"], input[type="text"] {
+  background: var(--cell-bg);
+  border: 1px solid var(--border);
+  color: var(--blue);
+  font-family: var(--mono);
+  font-size: 0.83rem;
+  padding: 5px 8px;
+  border-radius: 3px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+select:focus, input:focus { border-color: var(--blue); }
+
+/* ── Buttons ── */
+button {
+  background: var(--cell-bg);
+  border: 1px solid var(--border);
+  color: var(--blue);
+  font-family: var(--sans);
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 3px;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: background 0.15s, border-color 0.15s;
+  white-space: nowrap;
+}
+button:hover:not(:disabled) { background: #243d56; border-color: var(--blue); }
+button.primary {
+  border-color: var(--amber);
+  color: var(--amber);
+  font-weight: 600;
+}
+button.primary:hover:not(:disabled) { background: #2a3d1a; background: #2a3010; }
+button:disabled { opacity: 0.38; cursor: not-allowed; }
+
+/* ── Equation line ── */
+.equation-line {
+  font-family: var(--mono);
+  font-size: 0.88rem;
+  color: var(--blue);
+  margin-bottom: 14px;
+  padding: 9px 14px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  letter-spacing: 0.04em;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* ── Two-column layout ── */
+.two-col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+@media (max-width: 860px) { .two-col { grid-template-columns: 1fr; } }
+
+/* ── Matrix rendering ── */
+.matrix-outer {
+  display: inline-flex;
+  align-items: stretch;
+  vertical-align: middle;
+  margin: 2px 3px;
+}
+.bracket-l, .bracket-r {
+  width: 7px;
+  flex-shrink: 0;
+  border-top: 2px solid var(--blue);
+  border-bottom: 2px solid var(--blue);
+}
+.bracket-l { border-left: 2px solid var(--blue); border-radius: 3px 0 0 3px; margin-right: 2px; }
+.bracket-r { border-right: 2px solid var(--blue); border-radius: 0 3px 3px 0; margin-left: 2px; }
+.bracket-l.green, .bracket-r.green { border-color: var(--green); }
+
+.mat-table {
+  border-collapse: separate;
+  border-spacing: 2px;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+}
+.mat-table td {
+  background: var(--cell-bg);
+  color: var(--blue);
+  text-align: right;
+  min-width: 38px;
+  height: 26px;
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  white-space: nowrap;
+}
+.mat-table td.zero { color: var(--dim); }
+.mat-table td.pivot {
+  background: var(--amber-bg);
+  color: var(--amber);
+  border-color: var(--amber-border);
+  font-weight: 600;
+}
+.mat-table td.editable-cell { padding: 0; }
+.mat-table td.editable-cell input {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  text-align: right;
+  width: 100%;
+  height: 100%;
+  padding: 2px 6px;
+  outline: none;
+  min-width: 38px;
+}
+.mat-table td.editable-cell input:focus { background: #1e3850; }
+
+/* ── Op builder ── */
+.op-block { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid #162840; }
+.op-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.op-row .op-key {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--blue);
+  min-width: 110px;
+}
+
+/* ── Messages ── */
+.msg {
+  font-family: var(--mono);
+  font-size: 0.76rem;
+  padding: 6px 10px;
+  border-radius: 3px;
+  margin-top: 8px;
+  line-height: 1.5;
+}
+.msg.error { color: var(--red); background: var(--red-bg); border: 1px solid #553333; }
+.msg.warn { color: var(--amber); background: var(--amber-bg); border: 1px solid var(--amber-border); }
+
+/* ── Preview label ── */
+.preview-lbl {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #3a6a8b;
+  margin-top: 14px;
+  margin-bottom: 6px;
+}
+
+/* ── History ── */
+.history-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 16px;
+}
+.step-entry {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+  background: #0d1e30;
+  border: 1px solid #1e3a55;
+  border-radius: 3px;
+  flex-wrap: wrap;
+}
+.step-lbl {
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  color: #3a6a8b;
+  letter-spacing: 0.1em;
+  min-width: 56px;
+}
+.step-op-sym {
+  font-family: var(--mono);
+  font-size: 1.05rem;
+  color: var(--dim);
+  padding: 0 2px;
+}
+.mat-name {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: #3a6a8b;
+  align-self: flex-start;
+  padding-top: 3px;
+}
+
+/* ── Success banner ── */
+.success-banner {
+  background: var(--green-bg);
+  border: 2px solid var(--green);
+  border-radius: 4px;
+  padding: 16px 20px;
+  margin-top: 16px;
+}
+.success-banner h2 {
+  font-family: var(--mono);
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--green);
+  margin-bottom: 12px;
+}
+.lu-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.lu-eq {
+  font-family: var(--mono);
+  font-size: 1.1rem;
+  color: var(--green);
+}
+.lu-mat-group { display: flex; align-items: center; gap: 3px; }
+.lu-mat-lbl {
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--green);
+  align-self: flex-start;
+  padding-top: 2px;
+}
+
+/* ── Scrollable history ── */
+#historyDiv { max-height: 420px; overflow-y: auto; }
+#historyDiv::-webkit-scrollbar { width: 6px; }
+#historyDiv::-webkit-scrollbar-track { background: var(--bg); }
+#historyDiv::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+.empty-hint {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--dim);
+}
+
+/* scrollable step entries horizontally */
+.step-entry { overflow-x: auto; }
+
+/* ── Explicit chain panel ── */
+.chain-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.chain-scroll {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  flex-wrap: nowrap;
+}
+.chain-scroll::-webkit-scrollbar { height: 5px; }
+.chain-scroll::-webkit-scrollbar-track { background: var(--bg); }
+.chain-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.chain-sym {
+  font-family: var(--mono);
+  font-size: 1rem;
+  color: var(--dim);
+  flex-shrink: 0;
+  padding: 0 5px;
+  align-self: center;
+}
+.chain-sym.result { color: var(--blue); font-size: 1.1rem; }
+.chain-mat-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+.chain-mat-lbl {
+  font-family: var(--mono);
+  font-size: 0.67rem;
+  color: #3a6a8b;
+  margin-bottom: 2px;
+  letter-spacing: 0.06em;
+  text-align: center;
+}
+.chain-mat-lbl.result-lbl { color: var(--blue); }
+.chain-running {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+}
+.chain-running-lbl {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  color: #2a5878;
+  margin-bottom: 2px;
+  letter-spacing: 0.05em;
+}
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ── Header ── -->
+  <header>
+    <h1>Gaussian Elimination &amp; LU Decomposition</h1>
+    <h2>Yehor Korotenko</h2>
+    <p>B&#8342; &middot; &hellip; &middot; B&#8321; &middot; A = U &nbsp;&nbsp;&nbsp; via elementary lower-triangular row operations</p>
+  </header>
+
+  <!-- ── Top controls ── -->
+  <div class="top-controls">
+    <span class="label">N =</span>
+    <select id="nSelect" style="width:56px;">
+      <option value="2">2</option>
+      <option value="3" selected>3</option>
+      <option value="4">4</option>
+      <option value="5">5</option>
+    </select>
+    <button id="resetBtn">Reset</button>
+    <button id="randomBtn">Randomize</button>
+    <span class="label" style="margin-left:8px; font-size:0.68rem; color:#2a5070;">
+      Edit cells to change A &mdash; resets history
+    </span>
+  </div>
+
+  <!-- ── Equation line ── -->
+  <div class="equation-line" id="equationLine">A = A</div>
+
+  <!-- ── Main two-column ── -->
+  <div class="two-col">
+
+    <!-- Left: working matrix -->
+    <div class="panel">
+      <div class="section-title">Working Matrix</div>
+      <div id="workingMatrixDiv"></div>
+      <div id="pivotInfo" style="margin-top:10px;"></div>
+    </div>
+
+    <!-- Right: control panel -->
+    <div class="panel">
+      <div class="section-title">Row Operation Builder</div>
+
+      <div class="op-block">
+        <!-- Op type -->
+        <div class="op-row">
+          <span class="op-key">Operation:</span>
+          <select id="opType" style="flex:1; min-width:200px; font-size:0.78rem;">
+            <option value="add">L&#7522; &larr; L&#7522; + &alpha;&middot;L&#8341;</option>
+          </select>
+        </div>
+        <!-- Row i -->
+        <div class="op-row">
+          <span class="op-key">Row i (target):</span>
+          <input type="number" id="rowI" value="2" min="1" max="3" style="width:58px;">
+          <span class="label" style="font-size:0.68rem;">&nbsp;(must be &gt; j)</span>
+        </div>
+        <!-- Row j -->
+        <div class="op-row">
+          <span class="op-key">Row j (source):</span>
+          <input type="number" id="rowJ" value="1" min="1" max="3" style="width:58px;">
+        </div>
+        <!-- Alpha -->
+        <div class="op-row">
+          <span class="op-key">Scalar &alpha;:</span>
+          <input type="text" id="alphaVal" value="-1" placeholder="-1/2" style="width:78px;">
+        </div>
+
+        <div id="errorMsg" style="display:none;"></div>
+        <div id="warnMsg" style="display:none;"></div>
+        <button class="primary" id="applyBtn" style="margin-top:10px; width:100%;">Apply Operation</button>
+      </div>
+
+      <!-- B preview -->
+      <div class="preview-lbl">B Matrix Preview</div>
+      <div id="bPreviewDiv"></div>
+
+      <!-- Accumulated L^{-1} -->
+      <div class="preview-lbl">Accumulated L&#8315;&#185; = B&#8342;&middot;&hellip;&middot;B&#8321;</div>
+      <div id="linvDiv"></div>
+
+      <!-- L -->
+      <div class="preview-lbl">L = (L&#8315;&#185;)&#8315;&#185;</div>
+      <div id="lDiv"></div>
+    </div>
+  </div>
+
+  <!-- ── Explicit chain ── -->
+  <div class="chain-panel" id="chainPanel" style="display:none;">
+    <div class="section-title">Explicit Factorization Chain</div>
+
+    <!-- L^{-1} = Bk · ... · B1 -->
+    <div class="preview-lbl" style="margin-top:0;">
+      L&#8315;&#185; &nbsp;=&nbsp; B&#8342;&nbsp;&middot;&nbsp;&hellip;&nbsp;&middot;&nbsp;B&#8321;
+      &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
+      each B&#7522; applied left-to-right accumulates the elimination
+    </div>
+    <div class="chain-scroll" id="linvChainDiv"></div>
+
+    <!-- L = B1^{-1} · ... · Bk^{-1} -->
+    <div class="preview-lbl" style="margin-top:16px;">
+      L &nbsp;=&nbsp; B&#8321;&#8315;&#185;&nbsp;&middot;&nbsp;&hellip;&nbsp;&middot;&nbsp;B&#8342;&#8315;&#185;
+      &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
+      B&#7522;&#8315;&#185; = identity with &minus;&alpha; at (i,&thinsp;j) &nbsp;[negates the multiplier]
+    </div>
+    <div class="chain-scroll" id="lChainDiv"></div>
+  </div>
+
+  <!-- ── History ── -->
+  <div class="history-panel">
+    <div class="section-title">Step History</div>
+    <div id="historyDiv">
+      <span class="empty-hint">No steps applied yet.</span>
+    </div>
+  </div>
+
+  <!-- ── Success banner ── -->
+  <div id="successBanner" style="display:none;"></div>
+
+</div><!-- /container -->
+
+<script>
+// ════════════════════════════════════════════════════════════
+//  State
+// ════════════════════════════════════════════════════════════
+let N = 3;
+let origMat  = [];   // user's original A
+let currMat  = [];   // current working matrix
+let linvMat  = [];   // accumulated L^{-1} = Bk * ... * B1
+let steps    = [];   // {B, before, after, i, j, alpha}
+
+// ════════════════════════════════════════════════════════════
+//  Math helpers
+// ════════════════════════════════════════════════════════════
+function eye(n) {
+  return Array.from({length:n},(_,i)=>Array.from({length:n},(_,j)=>i===j?1:0));
+}
+
+function clone(M) { return M.map(r=>[...r]); }
+
+function mmul(A, B, n) {
+  const C = Array.from({length:n},()=>new Array(n).fill(0));
+  for(let i=0;i<n;i++) for(let k=0;k<n;k++) if(A[i][k]!==0)
+    for(let j=0;j<n;j++) C[i][j]+=A[i][k]*B[k][j];
+  return C;
+}
+
+function makeB(n, i, j, alpha) {
+  // B = I  + alpha * e_i * e_j^T   (i > j  => lower triangular)
+  const B = eye(n);
+  B[i][j] = alpha;
+  return B;
+}
+
+function invertLower(M, n) {
+  // Gauss-Jordan inversion (works for any invertible matrix)
+  const A = M.map(r=>[...r]);
+  const I = eye(n);
+  for(let col=0;col<n;col++){
+    // find pivot
+    let pr=-1;
+    for(let r=col;r<n;r++) if(Math.abs(A[r][col])>1e-12){pr=r;break;}
+    if(pr<0) return null;
+    if(pr!==col){ [A[col],A[pr]]=[A[pr],A[col]]; [I[col],I[pr]]=[I[pr],I[col]]; }
+    const s=A[col][col];
+    for(let j=0;j<n;j++){ A[col][j]/=s; I[col][j]/=s; }
+    for(let r=0;r<n;r++) if(r!==col){
+      const f=A[r][col];
+      if(f!==0) for(let j=0;j<n;j++){ A[r][j]-=f*A[col][j]; I[r][j]-=f*I[col][j]; }
+    }
+  }
+  return I;
+}
+
+function det(M, n) {
+  const A = M.map(r=>[...r]);
+  let d=1;
+  for(let col=0;col<n;col++){
+    let pr=-1;
+    for(let r=col;r<n;r++) if(Math.abs(A[r][col])>1e-12){pr=r;break;}
+    if(pr<0) return 0;
+    if(pr!==col){ [A[col],A[pr]]=[A[pr],A[col]]; d*=-1; }
+    d*=A[col][col];
+    for(let r=col+1;r<n;r++){
+      const f=A[r][col]/A[col][col];
+      for(let j=col;j<n;j++) A[r][j]-=f*A[col][j];
+    }
+  }
+  return d;
+}
+
+function parseFrac(s) {
+  s = s.trim();
+  if(s===''||s==='-'||s==='+') return NaN;
+  if(s.includes('/')){
+    const [a,b]=s.split('/');
+    const nn=parseFloat(a), dd=parseFloat(b);
+    if(isNaN(nn)||isNaN(dd)||Math.abs(dd)<1e-15) return NaN;
+    return nn/dd;
+  }
+  return parseFloat(s);
+}
+
+function fmt(v) {
+  if(Math.abs(v)<1e-9) return '0';
+  if(Math.abs(v-Math.round(v))<1e-9) return String(Math.round(v));
+  // 3 significant figures
+  const s = parseFloat(v.toPrecision(3));
+  return String(s);
+}
+
+function clean(v) { return Math.abs(v)<1e-10 ? 0 : v; }
+
+function cleanMat(M,n){ return M.map(r=>r.map(clean)); }
+
+function isUpperTri(M,n){
+  for(let i=1;i<n;i++) for(let j=0;j<i;j++)
+    if(Math.abs(M[i][j])>1e-9) return false;
+  return true;
+}
+
+// First column that is not yet fully eliminated below diagonal
+function pivotCol(M,n){
+  for(let col=0;col<n-1;col++)
+    for(let row=col+1;row<n;row++)
+      if(Math.abs(M[row][col])>1e-9) return col;
+  return -1;
+}
+
+function subDigit(n){
+  const s='₀₁₂₃₄₅₆₇₈₉';
+  return String(n).split('').map(c=>s[parseInt(c)]||c).join('');
+}
+
+// ════════════════════════════════════════════════════════════
+//  Matrix DOM renderer
+// ════════════════════════════════════════════════════════════
+function renderMat(M, n, opts={}) {
+  const {
+    editable   = false,
+    pivotC     = -1,    // column index to highlight diagonal
+    greenBrack = false
+  } = opts;
+
+  const outer = document.createElement('div');
+  outer.className = 'matrix-outer';
+
+  const bl = document.createElement('div');
+  bl.className = 'bracket-l' + (greenBrack?' green':'');
+  const br = document.createElement('div');
+  br.className = 'bracket-r' + (greenBrack?' green':'');
+
+  const tbl = document.createElement('table');
+  tbl.className = 'mat-table';
+
+  for(let i=0;i<n;i++){
+    const tr = document.createElement('tr');
+    for(let j=0;j<n;j++){
+      const td = document.createElement('td');
+      const v  = M[i][j];
+      const isZero  = Math.abs(v)<1e-9;
+      const isPivot = (i===pivotC && i===j);
+
+      if(isPivot)       td.classList.add('pivot');
+      else if(isZero)   td.classList.add('zero');
+
+      if(editable){
+        td.classList.add('editable-cell');
+        const inp = document.createElement('input');
+        inp.type = 'text';
+        inp.value = fmt(v);
+        inp.dataset.r = i;
+        inp.dataset.c = j;
+        if(isPivot) inp.style.color = 'var(--amber)';
+        inp.addEventListener('blur',  onCellBlur);
+        inp.addEventListener('keydown', e=>{ if(e.key==='Enter') inp.blur(); });
+        td.appendChild(inp);
+      } else {
+        td.textContent = fmt(v);
+      }
+      tr.appendChild(td);
+    }
+    tbl.appendChild(tr);
+  }
+
+  outer.appendChild(bl);
+  outer.appendChild(tbl);
+  outer.appendChild(br);
+  return outer;
+}
+
+function onCellBlur(e){
+  const r = parseInt(e.target.dataset.r);
+  const c = parseInt(e.target.dataset.c);
+  const v = parseFrac(e.target.value);
+  if(!isNaN(v)){
+    // Edit resets everything
+    origMat[r][c] = v;
+    currMat  = clone(origMat);
+    linvMat  = eye(N);
+    steps    = [];
+    // re-format display value
+    e.target.value = fmt(v);
+    updateAll();
+  } else {
+    e.target.value = fmt(currMat[r][c]);
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+//  Default / random matrices
+// ════════════════════════════════════════════════════════════
+const DEFAULTS = {
+  2: [[2,1],[4,3]],
+  3: [[2,1,-1],[4,3,2],[2,-1,3]],
+  4: [[2,1,0,1],[4,3,1,2],[2,-1,3,1],[0,2,-1,4]],
+  5: [[3,1,0,2,1],[6,4,1,3,2],[3,0,2,1,0],[9,4,1,8,3],[3,1,2,2,5]]
+};
+
+function defaultMat(n){ return DEFAULTS[n]||randomMat(n); }
+
+function randomMat(n){
+  let M, d, tries=0;
+  do {
+    M = Array.from({length:n},()=>Array.from({length:n},()=>Math.floor(Math.random()*11)-5));
+    d = det(M,n);
+    tries++;
+  } while(Math.abs(d)<1e-9 && tries<200);
+  return M;
+}
+
+// ════════════════════════════════════════════════════════════
+//  Equation line
+// ════════════════════════════════════════════════════════════
+function updateEquationLine(){
+  const el = document.getElementById('equationLine');
+  const k  = steps.length;
+  if(k===0){ el.textContent='A = current matrix (no operations applied yet)'; return; }
+
+  // Build abbreviated: Bk · ... · B1 · A = U
+  let parts=[];
+  if(k<=4){
+    for(let s=k;s>=1;s--){
+      parts.push('B'+subDigit(s));
+      if(s>1) parts.push('·');
+    }
+  } else {
+    parts.push('B'+subDigit(k));
+    parts.push('·');
+    parts.push('···');
+    parts.push('·');
+    parts.push('B'+subDigit(1));
+  }
+  parts.push('· A');
+  parts.push('=');
+  parts.push(isUpperTri(currMat,N) ? 'U' : 'current');
+  el.textContent = parts.join(' ');
+}
+
+// ════════════════════════════════════════════════════════════
+//  Working matrix
+// ════════════════════════════════════════════════════════════
+function updateWorkingMatrix(){
+  const div  = document.getElementById('workingMatrixDiv');
+  div.innerHTML = '';
+  const pc   = pivotCol(currMat, N);
+  div.appendChild(renderMat(currMat, N, {editable:true, pivotC:pc}));
+
+  const info = document.getElementById('pivotInfo');
+  if(pc>=0){
+    const pv = currMat[pc][pc];
+    if(Math.abs(pv)<1e-9){
+      info.innerHTML = `<div class="msg warn">Active pivot: column ${pc+1}, A[${pc+1}][${pc+1}] = 0 &mdash; zero pivot detected</div>`;
+    } else {
+      info.innerHTML = `<div class="label" style="font-size:0.68rem;">Active pivot: column ${pc+1}, A[${pc+1}][${pc+1}] = ${fmt(pv)}</div>`;
+    }
+  } else {
+    info.innerHTML = '';
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+//  B preview
+// ════════════════════════════════════════════════════════════
+function updateBPreview(){
+  const div = document.getElementById('bPreviewDiv');
+  div.innerHTML='';
+  const {i,j,alpha,ok} = getParams();
+  if(ok){
+    const B = makeB(N,i,j,alpha);
+    div.appendChild(renderMat(B,N));
+  } else {
+    div.innerHTML='<span class="empty-hint">&mdash; adjust parameters above &mdash;</span>';
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+//  Accumulated L⁻¹ and L
+// ════════════════════════════════════════════════════════════
+function updateLinvL(){
+  const linvDiv = document.getElementById('linvDiv');
+  const lDiv    = document.getElementById('lDiv');
+  linvDiv.innerHTML='';
+  lDiv.innerHTML='';
+  linvDiv.appendChild(renderMat(linvMat,N));
+  const L = invertLower(linvMat,N);
+  if(L) lDiv.appendChild(renderMat(L,N));
+  else  lDiv.innerHTML='<span class="empty-hint" style="color:var(--red);">singular</span>';
+}
+
+// ════════════════════════════════════════════════════════════
+//  Validation
+// ════════════════════════════════════════════════════════════
+function getParams(){
+  const i     = parseInt(document.getElementById('rowI').value)-1;
+  const j     = parseInt(document.getElementById('rowJ').value)-1;
+  const alpha = parseFrac(document.getElementById('alphaVal').value);
+  const ok = !isNaN(alpha) && i>=0 && j>=0 && i<N && j<N && i>j;
+  return {i,j,alpha,ok};
+}
+
+function validateOp(){
+  const errDiv  = document.getElementById('errorMsg');
+  const warnDiv = document.getElementById('warnMsg');
+  const applyBtn= document.getElementById('applyBtn');
+
+  errDiv.style.display  = 'none';
+  warnDiv.style.display = 'none';
+  applyBtn.disabled     = false;
+
+  function showErr(msg){ errDiv.className='msg error'; errDiv.textContent=msg; errDiv.style.display='block'; applyBtn.disabled=true; }
+  function showWarn(msg){ warnDiv.className='msg warn'; warnDiv.textContent=msg; warnDiv.style.display='block'; applyBtn.disabled=true; }
+
+  // Already upper triangular
+  if(isUpperTri(currMat,N)){
+    applyBtn.disabled=true;
+    return;
+  }
+
+  const i     = parseInt(document.getElementById('rowI').value)-1;
+  const j     = parseInt(document.getElementById('rowJ').value)-1;
+  const alpha = parseFrac(document.getElementById('alphaVal').value);
+
+  if(isNaN(alpha)){
+    showErr('Invalid scalar \u03B1. Enter a number or fraction like \u22121/2.');
+    return;
+  }
+  if(i<0||i>=N||j<0||j>=N){
+    showErr(`Row indices must be between 1 and ${N}.`);
+    return;
+  }
+  if(i===j){
+    showErr('Rows i and j must be different.');
+    return;
+  }
+  if(i<j){
+    showErr('i must be strictly greater than j to produce a lower-triangular B matrix (Gaussian elimination requires i > j).');
+    return;
+  }
+  // Check zero pivot
+  if(Math.abs(currMat[j][j])<1e-9){
+    showWarn(`Zero pivot at A[${j+1}][${j+1}] \u2014 pivoting required (PA = LU). Change the operation or reorder rows manually.`);
+    return;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+//  History
+// ════════════════════════════════════════════════════════════
+function updateHistory(){
+  const div = document.getElementById('historyDiv');
+  if(steps.length===0){
+    div.innerHTML='<span class="empty-hint">No steps applied yet.</span>';
+    return;
+  }
+  div.innerHTML='';
+  steps.forEach((st,idx)=>{
+    const row = document.createElement('div');
+    row.className = 'step-entry';
+
+    const lbl = document.createElement('span');
+    lbl.className = 'step-lbl';
+    lbl.textContent = 'STEP '+(idx+1);
+    row.appendChild(lbl);
+
+    // Op description
+    const opDesc = document.createElement('span');
+    opDesc.className = 'step-lbl';
+    opDesc.style.color='var(--dim)';
+    opDesc.style.minWidth='0';
+    opDesc.textContent = `L${subDigit(st.i+1)}\u2190L${subDigit(st.i+1)}+${fmt(st.alpha)}\u00B7L${subDigit(st.j+1)}`;
+    row.appendChild(opDesc);
+
+    // B_k
+    const bName = document.createElement('span');
+    bName.className='mat-name';
+    bName.textContent='B'+subDigit(idx+1);
+    row.appendChild(bName);
+    row.appendChild(renderMat(st.B, N));
+
+    const x = document.createElement('span');
+    x.className='step-op-sym'; x.textContent='\u00D7';
+    row.appendChild(x);
+
+    row.appendChild(renderMat(st.before, N));
+
+    const eq = document.createElement('span');
+    eq.className='step-op-sym'; eq.textContent='=';
+    row.appendChild(eq);
+
+    row.appendChild(renderMat(st.after, N));
+
+    div.appendChild(row);
+  });
+  // Scroll to bottom
+  div.scrollTop = div.scrollHeight;
+}
+
+// ════════════════════════════════════════════════════════════
+//  Success banner
+// ════════════════════════════════════════════════════════════
+function updateSuccessBanner(){
+  const banner = document.getElementById('successBanner');
+  if(!isUpperTri(currMat,N)||steps.length===0){ banner.style.display='none'; return; }
+
+  banner.style.display='block';
+  const U = currMat;
+  const L = invertLower(linvMat,N);
+
+  const wrap = document.createElement('div');
+  wrap.className='success-banner';
+
+  const h2 = document.createElement('h2');
+  h2.textContent = 'A = LU ACHIEVED!';
+  wrap.appendChild(h2);
+
+  if(!L){
+    const p=document.createElement('p');
+    p.style.cssText='font-family:var(--mono);font-size:0.8rem;color:var(--red);';
+    p.textContent='Could not invert L\u207B\u00B9 (singular).';
+    wrap.appendChild(p);
+    banner.innerHTML='';
+    banner.appendChild(wrap);
+    return;
+  }
+
+  // Verification
+  const LU  = mmul(L,U,N);
+  // Check equality
+  let match=true;
+  for(let i=0;i<N&&match;i++) for(let j=0;j<N&&match;j++)
+    if(Math.abs(LU[i][j]-origMat[i][j])>1e-6) match=false;
+
+  // Display row: A  =  L  ·  U  =  L·U
+  function matGroup(label, M, green){
+    const g=document.createElement('div'); g.className='lu-mat-group';
+    const lbl=document.createElement('span'); lbl.className='lu-mat-lbl'; lbl.textContent=label;
+    g.appendChild(lbl);
+    g.appendChild(renderMat(M,N,{greenBrack:green}));
+    return g;
+  }
+  function eqSym(s){ const e=document.createElement('span'); e.className='lu-eq'; e.textContent=s; return e; }
+
+  const row1=document.createElement('div'); row1.className='lu-row';
+  row1.appendChild(matGroup('A =', origMat, false));
+  row1.appendChild(eqSym('='));
+  row1.appendChild(matGroup('L =', L, true));
+  row1.appendChild(eqSym('\u00B7'));
+  row1.appendChild(matGroup('U =', U, true));
+  row1.appendChild(eqSym('='));
+  row1.appendChild(matGroup('L\u00B7U =', LU, false));
+
+  wrap.appendChild(row1);
+
+  const verify=document.createElement('div');
+  verify.style.cssText='margin-top:10px;font-family:var(--mono);font-size:0.75rem;';
+  verify.style.color = match ? 'var(--green)' : 'var(--red)';
+  verify.textContent = match
+    ? 'Verification: L \u00B7 U = A  \u2714 confirmed'
+    : 'Verification: L \u00B7 U \u2260 A  (numerical error)';
+  wrap.appendChild(verify);
+
+  banner.innerHTML='';
+  banner.appendChild(wrap);
+}
+
+// ════════════════════════════════════════════════════════════
+//  Explicit chain panel
+// ════════════════════════════════════════════════════════════
+function updateChainPanel(){
+  const panel      = document.getElementById('chainPanel');
+  const linvChainD = document.getElementById('linvChainDiv');
+  const lChainD    = document.getElementById('lChainDiv');
+
+  if(steps.length===0){ panel.style.display='none'; return; }
+  panel.style.display='block';
+  linvChainD.innerHTML='';
+  lChainD.innerHTML='';
+
+  const k = steps.length;
+
+  // ── helper: labelled matrix block ──────────────────────────
+  function matBlock(labelText, M, resultStyle){
+    const wrap = document.createElement('div');
+    wrap.className = 'chain-mat-wrap';
+    const lbl = document.createElement('div');
+    lbl.className = 'chain-mat-lbl' + (resultStyle?' result-lbl':'');
+    lbl.textContent = labelText;
+    wrap.appendChild(lbl);
+    wrap.appendChild(renderMat(M, N, {greenBrack: !!resultStyle}));
+    return wrap;
+  }
+
+  function sym(s, resultStyle){
+    const sp = document.createElement('span');
+    sp.className = 'chain-sym' + (resultStyle?' result':'');
+    sp.textContent = s;
+    return sp;
+  }
+
+  // ── L⁻¹ chain: Bk · Bk-1 · ... · B1 = L⁻¹ ───────────────
+  // Display order: rightmost factor first visually on left to
+  // match standard left-to-right reading of matrix products.
+  // Convention: Bk is applied LAST (outermost), B1 FIRST.
+  // Written left-to-right: Bk · ... · B1
+  for(let idx=k-1; idx>=0; idx--){
+    linvChainD.appendChild(matBlock('B'+subDigit(idx+1), steps[idx].B, false));
+    if(idx>0) linvChainD.appendChild(sym('·'));
+  }
+  linvChainD.appendChild(sym('=', true));
+  linvChainD.appendChild(matBlock('L\u207B\u00B9', linvMat, true));
+
+  // ── L chain: B1⁻¹ · B2⁻¹ · ... · Bk⁻¹ = L ───────────────
+  // Bi⁻¹  = identity with  −α  at (i,j)   [exact, no rounding]
+  const L = invertLower(linvMat, N);
+  if(!L){ lChainD.innerHTML='<span class="empty-hint" style="color:var(--red);">singular</span>'; return; }
+
+  for(let idx=0; idx<k; idx++){
+    const st   = steps[idx];
+    const Binv = makeB(N, st.i, st.j, -st.alpha);
+    lChainD.appendChild(matBlock('B'+subDigit(idx+1)+'\u207B\u00B9', Binv, false));
+    if(idx<k-1) lChainD.appendChild(sym('·'));
+  }
+  lChainD.appendChild(sym('=', true));
+  lChainD.appendChild(matBlock('L', L, true));
+}
+
+// ════════════════════════════════════════════════════════════
+//  Master update
+// ════════════════════════════════════════════════════════════
+function updateAll(){
+  updateWorkingMatrix();
+  updateBPreview();
+  updateLinvL();
+  updateEquationLine();
+  updateChainPanel();
+  updateHistory();
+  updateSuccessBanner();
+  validateOp();
+}
+
+// ════════════════════════════════════════════════════════════
+//  Apply
+// ════════════════════════════════════════════════════════════
+function applyOp(){
+  const {i,j,alpha,ok}=getParams();
+  if(!ok) return;
+
+  const B      = makeB(N,i,j,alpha);
+  const before = clone(currMat);
+  let after    = mmul(B, currMat, N);
+  after        = cleanMat(after, N);
+
+  currMat  = after;
+  linvMat  = cleanMat(mmul(B, linvMat, N), N);
+  steps.push({B, before, after:clone(after), i, j, alpha});
+
+  // Suggest next natural operation
+  autoSuggestNextOp();
+
+  updateAll();
+}
+
+function autoSuggestNextOp(){
+  // Find first non-eliminated entry below diagonal and suggest the operation
+  const pc = pivotCol(currMat, N);
+  if(pc<0) return;
+  for(let r=pc+1;r<N;r++){
+    if(Math.abs(currMat[r][pc])>1e-9){
+      const pv=currMat[pc][pc];
+      if(Math.abs(pv)>1e-9){
+        const sugAlpha=-currMat[r][pc]/pv;
+        document.getElementById('rowI').value = r+1;
+        document.getElementById('rowJ').value = pc+1;
+        document.getElementById('alphaVal').value = fmt(sugAlpha);
+      }
+      return;
+    }
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+//  Init
+// ════════════════════════════════════════════════════════════
+function init(n){
+  N        = n;
+  origMat  = defaultMat(n).map(r=>[...r]);
+  currMat  = clone(origMat);
+  linvMat  = eye(N);
+  steps    = [];
+  // Update row input maxima
+  document.getElementById('rowI').max=N;
+  document.getElementById('rowJ').max=N;
+  // Clamp values
+  const ri=parseInt(document.getElementById('rowI').value);
+  const rj=parseInt(document.getElementById('rowJ').value);
+  if(ri>N) document.getElementById('rowI').value=N;
+  if(rj>N) document.getElementById('rowJ').value=Math.max(1,N-1);
+  updateAll();
+}
+
+// ════════════════════════════════════════════════════════════
+//  Event wiring
+// ════════════════════════════════════════════════════════════
+document.getElementById('nSelect').addEventListener('change',function(){
+  init(parseInt(this.value));
+});
+
+document.getElementById('resetBtn').addEventListener('click',function(){
+  currMat = clone(origMat);
+  linvMat = eye(N);
+  steps   = [];
+  updateAll();
+});
+
+document.getElementById('randomBtn').addEventListener('click',function(){
+  origMat = randomMat(N);
+  currMat = clone(origMat);
+  linvMat = eye(N);
+  steps   = [];
+  updateAll();
+});
+
+document.getElementById('applyBtn').addEventListener('click', applyOp);
+
+['rowI','rowJ','alphaVal'].forEach(id=>{
+  document.getElementById(id).addEventListener('input',()=>{
+    updateBPreview();
+    validateOp();
+  });
+});
+
+// ════════════════════════════════════════════════════════════
+//  Boot
+// ════════════════════════════════════════════════════════════
+init(3);
+</script>
+</body>
+</html>

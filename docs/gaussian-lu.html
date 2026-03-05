@@ -89,10 +89,18 @@ header h1 {
   color: var(--blue);
   font-weight: 600;
 }
-header p {
+header h2 {
+  font-family: var(--sans);
+  font-size: 0.88rem;
+  font-weight: 400;
+  color: #4a7a9b;
   margin-top: 5px;
-  font-size: 0.82rem;
-  color: #3a6a8b;
+  letter-spacing: 0.1em;
+}
+header p {
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: #2a5878;
   letter-spacing: 0.05em;
   font-family: var(--mono);
 }
@@ -364,6 +372,37 @@ button:disabled { opacity: 0.38; cursor: not-allowed; }
 /* scrollable step entries horizontally */
 .step-entry { overflow-x: auto; }
 
+/* ── Section accent borders ── */
+.accent-amber { border-left: 3px solid var(--amber) !important; }
+.accent-blue  { border-left: 3px solid var(--blue)  !important; }
+.accent-green { border-left: 3px solid var(--green) !important; }
+.accent-teal  { border-left: 3px solid #3a9a9b !important; }
+
+/* ── Factors side-by-side panel ── */
+.factors-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+@media (max-width: 640px) { .factors-grid { grid-template-columns: 1fr; } }
+.factor-cell {
+  background: #0c1c2d;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 12px 14px;
+}
+.factor-cell-title {
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #1a3a55;
+}
+.factor-cell-title.amber { color: var(--amber); }
+.factor-cell-title.teal  { color: #3a9a9b; }
+
 /* ── Explicit chain panel ── */
 .chain-panel {
   background: var(--panel);
@@ -407,18 +446,16 @@ button:disabled { opacity: 0.38; cursor: not-allowed; }
   text-align: center;
 }
 .chain-mat-lbl.result-lbl { color: var(--blue); }
-.chain-running {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex-shrink: 0;
-}
-.chain-running-lbl {
+.chain-mat-lbl.amber-lbl   { color: var(--amber); }
+.chain-mat-lbl.teal-lbl    { color: #3a9a9b; }
+.chain-op-desc {
   font-family: var(--mono);
   font-size: 0.62rem;
-  color: #2a5878;
-  margin-bottom: 2px;
-  letter-spacing: 0.05em;
+  color: var(--dim);
+  text-align: center;
+  margin-top: 4px;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
 }
 </style>
 </head>
@@ -496,36 +533,45 @@ button:disabled { opacity: 0.38; cursor: not-allowed; }
       </div>
 
       <!-- B preview -->
-      <div class="preview-lbl">B Matrix Preview</div>
+      <div class="preview-lbl">B Matrix Preview (next operation)</div>
       <div id="bPreviewDiv"></div>
-
-      <!-- Accumulated L^{-1} -->
-      <div class="preview-lbl">Accumulated L&#8315;&#185; = B&#8342;&middot;&hellip;&middot;B&#8321;</div>
-      <div id="linvDiv"></div>
-
-      <!-- L -->
-      <div class="preview-lbl">L = (L&#8315;&#185;)&#8315;&#185;</div>
-      <div id="lDiv"></div>
     </div>
   </div>
 
-  <!-- ── Explicit chain ── -->
-  <div class="chain-panel" id="chainPanel" style="display:none;">
-    <div class="section-title">Explicit Factorization Chain</div>
+  <!-- ── Current Factorization State ── -->
+  <div class="panel accent-amber" id="factorsPanel" style="display:none; margin-bottom:16px;">
+    <div class="section-title">Current Factorization State &mdash; B&#8342;&middot;&hellip;&middot;B&#8321;&middot;A = current</div>
+    <div class="factors-grid">
+      <div class="factor-cell accent-amber">
+        <div class="factor-cell-title amber">L&#8315;&#185; &nbsp;=&nbsp; B&#8342;&nbsp;&middot;&nbsp;&hellip;&nbsp;&middot;&nbsp;B&#8321;&nbsp;&nbsp;(accumulated product)</div>
+        <div id="linvDiv"></div>
+      </div>
+      <div class="factor-cell accent-teal">
+        <div class="factor-cell-title teal">L &nbsp;=&nbsp; (L&#8315;&#185;)&#8315;&#185; &nbsp;=&nbsp; B&#8321;&#8315;&#185;&nbsp;&middot;&nbsp;&hellip;&nbsp;&middot;&nbsp;B&#8342;&#8315;&#185;</div>
+        <div id="lDiv"></div>
+      </div>
+    </div>
+  </div>
 
-    <!-- L^{-1} = Bk · ... · B1 -->
-    <div class="preview-lbl" style="margin-top:0;">
-      L&#8315;&#185; &nbsp;=&nbsp; B&#8342;&nbsp;&middot;&nbsp;&hellip;&nbsp;&middot;&nbsp;B&#8321;
-      &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
-      each B&#7522; applied left-to-right accumulates the elimination
+  <!-- ── Explicit chains ── -->
+  <div class="chain-panel accent-amber" id="chainPanel" style="display:none;">
+    <div class="section-title">Explicit Multiplication Chains</div>
+
+    <!-- L^{-1} chain -->
+    <div style="margin-bottom:6px;">
+      <span style="font-family:var(--mono);font-size:0.72rem;color:var(--amber);letter-spacing:0.1em;text-transform:uppercase;">
+        L&#8315;&#185;
+      </span>
+      <span style="font-family:var(--mono);font-size:0.72rem;color:var(--dim);"> &nbsp;= elimination matrices applied in order (outermost last, left-to-right)</span>
     </div>
     <div class="chain-scroll" id="linvChainDiv"></div>
 
-    <!-- L = B1^{-1} · ... · Bk^{-1} -->
-    <div class="preview-lbl" style="margin-top:16px;">
-      L &nbsp;=&nbsp; B&#8321;&#8315;&#185;&nbsp;&middot;&nbsp;&hellip;&nbsp;&middot;&nbsp;B&#8342;&#8315;&#185;
-      &nbsp;&nbsp;&mdash;&nbsp;&nbsp;
-      B&#7522;&#8315;&#185; = identity with &minus;&alpha; at (i,&thinsp;j) &nbsp;[negates the multiplier]
+    <!-- L chain -->
+    <div style="margin-top:20px; margin-bottom:6px; padding-top:16px; border-top:1px solid #1a3a55;">
+      <span style="font-family:var(--mono);font-size:0.72rem;color:#3a9a9b;letter-spacing:0.1em;text-transform:uppercase;">
+        L
+      </span>
+      <span style="font-family:var(--mono);font-size:0.72rem;color:var(--dim);"> &nbsp;= inverse elimination matrices (negate each multiplier &alpha;)</span>
     </div>
     <div class="chain-scroll" id="lChainDiv"></div>
   </div>
@@ -822,10 +868,15 @@ function updateBPreview(){
 //  Accumulated L⁻¹ and L
 // ════════════════════════════════════════════════════════════
 function updateLinvL(){
-  const linvDiv = document.getElementById('linvDiv');
-  const lDiv    = document.getElementById('lDiv');
+  const linvDiv     = document.getElementById('linvDiv');
+  const lDiv        = document.getElementById('lDiv');
+  const factorsPanel= document.getElementById('factorsPanel');
   linvDiv.innerHTML='';
   lDiv.innerHTML='';
+
+  if(steps.length===0){ factorsPanel.style.display='none'; return; }
+  factorsPanel.style.display='block';
+
   linvDiv.appendChild(renderMat(linvMat,N));
   const L = invertLower(linvMat,N);
   if(L) lDiv.appendChild(renderMat(L,N));
@@ -1023,15 +1074,32 @@ function updateChainPanel(){
 
   const k = steps.length;
 
-  // ── helper: labelled matrix block ──────────────────────────
-  function matBlock(labelText, M, resultStyle){
+  // ── helpers ─────────────────────────────────────────────────
+  function opDesc(st, negated){
+    // e.g.  "L₃ ← L₃ − 2·L₁"  or with negated alpha for B⁻¹
+    const a = negated ? -st.alpha : st.alpha;
+    const sign = a>=0 ? '+' : '\u2212';
+    const aAbs = fmt(Math.abs(a));
+    return `L${subDigit(st.i+1)}\u2190L${subDigit(st.i+1)}${sign}${aAbs}\u00B7L${subDigit(st.j+1)}`;
+  }
+
+  function matBlock(labelText, descText, M, colorClass, greenBrack){
     const wrap = document.createElement('div');
     wrap.className = 'chain-mat-wrap';
+
     const lbl = document.createElement('div');
-    lbl.className = 'chain-mat-lbl' + (resultStyle?' result-lbl':'');
+    lbl.className = 'chain-mat-lbl ' + colorClass;
     lbl.textContent = labelText;
     wrap.appendChild(lbl);
-    wrap.appendChild(renderMat(M, N, {greenBrack: !!resultStyle}));
+
+    wrap.appendChild(renderMat(M, N, {greenBrack}));
+
+    if(descText){
+      const desc = document.createElement('div');
+      desc.className = 'chain-op-desc';
+      desc.textContent = descText;
+      wrap.appendChild(desc);
+    }
     return wrap;
   }
 
@@ -1042,31 +1110,31 @@ function updateChainPanel(){
     return sp;
   }
 
-  // ── L⁻¹ chain: Bk · Bk-1 · ... · B1 = L⁻¹ ───────────────
-  // Display order: rightmost factor first visually on left to
-  // match standard left-to-right reading of matrix products.
-  // Convention: Bk is applied LAST (outermost), B1 FIRST.
-  // Written left-to-right: Bk · ... · B1
+  // ── L⁻¹ chain: Bk · ... · B1 = L⁻¹ ──────────────────────
   for(let idx=k-1; idx>=0; idx--){
-    linvChainD.appendChild(matBlock('B'+subDigit(idx+1), steps[idx].B, false));
-    if(idx>0) linvChainD.appendChild(sym('·'));
+    const st = steps[idx];
+    linvChainD.appendChild(
+      matBlock('B'+subDigit(idx+1), opDesc(st, false), st.B, 'amber-lbl', false)
+    );
+    if(idx>0) linvChainD.appendChild(sym('\u00B7'));
   }
   linvChainD.appendChild(sym('=', true));
-  linvChainD.appendChild(matBlock('L\u207B\u00B9', linvMat, true));
+  linvChainD.appendChild(matBlock('L\u207B\u00B9', null, linvMat, 'result-lbl', true));
 
-  // ── L chain: B1⁻¹ · B2⁻¹ · ... · Bk⁻¹ = L ───────────────
-  // Bi⁻¹  = identity with  −α  at (i,j)   [exact, no rounding]
+  // ── L chain: B1⁻¹ · ... · Bk⁻¹ = L ──────────────────────
   const L = invertLower(linvMat, N);
   if(!L){ lChainD.innerHTML='<span class="empty-hint" style="color:var(--red);">singular</span>'; return; }
 
   for(let idx=0; idx<k; idx++){
     const st   = steps[idx];
     const Binv = makeB(N, st.i, st.j, -st.alpha);
-    lChainD.appendChild(matBlock('B'+subDigit(idx+1)+'\u207B\u00B9', Binv, false));
-    if(idx<k-1) lChainD.appendChild(sym('·'));
+    lChainD.appendChild(
+      matBlock('B'+subDigit(idx+1)+'\u207B\u00B9', opDesc(st, true), Binv, 'teal-lbl', false)
+    );
+    if(idx<k-1) lChainD.appendChild(sym('\u00B7'));
   }
   lChainD.appendChild(sym('=', true));
-  lChainD.appendChild(matBlock('L', L, true));
+  lChainD.appendChild(matBlock('L', null, L, 'result-lbl', true));
 }
 
 // ════════════════════════════════════════════════════════════

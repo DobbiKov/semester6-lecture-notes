@@ -8,7 +8,7 @@
 
 #show: dobbikov.with(
   title: [Конспект лекцій зі статистичного висновування],
-  author: "Yehor KOROTENKO",
+  author: "Єгор Коротенко",
   date: datetime.today(),
   report-style: false,
   language: "ua"

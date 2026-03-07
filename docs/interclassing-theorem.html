@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Théorème d'Interclassement — Solution</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400;1,600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script>
+  // MathJax config before load
+  window.MathJax = {
+    tex: { inlineMath: [['$','$'], ['\\(','\\)']], displayMath: [['$$','$$'], ['\\[','\\]']] },
+    options: { skipHtmlTags: ['script','noscript','style','textarea','pre'] }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js" async></script>
+<style>
+/* ============ THEME — Editorial: deep navy + amber ============ */
+:root {
+  --font-body: 'Crimson Pro', Georgia, serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+
+  --bg: #f7f4ef;
+  --surface: #ffffff;
+  --surface2: #f0ece4;
+  --surface3: #e8e2d6;
+  --border: rgba(0,0,0,0.09);
+  --border-bright: rgba(0,0,0,0.18);
+  --text: #1c1810;
+  --text-dim: #7a6e5f;
+  --text-faint: #b0a090;
+  --accent: #b45309;       /* amber */
+  --accent-dim: rgba(180,83,9,0.10);
+  --blue: #1e40af;
+  --blue-dim: rgba(30,64,175,0.10);
+  --green: #166534;
+  --green-dim: rgba(22,101,52,0.10);
+  --red: #9f1239;
+  --red-dim: rgba(159,18,57,0.10);
+  --teal: #0f766e;
+  --teal-dim: rgba(15,118,110,0.10);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12100e;
+    --surface: #1c1810;
+    --surface2: #231f18;
+    --surface3: #2d2820;
+    --border: rgba(255,255,255,0.07);
+    --border-bright: rgba(255,255,255,0.14);
+    --text: #f0e8d8;
+    --text-dim: #9a8e7e;
+    --text-faint: #5a5040;
+    --accent: #f59e0b;
+    --accent-dim: rgba(245,158,11,0.12);
+    --blue: #93c5fd;
+    --blue-dim: rgba(147,197,253,0.10);
+    --green: #86efac;
+    --green-dim: rgba(134,239,172,0.10);
+    --red: #fda4af;
+    --red-dim: rgba(253,164,175,0.10);
+    --teal: #5eead4;
+    --teal-dim: rgba(94,234,212,0.10);
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  font-size: 19px;
+  line-height: 1.7;
+  color: var(--text);
+  background: var(--bg);
+  background-image:
+    radial-gradient(ellipse at 70% 10%, var(--accent-dim) 0%, transparent 50%),
+    radial-gradient(ellipse at 10% 80%, var(--blue-dim) 0%, transparent 50%);
+  min-height: 100vh;
+}
+
+/* ============ LAYOUT ============ */
+.page {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 60px 32px 100px;
+}
+
+/* ============ HEADER ============ */
+.header {
+  margin-bottom: 56px;
+  border-bottom: 2px solid var(--border-bright);
+  padding-bottom: 32px;
+}
+.header-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-bottom: 12px;
+}
+.header h1 {
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.header h1 em {
+  font-style: italic;
+  color: var(--accent);
+}
+.header-sub {
+  font-size: 17px;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+/* ============ THEOREM BOX ============ */
+.theorem-box {
+  background: var(--surface);
+  border: 1.5px solid var(--border-bright);
+  border-left: 4px solid var(--accent);
+  border-radius: 6px;
+  padding: 28px 32px;
+  margin: 40px 0;
+  position: relative;
+}
+.theorem-box .thm-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 10px;
+  display: block;
+}
+.theorem-box p { font-size: 19px; line-height: 1.75; }
+
+/* ============ STEP SECTIONS ============ */
+.step {
+  margin: 52px 0;
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+.step.visible { opacity: 1; transform: translateY(0); }
+
+.step-header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.step-num {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--text-faint);
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+.step h2 {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.step-body { padding-left: 0; }
+.step-body p { margin-bottom: 14px; }
+.step-body p:last-child { margin-bottom: 0; }
+
+/* ============ KEY IDEA CALLOUT ============ */
+.key-idea {
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  border-radius: 6px;
+  padding: 18px 22px;
+  margin: 22px 0;
+  font-size: 18px;
+  line-height: 1.65;
+}
+.key-idea strong {
+  font-weight: 700;
+  color: var(--accent);
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.key-idea-blue {
+  background: var(--blue-dim);
+  border-color: var(--blue);
+}
+.key-idea-blue strong { color: var(--blue); }
+
+.key-idea-green {
+  background: var(--green-dim);
+  border-color: var(--green);
+}
+.key-idea-green strong { color: var(--green); }
+
+.key-idea-teal {
+  background: var(--teal-dim);
+  border-color: var(--teal);
+}
+.key-idea-teal strong { color: var(--teal); }
+
+/* ============ MATH DISPLAY BLOCK ============ */
+.math-block {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 20px 28px;
+  margin: 20px 0;
+  overflow-x: auto;
+  text-align: center;
+  font-size: 20px;
+}
+
+/* ============ SEPARATOR ============ */
+.sep {
+  height: 1px;
+  background: var(--border);
+  margin: 0 auto;
+  width: 60%;
+}
+
+/* ============ DIMENSION VISUAL ============ */
+.dim-visual {
+  background: var(--surface);
+  border: 1px solid var(--border-bright);
+  border-radius: 8px;
+  padding: 24px;
+  margin: 24px 0;
+  overflow-x: auto;
+}
+.dim-visual canvas {
+  display: block;
+  margin: 0 auto;
+}
+
+/* ============ EIGENVALUE LADDER ============ */
+.eig-visual {
+  background: var(--surface);
+  border: 1px solid var(--border-bright);
+  border-radius: 8px;
+  padding: 24px;
+  margin: 24px 0;
+  text-align: center;
+}
+
+/* ============ INTERACTIVE SLIDER ============ */
+.interactive-box {
+  background: var(--surface);
+  border: 1.5px solid var(--border-bright);
+  border-radius: 8px;
+  padding: 28px;
+  margin: 32px 0;
+}
+.interactive-box h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.interactive-box .subtitle {
+  font-size: 15px;
+  color: var(--text-dim);
+  margin-bottom: 20px;
+  font-style: italic;
+}
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+.slider-row label {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-dim);
+  min-width: 80px;
+}
+.slider-row input[type=range] {
+  flex: 1;
+  accent-color: var(--accent);
+}
+.slider-row .val {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text);
+  min-width: 40px;
+  text-align: right;
+}
+
+/* ============ PROOF SUMMARY ============ */
+.proof-summary {
+  background: var(--surface2);
+  border: 1px solid var(--border-bright);
+  border-radius: 8px;
+  padding: 28px 32px;
+  margin: 40px 0;
+}
+.proof-summary h3 {
+  font-size: 21px;
+  font-weight: 700;
+  margin-bottom: 18px;
+  letter-spacing: -0.01em;
+}
+.proof-row {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.proof-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.proof-row .tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: var(--surface3);
+  border: 1px solid var(--border-bright);
+  border-radius: 4px;
+  padding: 3px 8px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  flex-shrink: 0;
+  margin-top: 3px;
+}
+.proof-row p { font-size: 17px; line-height: 1.65; }
+
+/* ============ IMPLICATION ARROW ============ */
+.impl {
+  text-align: center;
+  font-size: 28px;
+  color: var(--accent);
+  margin: 4px 0;
+  line-height: 1;
+}
+
+em.highlight { color: var(--accent); font-style: normal; font-weight: 600; }
+em.blue { color: var(--blue); font-style: normal; font-weight: 600; }
+em.green { color: var(--green); font-style: normal; font-weight: 600; }
+em.teal { color: var(--teal); font-style: normal; font-weight: 600; }
+
+code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+
+/* ============ INTERLACING DIAGRAM ============ */
+#interlace-canvas { cursor: default; }
+
+/* ============ ANIMATION ============ */
+@media (prefers-reduced-motion: reduce) {
+  .step { opacity: 1; transform: none; transition: none; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-label">Exercice 7 — Section 3.7 · Algèbre Linéaire Avancée</div>
+    <h1>Théorème <em>d'Interclassement</em></h1>
+    <h2>Yehor Korotenko</h2>
+    <div class="header-sub">Interlacing of eigenvalues under submatrix restriction</div>
+  </div>
+
+  <!-- THEOREM STATEMENT -->
+  <div class="step visible">
+    <div class="theorem-box">
+      <span class="thm-label">Théorème (Cauchy Interlacing)</span>
+      <p>
+        Soit $A \in \mathcal{M}_N(\mathbb{C})$ hermitienne, et $B$ une sous-matrice principale de taille $(N-1)\times(N-1)$ obtenue en supprimant la $N$-ième ligne et colonne. Notons $\lambda_1(A) \le \lambda_2(A) \le \cdots \le \lambda_N(A)$ et $\lambda_1(B) \le \cdots \le \lambda_{N-1}(B)$ leurs valeurs propres. Alors :
+      </p>
+      <div class="math-block">
+        $$\lambda_1(A) \;\le\; \lambda_1(B) \;\le\; \lambda_2(A) \;\le\; \lambda_2(B) \;\le\; \cdots \;\le\; \lambda_{N-1}(B) \;\le\; \lambda_N(A)$$
+      </div>
+      <p>Les valeurs propres de $B$ <em>s'intercalent</em> entre celles de $A$.</p>
+    </div>
+  </div>
+
+  <!-- EIGENVALUE INTERLACING INTERACTIVE VIZ -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">VISUALISATION</div>
+      <h2>L'interclassement en action</h2>
+    </div>
+    <div class="interactive-box">
+      <h3>Matrice $2\times 2$ hermitienne</h3>
+      <p class="subtitle">Ajuste les paramètres et observe comment $\lambda_1(B)$ s'intercale entre $\lambda_1(A)$ et $\lambda_2(A)$.</p>
+      <div class="slider-row">
+        <label>$a_{11}$</label>
+        <input type="range" id="s-a11" min="-5" max="5" step="0.1" value="2">
+        <span class="val" id="v-a11">2.0</span>
+      </div>
+      <div class="slider-row">
+        <label>$a_{22}$</label>
+        <input type="range" id="s-a22" min="-5" max="5" step="0.1" value="4">
+        <span class="val" id="v-a22">4.0</span>
+      </div>
+      <div class="slider-row">
+        <label>$|a_{12}|$</label>
+        <input type="range" id="s-a12" min="0" max="4" step="0.1" value="1">
+        <span class="val" id="v-a12">1.0</span>
+      </div>
+      <canvas id="eig-canvas" width="700" height="130" style="max-width:100%;"></canvas>
+      <div id="eig-legend" style="font-family:var(--font-mono);font-size:13px;color:var(--text-dim);margin-top:10px;text-align:center;"></div>
+    </div>
+  </div>
+
+  <div class="sep"></div>
+
+  <!-- STEP 1: Setup -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">ÉTAPE 01</div>
+      <h2>Setup : la formule min-max</h2>
+    </div>
+    <div class="step-body">
+      <p>
+        L'outil central est la <strong>formule de Courant-Fischer</strong>. Pour $A$ hermitienne de taille $N$ :
+      </p>
+      <div class="math-block">
+        $$\lambda_k(A) = \min_{\substack{S \subset \mathbb{C}^N \\ \dim S = k}} \;\max_{\substack{x \in S \\ x \ne 0}} \frac{x^* A x}{x^* x}$$
+      </div>
+      <p>
+        En particulier, pour $k=1$ : $\lambda_1(A) = \min_{x \ne 0} \dfrac{x^* A x}{x^*x}$ est le minimum global du quotient de Rayleigh.
+      </p>
+      <div class="key-idea key-idea-blue">
+        <strong>Pourquoi c'est l'outil adapté</strong>
+        $B$ est la <em>restriction</em> de $A$ à un sous-espace $E \cong \mathbb{C}^{N-1}$. La formule min-max relie directement les valeurs propres à des optimisations sur des sous-espaces — elle va nous permettre de comparer $A$ et $B$ via leurs espaces respectifs.
+      </div>
+      <p>
+        On identifie $E = \{x \in \mathbb{C}^N : x_N = 0\}$, de dimension $N-1$. Le quotient de Rayleigh de $B$ vaut $\frac{x^* A x}{x^*x}$ pour $x \in E$ (car $B = A|_E$).
+      </p>
+    </div>
+  </div>
+
+  <!-- STEP 2: Left inequality -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">ÉTAPE 02</div>
+      <h2>Inégalité gauche : $\lambda_k(A) \le \lambda_k(B)$</h2>
+    </div>
+    <div class="step-body">
+      <p>
+        Par la formule min-max :
+      </p>
+      <div class="math-block">
+        $$\lambda_k(A) = \min_{\dim S = k,\; S \subset \mathbb{C}^N} \max_{x \in S \setminus\{0\}} \frac{x^* A x}{x^*x}$$
+        $$\lambda_k(B) = \min_{\dim S' = k,\; S' \subset E} \max_{x \in S' \setminus\{0\}} \frac{x^* A x}{x^*x}$$
+      </div>
+      <p>
+        Dans $\lambda_k(B)$, le minimum est pris sur un ensemble <em class="highlight">strictement plus petit</em> : seulement les sous-espaces de $E$, pas tous ceux de $\mathbb{C}^N$.
+      </p>
+      <div class="key-idea">
+        <strong>Principe général</strong>
+        Restreindre le domaine d'un <strong>minimum</strong> ne peut qu'<strong>augmenter</strong> sa valeur (moins de candidats, donc le meilleur est moins bon ou pareil). Formellement : si $\mathcal{F}_1 \supset \mathcal{F}_2$, alors $\min_{\mathcal{F}_1} f \le \min_{\mathcal{F}_2} f$.
+      </div>
+      <p>
+        Ici : $\{S' \subset E, \dim S'=k\} \subset \{S \subset \mathbb{C}^N, \dim S=k\}$, donc :
+      </p>
+      <div class="math-block">$$\lambda_k(A) \;\le\; \lambda_k(B) \qquad \checkmark$$</div>
+    </div>
+  </div>
+
+  <!-- DIMENSION COUNTING VISUAL -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">ÉTAPE 03</div>
+      <h2>L'argument clé : comptage de dimensions</h2>
+    </div>
+    <div class="step-body">
+      <p>
+        Pour l'inégalité droite $\lambda_k(B) \le \lambda_{k+1}(A)$, on a besoin d'un fait géométrique crucial sur les intersections de sous-espaces.
+      </p>
+      <div class="key-idea key-idea-teal">
+        <strong>Formule de Grassmann</strong>
+        Pour deux sous-espaces $S, E \subset \mathbb{C}^N$ :
+        $$\dim(S \cap E) \ge \dim S + \dim E - N$$
+      </div>
+
+      <div class="dim-visual">
+        <canvas id="dim-canvas" width="660" height="200" style="max-width:100%;"></canvas>
+        <div style="font-family:var(--font-mono);font-size:12px;color:var(--text-dim);text-align:center;margin-top:10px;">
+          Hover sur les cercles pour explorer — $S$ de dimension $k+1$, $E$ de dimension $N-1$, dans $\mathbb{C}^N$
+        </div>
+      </div>
+
+      <p>Application avec $\dim S = k+1$ et $\dim E = N-1$ :</p>
+      <div class="math-block">
+        $$\dim(S \cap E) \;\ge\; (k+1) + (N-1) - N \;=\; k$$
+      </div>
+      <p>
+        Donc pour <em class="highlight">tout</em> sous-espace $S$ de dimension $k+1$ dans $\mathbb{C}^N$, l'intersection $S \cap E$ contient un sous-espace de dimension <em class="highlight">au moins $k$</em>. En particulier, il existe un sous-espace $S' \subset S \cap E$ avec $\dim S' = k$.
+      </p>
+    </div>
+  </div>
+
+  <!-- STEP 4: Right inequality -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">ÉTAPE 04</div>
+      <h2>Inégalité droite : $\lambda_k(B) \le \lambda_{k+1}(A)$</h2>
+    </div>
+    <div class="step-body">
+      <p>Soit $S$ un sous-espace quelconque de $\mathbb{C}^N$ avec $\dim S = k+1$. Par l'étape précédente, il existe $S' \subset S \cap E$ avec $\dim S' = k$. On chaîne trois inégalités :</p>
+      <div class="math-block">
+        $$\max_{x \in S \setminus\{0\}} \frac{x^* A x}{x^*x} \;\overset{\scriptsize(i)}{\ge}\; \max_{x \in S' \setminus\{0\}} \frac{x^*Ax}{x^*x} \;\overset{\scriptsize(ii)}{\ge}\; \min_{\substack{S'' \subset E \\ \dim S''=k}} \max_{x \in S'' \setminus\{0\}} \frac{x^*Ax}{x^*x} \;=\; \lambda_k(B)$$
+      </div>
+
+      <div class="proof-summary" style="margin:20px 0;">
+        <h3>Justification des inégalités</h3>
+        <div class="proof-row">
+          <div class="tag">(i)</div>
+          <p>$S' \subset S$, donc le max sur $S'$ est $\le$ le max sur $S$ — restreindre le domaine d'un <strong>maximum</strong> le diminue.</p>
+        </div>
+        <div class="proof-row">
+          <div class="tag">(ii)</div>
+          <p>$S' \subset E$ avec $\dim S' = k$, donc $S'$ est un candidat parmi tous les $S'' \subset E$ de dimension $k$. Le minimum sur tous ces candidats est $\le$ la valeur pour ce candidat particulier.</p>
+        </div>
+      </div>
+
+      <p>
+        On vient de montrer que pour <em class="highlight">tout</em> $S$ de dimension $k+1$, $\max_{x \in S}\frac{x^*Ax}{x^*x} \ge \lambda_k(B)$.
+      </p>
+      <p>
+        En prenant le minimum sur tous ces $S$ :
+      </p>
+      <div class="math-block">
+        $$\lambda_{k+1}(A) = \min_{\dim S = k+1} \max_{x \in S} \frac{x^*Ax}{x^*x} \;\ge\; \lambda_k(B) \qquad \checkmark$$
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 5: CONCLUSION -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">ÉTAPE 05</div>
+      <h2>Conclusion</h2>
+    </div>
+    <div class="step-body">
+      <p>En combinant les deux inégalités pour tout $k = 1, \ldots, N-1$ :</p>
+      <div class="math-block">
+        $$\lambda_k(A) \;\le\; \lambda_k(B) \;\le\; \lambda_{k+1}(A)$$
+      </div>
+      <p>Ce qui donne la chaîne complète :</p>
+      <div class="math-block">
+        $$\lambda_1(A) \le \lambda_1(B) \le \lambda_2(A) \le \lambda_2(B) \le \cdots \le \lambda_{N-1}(B) \le \lambda_N(A)$$
+      </div>
+      <div class="key-idea key-idea-green">
+        <strong>Intuition géométrique finale</strong>
+        Supprimer une dimension force les valeurs propres à se "tasser" : $B$ perd un degré de liberté, donc ses valeurs propres ne peuvent pas toutes être extrêmes — elles doivent s'intercaler entre celles de $A$. C'est une contrainte de compatibilité géométrique entre les espaces propres.
+      </div>
+    </div>
+  </div>
+
+  <!-- PROOF OVERVIEW CARD -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num">RÉCAPITULATIF</div>
+      <h2>Structure de la preuve</h2>
+    </div>
+    <div class="proof-summary">
+      <div class="proof-row">
+        <div class="tag">Outil</div>
+        <p>Formule min-max de Courant-Fischer : $\lambda_k(A) = \min_{\dim S=k}\max_{x\in S}\frac{x^*Ax}{x^*x}$</p>
+      </div>
+      <div class="proof-row">
+        <div class="tag">Clé géom.</div>
+        <p>Tout $S$ de dim $k+1$ rencontre $E$ de dim $N-1$ en un sous-espace de dim $\ge k$ (formule de Grassmann)</p>
+      </div>
+      <div class="proof-row">
+        <div class="tag">$\lambda_k(A) \le \lambda_k(B)$</div>
+        <p>Restreindre le domaine d'un <strong>min</strong> $\nearrow$ la valeur : moins de candidats $\Rightarrow$ min plus grand</p>
+      </div>
+      <div class="proof-row">
+        <div class="tag">$\lambda_k(B) \le \lambda_{k+1}(A)$</div>
+        <p>Pour tout $S$ de dim $k+1$, il existe $S'\subset S\cap E$ de dim $k$, donc le max sur $S$ domine $\lambda_k(B)$ &mdash; prendre le min donne $\lambda_{k+1}(A) \ge \lambda_k(B)$</p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+// ===================== EIGENVALUE SLIDER DEMO =====================
+const dpr = window.devicePixelRatio || 1;
+
+function getColors() {
+  const s = getComputedStyle(document.documentElement);
+  return {
+    accent: s.getPropertyValue('--accent').trim(),
+    blue: s.getPropertyValue('--blue').trim(),
+    green: s.getPropertyValue('--green').trim(),
+    teal: s.getPropertyValue('--teal').trim(),
+    text: s.getPropertyValue('--text').trim(),
+    textDim: s.getPropertyValue('--text-dim').trim(),
+    surface2: s.getPropertyValue('--surface2').trim(),
+    border: s.getPropertyValue('--border-bright').trim(),
+  };
+}
+
+function eigA(a11, a22, a12) {
+  const tr = a11 + a22;
+  const det = a11*a22 - a12*a12;
+  const disc = Math.sqrt(Math.max(0, tr*tr/4 - det));
+  return [tr/2 - disc, tr/2 + disc];
+}
+
+function drawEigCanvas() {
+  const canvas = document.getElementById('eig-canvas');
+  const W = canvas.clientWidth, H = canvas.clientHeight;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const a11 = parseFloat(document.getElementById('s-a11').value);
+  const a22 = parseFloat(document.getElementById('s-a22').value);
+  const a12 = parseFloat(document.getElementById('s-a12').value);
+  const b11 = a11; // B is the (1,1) submatrix
+
+  const [e1A, e2A] = eigA(a11, a22, a12);
+  const e1B = b11; // 1x1 matrix, eigenvalue = a11
+
+  document.getElementById('v-a11').textContent = a11.toFixed(1);
+  document.getElementById('v-a22').textContent = a22.toFixed(1);
+  document.getElementById('v-a12').textContent = a12.toFixed(1);
+
+  const C = getColors();
+  ctx.clearRect(0, 0, W, H);
+
+  const pad = 40;
+  const range = 10;
+  const toX = v => pad + (v + 5) / range * (W - 2*pad);
+
+  // Draw axis line
+  const midY = H/2;
+  ctx.strokeStyle = C.border;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(pad, midY); ctx.lineTo(W-pad, midY); ctx.stroke();
+
+  // Tick marks
+  ctx.fillStyle = C.textDim;
+  ctx.font = `12px JetBrains Mono, monospace`;
+  ctx.textAlign = 'center';
+  for (let v = -5; v <= 5; v++) {
+    const x = toX(v);
+    ctx.strokeStyle = C.border;
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x, midY-4); ctx.lineTo(x, midY+4); ctx.stroke();
+    if (v % 2 === 0 || v === -5 || v === 5) {
+      ctx.fillText(v, x, midY + 18);
+    }
+  }
+
+  // Draw A eigenvalues (circles, top half)
+  const Ay = midY - 34;
+  ctx.font = `bold 13px JetBrains Mono, monospace`;
+  [e1A, e2A].forEach((v, i) => {
+    const x = toX(Math.max(-4.9, Math.min(4.9, v)));
+    ctx.fillStyle = C.blue;
+    ctx.beginPath(); ctx.arc(x, Ay, 7, 0, 2*Math.PI); ctx.fill();
+    ctx.fillStyle = C.surface2;
+    ctx.font = `bold 10px JetBrains Mono, monospace`;
+    ctx.fillText(i===0?'λ₁':'λ₂', x, Ay+3.5);
+    ctx.fillStyle = C.blue;
+    ctx.font = `12px JetBrains Mono, monospace`;
+    ctx.fillText(v.toFixed(2), x, Ay - 14);
+  });
+
+  // Label A
+  ctx.fillStyle = C.blue;
+  ctx.textAlign = 'left';
+  ctx.font = `bold 13px JetBrains Mono, monospace`;
+  ctx.fillText('A (N=2)', 0, Ay + 4);
+
+  // Draw B eigenvalue (diamond, bottom half)
+  const By = midY + 36;
+  const bx = toX(Math.max(-4.9, Math.min(4.9, e1B)));
+  ctx.fillStyle = C.accent;
+  ctx.beginPath();
+  ctx.moveTo(bx, By-8); ctx.lineTo(bx+8, By); ctx.lineTo(bx, By+8); ctx.lineTo(bx-8, By); ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = C.accent;
+  ctx.textAlign = 'center';
+  ctx.font = `12px JetBrains Mono, monospace`;
+  ctx.fillText(e1B.toFixed(2), bx, By + 22);
+  ctx.font = `bold 10px JetBrains Mono, monospace`;
+  ctx.fillStyle = C.surface2;
+  ctx.fillText('μ₁', bx, By + 3.5);
+
+  ctx.fillStyle = C.accent;
+  ctx.textAlign = 'left';
+  ctx.font = `bold 13px JetBrains Mono, monospace`;
+  ctx.fillText('B (N=1)', 0, By + 4);
+
+  // Draw interlacing brackets if valid
+  const valid = e1A <= e1B - 0.05 && e1B <= e2A + 0.05;
+  const legend = document.getElementById('eig-legend');
+  if (valid) {
+    legend.style.color = C.green;
+    legend.textContent = `✓  λ₁(A) = ${e1A.toFixed(2)}  ≤  μ₁(B) = ${e1B.toFixed(2)}  ≤  λ₂(A) = ${e2A.toFixed(2)}`;
+  } else {
+    legend.style.color = C.accent;
+    legend.textContent = `Note: B = a₁₁ is a scalar — μ₁(B) = ${e1B.toFixed(2)}  (interlacing: ${e1A.toFixed(2)} ≤ ${e1B.toFixed(2)} ≤ ${e2A.toFixed(2)})`;
+  }
+}
+
+['s-a11','s-a22','s-a12'].forEach(id => {
+  document.getElementById(id).addEventListener('input', drawEigCanvas);
+});
+
+// ===================== DIMENSION COUNTING VISUAL =====================
+function drawDimCanvas() {
+  const canvas = document.getElementById('dim-canvas');
+  const W = canvas.clientWidth, H = canvas.clientHeight;
+  canvas.width = W * dpr; canvas.height = H * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const C = getColors();
+  ctx.clearRect(0, 0, W, H);
+
+  const cx = W/2, cy = H/2;
+  const R = 70;
+
+  // Draw big circle = C^N
+  ctx.strokeStyle = C.border;
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(cx, cy, R + 20, 0, 2*Math.PI); ctx.stroke();
+  ctx.fillStyle = C.textDim;
+  ctx.font = `bold 13px JetBrains Mono, monospace`;
+  ctx.textAlign = 'center';
+  ctx.fillText('ℂᴺ', cx, cy - R - 26);
+
+  // Draw S (left shifted circle)
+  const sX = cx - 28, sY = cy;
+  ctx.strokeStyle = C.blue;
+  ctx.lineWidth = 2.5;
+  ctx.setLineDash([]);
+  ctx.beginPath(); ctx.arc(sX, sY, R - 8, 0, 2*Math.PI); ctx.stroke();
+
+  // Fill S lightly
+  ctx.fillStyle = C.blue + '18';
+  ctx.beginPath(); ctx.arc(sX, sY, R - 8, 0, 2*Math.PI); ctx.fill();
+
+  ctx.fillStyle = C.blue;
+  ctx.font = `bold 14px Crimson Pro, Georgia, serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText('S', sX - 34, sY - 42);
+  ctx.font = `12px JetBrains Mono, monospace`;
+  ctx.fillText('dim = k+1', sX - 34, sY - 28);
+
+  // Draw E (right shifted circle)
+  const eX = cx + 28, eY = cy;
+  ctx.strokeStyle = C.teal;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.arc(eX, eY, R - 8, 0, 2*Math.PI); ctx.stroke();
+  ctx.fillStyle = C.teal + '18';
+  ctx.beginPath(); ctx.arc(eX, eY, R - 8, 0, 2*Math.PI); ctx.fill();
+
+  ctx.fillStyle = C.teal;
+  ctx.font = `bold 14px Crimson Pro, Georgia, serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText('E', eX + 34, eY - 42);
+  ctx.font = `12px JetBrains Mono, monospace`;
+  ctx.fillText('dim = N−1', eX + 34, eY - 28);
+
+  // Intersection highlight
+  ctx.save();
+  ctx.beginPath(); ctx.arc(sX, sY, R - 8, 0, 2*Math.PI); ctx.clip();
+  ctx.fillStyle = C.accent + '55';
+  ctx.beginPath(); ctx.arc(eX, eY, R - 8, 0, 2*Math.PI); ctx.fill();
+  ctx.restore();
+
+  // Label intersection
+  ctx.fillStyle = C.accent;
+  ctx.font = `bold 13px JetBrains Mono, monospace`;
+  ctx.textAlign = 'center';
+  ctx.fillText('S ∩ E', cx, cy + 4);
+  ctx.font = `12px JetBrains Mono, monospace`;
+  ctx.fillText('dim ≥ k', cx, cy + 20);
+
+  // Grassmann formula box on the right
+  const bx = W - 10, by = H/2;
+  ctx.fillStyle = C.text;
+  ctx.font = `13px Crimson Pro, Georgia, serif`;
+  ctx.textAlign = 'right';
+  ctx.fillText('Grassmann:', bx, by - 22);
+  ctx.font = `bold 13px JetBrains Mono, monospace`;
+  ctx.fillText('(k+1)+(N-1)-N = k', bx, by - 4);
+  ctx.font = `13px Crimson Pro, Georgia, serif`;
+  ctx.fillStyle = C.textDim;
+  ctx.fillText('∴  dim(S∩E) ≥ k', bx, by + 16);
+}
+
+// ===================== INTERSECTION OBSERVER (animations) =====================
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add('visible'); }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.step').forEach(s => observer.observe(s));
+
+// ===================== INIT =====================
+window.addEventListener('load', () => {
+  drawEigCanvas();
+  drawDimCanvas();
+});
+window.addEventListener('resize', () => {
+  drawEigCanvas();
+  drawDimCanvas();
+});
+</script>
+</body>
+</html>

@@ -17,9 +17,9 @@ My lecture notes taken during my semester6.
 2. [Adjoint Visually](https://dobbikov.github.io/semester6-lecture-notes/adjoint-visually.html)
 3. [Cosine Approximation: Least Squares Problem Example](https://dobbikov.github.io/semester6-lecture-notes/cos-approxim.html)
 4. [Normal Matrices Section](https://dobbikov.github.io/semester6-lecture-notes/normal-matrices.html)
-4. [LU Visually](https://dobbikov.github.io/semester6-lecture-notes/gaussian-lu.html)
-4. [Cholesky with Schur](https://dobbikov.github.io/semester6-lecture-notes/cholesky-schur.html)\
-5. [Interclassing Theorem](https://dobbikov.github.io/semester6-lecture-notes/interclassing-theorem.html)
+5. [LU Visually](https://dobbikov.github.io/semester6-lecture-notes/gaussian-lu.html)
+6. [Cholesky with Schur](https://dobbikov.github.io/semester6-lecture-notes/cholesky-schur.html)
+7. [Interclassing Theorem](https://dobbikov.github.io/semester6-lecture-notes/interclassing-theorem.html)
 
 
 

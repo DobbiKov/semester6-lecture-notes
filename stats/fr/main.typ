@@ -6,7 +6,8 @@
   title: [Notes de Cours d'Inférence Statistique],
   author: "Yehor KOROTENKO",
   date: datetime.today(),
-  report-style: false
+  report-style: false,
+  language: "fr"
 )
 
 

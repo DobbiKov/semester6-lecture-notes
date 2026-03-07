@@ -9,6 +9,9 @@
 #let Exp = math.op("Exp")
 #let Var = math.op("Var")
 
-#set text(font: "New Computer Modern")
+#let math-font = "New Computer Modern Math"
+#let text-font =  "New Computer Modern"
+
+#set text(font: text-font)
 #set heading(numbering: "1.1.1.1.1")
 

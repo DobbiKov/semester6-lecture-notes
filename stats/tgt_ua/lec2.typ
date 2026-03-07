@@ -3,6 +3,21 @@
 // src_checksum: ec85412555d56610a6a7397199daf2830615de3739c98fad873b494b73e5b449
 // --- CHUNK_METADATA_END ---
 #import "preamble.typ": *
+#show math.text: it => {
+  let tostr(it) = if type(it) == str {it}
+    else if type(it) != content {str(it)}
+    else if it.has("text") {it.text}
+    else if it.has("children") {it.children.map(tostr).join()}
+    else if it.has("body") {tostr(it.body)}
+    else if it == [ ] {" "}
+  if tostr(it).match(regex("[0-9]")) != none {
+    text(font: math-font, it)
+  }
+  else {
+    text(font: text-font, it)
+  }
+}
+
 // --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: e1d9795071678fb78def96f4da3e955dd2ecf5fe5a4ab2a6ea6692c31b8eb29d

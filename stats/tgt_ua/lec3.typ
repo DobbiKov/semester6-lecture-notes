@@ -4,6 +4,21 @@
 // --- CHUNK_METADATA_END ---
 
 #import "preamble.typ": *
+#show math.text: it => {
+  let tostr(it) = if type(it) == str {it}
+    else if type(it) != content {str(it)}
+    else if it.has("text") {it.text}
+    else if it.has("children") {it.children.map(tostr).join()}
+    else if it.has("body") {tostr(it.body)}
+    else if it == [ ] {" "}
+  if tostr(it).match(regex("[0-9]")) != none {
+    text(font: math-font, it)
+  }
+  else {
+    text(font: text-font, it)
+  }
+}
+
 
 // --- CHUNK_METADATA_START ---
 // needs_review: True

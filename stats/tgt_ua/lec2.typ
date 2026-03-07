@@ -186,125 +186,48 @@ $
 === Дана модель
 $(P_theta)_(theta in Theta)$ задається, якщо існує міра $mu$ (позитивна  $sigma$ -скінченна  $arrow.r$ $X_i$  зі значеннями в $E$, $E = union E_n$ де $mu(E_n)$ є скінченною) така, що $forall theta, P_theta$ має густину відносно $mu$.// --- CHUNK_METADATA_START ---
 // needs_review: True
-// src_checksum: 88623d341c02aee235a26806a3b4ffba13309562d522bcd1f6fc0c4518d306c4
+// src_checksum: 0dfbf8353f92ca1925f89678fa96c614634a04339cd0a6135ff727f28c7a8567
 // --- CHUNK_METADATA_END ---
-=== На практиці// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
-// --- CHUNK_METADATA_END ---
-
-// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: e32922643275f56a321492eb91f1c8e785ada3b3e2f07ddbdea041d4b5ffb5d3
-// --- CHUNK_METADATA_END ---
-- нехай $E$ щонайбільше зліченна: $mu$ = лічильна міра. Якщо $exists \, { a_1, a_2, ... }$ така що $sum_(k >= 1) P_theta (X_i = a_k) = 1$, тоді $mu = sum_(k >= 1) delta_(a_k)$ з $delta_a ({a}) = 1$ міра Дірака.
+=== На практиці
+- або $E$ щонайбільше зліченний: $mu$ = міра підрахунку. Якщо $exists \, { a_1, a_2, ... }$ такий, що $sum_(k >= 1) P_theta (X_i = a_k) = 1$, то $mu = sum_(k >= 1) delta_(a_k)$ з $delta_a ({a}) = 1$ як міра Дірака.
   #ex[
     #Bern ($theta$), $X_i = 1$, ймовірності $theta -> mu = delta_0 + delta_1$
-    Будемо писати
+    Запишемо
     $ f_theta (x) = underbrace(P_theta ({x}), = 1 - theta) - P_theta (X_i = x) " де " x in {a_1, a_2, ... } $
-  ]// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
-// --- CHUNK_METADATA_END ---
+  ]
+- або $E = RR^p$, тоді $f_theta$ є звичайною щільністю
 
-// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: 253de0862f96022cca943d99a6060fe052b130120627fe0592074c148f42cfa5
-// --- CHUNK_METADATA_END ---
-- якщо $E = RR^p$, тоді $f_theta$ є звичайною щільністю// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: 75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070
-// --- CHUNK_METADATA_END ---
+$f_theta$ щільність $P_theta$
 
-
-// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: 9d20afeea966774fd7b199382bb4f86e70d4bba6b44f994403dde5b9b65e82d1
-// --- CHUNK_METADATA_END ---
-$f_theta$// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: 8e0ca78b4a57c4ac83627da641ba799fc3bb7c47aba69351f0680ffacdd3b881
-// --- CHUNK_METADATA_END ---
-густина// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: 22d42c92d2fb7695f8e96843f4512bbf66c36130a81bb036a5149082cf779cc1
-// --- CHUNK_METADATA_END ---
-$P_theta$// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: 75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070
-// --- CHUNK_METADATA_END ---
-
-
-// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: 9b419d1cadfdca5280c1d10600adf703b80d99c238f1cab2a4bf083b8386425a
-// --- CHUNK_METADATA_END ---
 #defn[
-  Правдоподібністю вибірки $(X_1, ..., X_n)$ називають функцію
-  $ theta -> L_n (theta) = product_(i=1)^n f_theta (X_i) " (випадкова змінна)" $
-]// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: 75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070
-// --- CHUNK_METADATA_END ---
+  Функція $(X_1, ..., X_n)$ називається функцією правдоподібності вибірки
+  $ theta -> L_n (theta) = product_(i=1)^n f_theta (X_i) " (випадкова величина)" $
+]
 
-
-// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: a7795b7faf751e216a35116ccfe32623eee2449342a3f404a75b14ef7b0f0ac7
-// --- CHUNK_METADATA_END ---
 #defn[
-  Оцінювач максимальної правдоподібності $hat(theta)_(M V)$ визначається як:
+  Оцінка максимальної правдоподібності $hat(theta)_(M V)$ визначається так:
   $ forall theta in Theta, L_n (theta) <= L_n (hat(theta)) $
-]// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: 75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070
-// --- CHUNK_METADATA_END ---
+]
 
-
-// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: babfde188dd2cb1b18504b4ce851625b1f5266ea44e5390d330de5e5cab2decb
-// --- CHUNK_METADATA_END ---
 Ми часто працюємо з *лог-правдоподібністю*
-// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: 1fd2d99e5842e6106dbe92de9d69055b270c6557972c10d3026093d6315c1dd8
-// --- CHUNK_METADATA_END ---
-$ log L_n (theta) = sum_(i=1)^n ln f_theta (X_i) " сума випадкових величин" $// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
-// --- CHUNK_METADATA_END ---
+$ log L_n (theta) = sum_(i=1)^n ln f_theta (X_i) " сума випадкових величин" $
+$ log L_n (hat(theta)) = sup_(theta in Theta) log L_n (theta) $
 
-// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: 910407cc18bdb9a54210a8c3ab1535e11402ba8a09b720d617779bfd27be2dc5
-// --- CHUNK_METADATA_END ---
-$ log L_n (hat(theta)) = sup_(theta in Theta) log L_n (theta) $// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: 75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070
-// --- CHUNK_METADATA_END ---
-
-
-// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: 8526f4cb85523aef0c1e99dc304d8d05fec5d10385db81b5ab84e0c64e6ab11e
-// --- CHUNK_METADATA_END ---
 #rmk[
-  $hat(theta)$ є випадковою змінною
+  $hat(theta)$ є випадковою величиною
   #import "figures/remarque-max-vraisemblance.typ":diagram as remarque-max-vraisemblance
   #remarque-max-vraisemblance(width: 400pt)
   //
-  // Image placeholder: \incfig{remarque-max-vraisemblance}
+  // Заповнювач зображення: \incfig{remarque-max-vraisemblance}
   // #figure(
   //   caption: "remarque-max-vraisemblance-1"
   // ) <fig:remarque-max-vraisemblance-1>
-]// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: b8de1c2935a3794cdd75bc82e407d57bd157384069c76ee7a420bbf3c2ac8a0a
-// --- CHUNK_METADATA_END ---
+]
+fdsa
+
 // --- CHUNK_METADATA_START ---
 // needs_review: True
-// src_checksum: 466e84a4d153ba03a924c61354b79e93773345f963be796ea4eceec5f9e36c80
+// src_checksum: 2093583d74ec69cac265989304f1f250adf0fbd0f710e4e65f614186551e7199
 // --- CHUNK_METADATA_END ---
 #ex[
   - $Bern(theta)$, $f_theta (x) = theta^x (1 - theta)^(1 - x)$, $X_i$ з значеннями 0-1
@@ -320,8 +243,4 @@ $ log L_n (hat(theta)) = sup_(theta in Theta) log L_n (theta) $// --- CHUNK_META
     - Похідна змінює знак в $overline(X)$ $arrow.r$ ми дійсно маємо максимум $arrow.r$ $hat(theta)^(M V) = overline(X)$
     - Умова 2-го порядку, якщо $(log L_n)'' (theta) < 0$ для всіх $theta$ $==>$ $log L_n$ є вгнутою $==>$ глобальний максимум
     $ (log L_n)'' (theta) = - (sum_(i=1)^n X_i)/theta^2 - (n - sum_(i=1)^n X_i)/(1 - theta)^2 < 0, \, forall theta $
-]// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
-// --- CHUNK_METADATA_END ---
-
+]

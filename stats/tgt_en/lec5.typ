@@ -3,7 +3,6 @@
 // src_checksum: b354653e7b9adaf80837bb223a819025ddc6155ea9baa7456432f394dfad723a
 // --- CHUNK_METADATA_END ---
 #import "preamble.typ": *
-
 // --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 109f237f94516d4790d5437da0c58b435acf7b2608b8458da1e844c72137d9d4
@@ -50,12 +49,11 @@ fdsa
     $ 
     .#footnote[Glivenko-Cantelli Thm: #link("https://fr.wikipedia.org/wiki/Th%C3%A9or%C3%A8me_de_Glivenko-Cantelli")]
   - Is $hat(F)_n (x)$ asymptotically normal?
-    
 // --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: f3fa5be84b9f6ffbf3d0e3785d2af6acdb9b3e46ce691209a2e0aca6bcd069d7
 // --- CHUNK_METADATA_END ---
-     $
+$
     hat(F)_n (x) = 1/n sum_(i=1)^n bb(1)_(X_i <= x)
     $ 
     CLT: the $X_i$ are i.i.d., so the  ${bb(1)_(X_i <= x) = Y_i}$ are i.i.d.
@@ -66,7 +64,6 @@ fdsa
     <==> (hat(F)_n (x) - F(x))/(sqrt((F(x)(1 - F(x)))/n)) -->^(cal(L))_(n -> +infinity) cal(N) (0, 1)
     $ 
 ]
-
 // --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: cebc3a2dab879021a16c99dc33a2e7a15b26eed8903e875313106205fa2d5d0d
@@ -81,7 +78,6 @@ fdsa
   theta = Var_F (X) -> hat(theta)_n = Var_(hat(F)_n)(X) = 1/n sum (X_i - overline(X))^2
   $ 
 ]
-
 // --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 3c9872e903c5d398e6667322d88aac44df0c41a6b63c7dadb9d2aef30accb444
@@ -124,7 +120,6 @@ Vocabulary:
 P(F^(-1)(U) <= x) underbrace(=, F "bijective") P(U <= F(x)) underbrace(=, "car" P(U <= x) = x "sur" [0, 1]) F(x)
 $ 
 - If $F$ is discrete: $F^(-1)$ generalized inverse:  $F^(-1)(y) <= x <=> y <= F(x)$
-
 // --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: f667f6c8e11448d8893b3de5db31780e3a611807e3195ed7d8831b69b5201f4e
@@ -158,7 +153,6 @@ $
     
     if $alpha in ]0,1[$, if $F$ is strictly increasing in the neighborhood of $alpha$
 ]
-
 // --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 704a0af81b7d1f09a4c7c23e227046d44f332fb69d463594fb4492014476e483
@@ -183,7 +177,6 @@ $
 - if the inequality is an equality $=$, the confidence level is #underline[exact].
 - if we have $P(theta in [B inf, B sup]) -->_(n -> +infinity) 1 - alpha$, the level is #underline[asymptotic].
 - generally $alpha = 1%, 5%$
-
 // --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 7feb4aaa8f7ed83598ea2a7fa4b270c7562eabff3de9087464e681b8d714ea64
@@ -211,7 +204,6 @@ $
  $ 
 ]
 )
-
 // --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: b7489a5808454697c4056bedbd6d78c8ebd47f27f6689dde2e27c88f72bd53e3
@@ -246,5 +238,4 @@ $
   $
 P(q_(alpha/2) <= (sqrt(n) (hat(theta) - theta))/hat(sigma)(theta) <= q_(1 - alpha/2)) -->_(n -> +infinity) 1 - alpha \
 P(hat(theta) - 1/(sqrt(n))hat(sigma)q_(1 - alpha/2) <= theta <= hat(theta) - 1/(sqrt(n)) hat(sigma) q_(alpha/2)) --> 1 - alpha
-  $ 
-
+  $

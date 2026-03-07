@@ -3,16 +3,17 @@
 // src_checksum: ec85412555d56610a6a7397199daf2830615de3739c98fad873b494b73e5b449
 // --- CHUNK_METADATA_END ---
 #import "preamble.typ": *
-
 // --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: e1d9795071678fb78def96f4da3e955dd2ecf5fe5a4ab2a6ea6692c31b8eb29d
 // --- CHUNK_METADATA_END ---
-= Estimators// --- CHUNK_METADATA_START ---
+= Estimators
+// --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: b838aca9b4848f5f872a033dd4a85c1b5c3ed4e287f16446e96d2eb811c7a1da
 // --- CHUNK_METADATA_END ---
-== Parametric Framework// --- CHUNK_METADATA_START ---
+== Parametric Framework
+// --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 922ea1229aa0474374dc6db33fd5a604f0e9786d15dc3219d04516f7ca8886e1
 // --- CHUNK_METADATA_END ---
@@ -47,7 +48,8 @@ Estimating $P$ is estimating $theta in RR^p$.
 
 #defn(info: "Modèle identifiable")[
   $ theta -> P_theta quad "injective" $
-]// --- CHUNK_METADATA_START ---
+]
+// --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 0d82d4623dfcdaad4c36c9fc1ad08dd709818a9688ff33441cba418de4be4015
 // --- CHUNK_METADATA_END ---
@@ -88,7 +90,8 @@ is obtained by the method.
       (theta + 1)mu_1 = theta &<==> theta(1 - mu_1) = mu_1 <==> theta = (E[X_i])/(1 - E[X_i]) \
       &==> hat(theta)_(MM) = (overline(X))/(1 - overline(X)), \, P_theta (overline(X) = 1) = P_theta (X_1 = X_2 = ... = X_n = 1) = 0
     $
-]// --- CHUNK_METADATA_START ---
+]
+// --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 8a4744fbc3f9159586a9a514cc020c58b92bdad4f140d7494254525b976215ee
 // --- CHUNK_METADATA_END ---
@@ -134,7 +137,8 @@ C.A.L. for pairs of sequences of random variables:
   - $<==$ convergence of the pair?
     $ forall epsilon > 0, P(|X_n - X| + |Y_n - Y| > epsilon) <= underbrace(P(|X_n - X| > epsilon/2), -> 0) + underbrace(P(|Y_n - Y| > epsilon/2), -> 0) $
     #underline[This converse is false for convergence in distribution!]
-]// --- CHUNK_METADATA_START ---
+]
+// --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 444bd8813e627a5415a5add2d438b7a32752e1339eb3dfec3f54d0968e058de6
 // --- CHUNK_METADATA_END ---
@@ -161,16 +165,19 @@ $
 #ex[
   - calculate the bias of $hat(sigma)_n^2$
   - calculate the risk of $hat(sigma)_n^2$
-]// --- CHUNK_METADATA_START ---
+]
+// --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 740da53fb2a113c61a8ad25589a0e6940dfa3d24e64a7347784d57f4599aaceb
 // --- CHUNK_METADATA_END ---
-== Maximum likelihood method// --- CHUNK_METADATA_START ---
+== Maximum likelihood method
+// --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 366c942d4a58b0ecd11e4bfd3db269de47415289ee9da8258ed80ca1c2ecf5ed
 // --- CHUNK_METADATA_END ---
 === Given model
-$(P_theta)_(theta in Theta)$ is given if there exists a measure $mu$ (positive $sigma$ -defined $arrow.r$ $X_i$ with values in $E$, $E = union E_n$ with $mu(E_n)$ finite) such that $forall theta, P_theta$ admits a density with respect to $mu$.// --- CHUNK_METADATA_START ---
+$(P_theta)_(theta in Theta)$ is given if there exists a measure $mu$ (positive $sigma$ -defined $arrow.r$ $X_i$ with values in $E$, $E = union E_n$ with $mu(E_n)$ finite) such that $forall theta, P_theta$ admits a density with respect to $mu$.
+// --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 0dfbf8353f92ca1925f89678fa96c614634a04339cd0a6135ff727f28c7a8567
 // --- CHUNK_METADATA_END ---
@@ -210,7 +217,6 @@ $ log L_n (hat(theta)) = sup_(theta in Theta) log L_n (theta) $
   // ) <fig:remarque-max-vraisemblance-1>
 ]
 fdsa
-
 // --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 2093583d74ec69cac265989304f1f250adf0fbd0f710e4e65f614186551e7199

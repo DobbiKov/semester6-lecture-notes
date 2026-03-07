@@ -3,7 +3,6 @@
 // src_checksum: b354653e7b9adaf80837bb223a819025ddc6155ea9baa7456432f394dfad723a
 // --- CHUNK_METADATA_END ---
 #import "preamble.typ": *
-
 // --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: d7c7fbf33f81b2fe4bac026d585021f8cefb747b633324aa5de4c0c9e5d3fb4a
@@ -13,7 +12,6 @@
 2. Example
 3. Asymptotic pivot
 4. Example 2
-
 // --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: b405340052e1c0b080321488ecb53e06bb4ae59a98d3ba1ac7828218393fb073
@@ -78,12 +76,11 @@ $
 
 #ex[
   $X_1, .., X_n$ with density distribution $f(x) = 1/mu e^(-x/mu), x >= 0, mu = E[X_i] > 0$
-
 // --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 05de47c8c5e6fec1cad6e586f3afc936f44aac97a1db4e6beef86f8daf8b4682
 // --- CHUNK_METADATA_END ---
-   $mu$ estimated by  $hat(mu) = overline(X)$ efficient?  $log L_n (mu) = - n log mu - 1/mu sum_(i=1)^n X_i $
+$mu$ estimated by  $hat(mu) = overline(X)$ efficient?  $log L_n (mu) = - n log mu - 1/mu sum_(i=1)^n X_i $
     $
    Var(hat(mu)) = 1/n^2 Var(sum_i X_i) underbrace(=, "indép") 1/n^2 sum_i Var(X_i) underbrace(=, "i.i.d.") 1/n Var(X_i) = mu^2/n, E[hat(mu)] = mu
    $ 
@@ -140,18 +137,16 @@ $
   sqrt(n) (overline(X) - 1/theta) -->^(cal(L)) cal(N) (0, 1/theta^2)
   $ 
   $hat(theta)$ is asymptotically efficient
-
 // --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 87cd4e321e3dec65927b52ba856f8bda1053197c40348299ea83741b204f5c27
 // --- CHUNK_METADATA_END ---
-  $overline(X)$ asymptotically normal (CLT).
+$overline(X)$ asymptotically normal (CLT).
   $g(x) = 1/x$ on  $]0, +infinity[, g'(x) = -1/x^2 != 0$, delta method:
    $
   sqrt(n) (1/overline(X) - theta) -->^(cal(L)) underbrace(g'(1/theta), = theta^2) cal(N) (0, 1/theta^2) = cal(N) (0, theta^4/theta^2= theta^2)
   $ 
 ]
-
 // --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 79daf40586e3642fd887f59fb656751892e18bcc83424c89e026ea2e64ef2630
@@ -197,12 +192,11 @@ $
   underbrace( =>, "Slutsky") (sqrt(n)(hat(theta) - theta))/hat(theta) -->^(cal(L)) cal(N) (0, 1) 
   $ 
   $q_(alpha/2)$ and  $q_(1 - alpha/2)$ quantiles of  $cal(N) (0, 1)$
-
 // --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 96a5eee711e9f77e4602175943fcc6725a8ecb08611da69a0def23f4ddf1dff1
 // --- CHUNK_METADATA_END ---
-   $
+$
   P(q_(alpha/2) <= (sqrt(n)(hat(theta) - theta))/hat(theta) <= 1_(1 - alpha/2)) -->_(n -> +infinity) 1 - alpha \
   P(q_(alpha/2) hat(theta)/sqrt(n) <= hat(theta) - theta <= q_(1 - alpha/2) hat(theta)/(sqrt(n))) --> 1 - alpha \
   P(underbrace( hat(theta) - q_(1 - alpha/2) hat(theta)/sqrt(n) <= theta <= hat(theta) - q_(alpha/2) hat(theta)/(sqrt(n)), => I C (theta) "de niveau asymptotique" (1 - alpha) )) --> 1 - alpha \

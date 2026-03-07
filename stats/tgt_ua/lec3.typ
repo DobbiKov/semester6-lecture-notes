@@ -2,7 +2,6 @@
 // needs_review: True
 // src_checksum: ec85412555d56610a6a7397199daf2830615de3739c98fad873b494b73e5b449
 // --- CHUNK_METADATA_END ---
-
 #import "preamble.typ": *
 #show math.text: it => {
   let tostr(it) = if type(it) == str {it}
@@ -18,7 +17,6 @@
     text(font: text-font, it)
   }
 }
-
 // --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: ea261629f98b0b8868d993e03ac8cb53aca961ea380784787475299d7694d6cf
@@ -41,7 +39,6 @@ $ hat(theta) = op("argmax")_(theta in Theta) log L_n(theta) $
 
 Мета: що може бути "кращим" оцінювачем?
 $-->$ регулярна модель
-
 // --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 43f867c9e008c03fa4c8c5f85c22fb172a877f9478df2e0f4d50a5d1d3da53f7
@@ -106,7 +103,6 @@ $-->$ регулярна модель
 #ex[
   $f_theta(x) = 1/theta bb(1)_[0, theta] (x) = 1/theta bb(1)_[x, +infinity[ (theta)$ нерегулярна модель
 ]
-
 // --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: fec51159001d31362a23a99fd60d517d14635c4487b12fe61fd822d7cb4b880b
@@ -163,7 +159,6 @@ overbracket(int f_theta (x) d x, = 1) = 0
   (*) E_theta [ partial/(partial theta) log f_theta (X_1)]^2 = int_S ( (partial/(partial theta) f_theta (x))/(f_theta (x)) )^2 f_theta (x) d x = int_S ((partial/(partial theta) f_theta (x))^2)/(f_theta (x)) = "\"вираз з визначення 1\""
   $ 
 ]
-
 // --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 9a815d0b3641e58af530b4555641f783c511528dae467c7f0067e9c0e9350726
@@ -195,7 +190,6 @@ overbracket(int f_theta (x) d x, = 1) = 0
   partial/(partial theta) log L_n (theta) = -n + (sum X_i)/theta => I_n (theta) = op("Var")((sum X_i)/theta) = 1/(theta^2) n theta = n/theta
   $ 
 ]
-
 // --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: c85a73d5c9c7868f0d365e6a16b3b724dc1d0da05df618da87545186fa45a6c9
@@ -221,7 +215,6 @@ overbracket(int f_theta (x) d x, = 1) = 0
 #visual-example-for-info-fisher(width: 400pt)
 
 Якщо крива дуже "гостра" в ОМВ (тобто інформація Фішера велика), то ОМВ локалізується точно
-
 // --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 2eacd4ed04abb0acd533684cde6bd097e7cb106356ccc543169a09b3888e66d2

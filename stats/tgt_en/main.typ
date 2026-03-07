@@ -1,6 +1,6 @@
 // --- CHUNK_METADATA_START ---
 // needs_review: True
-// src_checksum: 4701337105e61b1a2abe2155b4b07fcac71f6a7c15fab89907df0736aee3b362
+// src_checksum: 3e9c1b640a2061f43ea40a762ffaff63dae4b680df99ca75cc4cdf87b9f7a35e
 // --- CHUNK_METADATA_END ---
 // #import "@preview/lemmify:0.1.8": *
 
@@ -10,7 +10,8 @@
   title: [Statistical Inference Course Notes],
   author: "Yehor KOROTENKO",
   date: datetime.today(),
-  report-style: false
+  report-style: false,
+  language: "en"
 )
 
 
@@ -35,3 +36,5 @@
 #include "lec4.typ"
 #include "lec5.typ"
 #include "lec6.typ"
+
+

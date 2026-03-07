@@ -14,4 +14,3 @@
 
 #set text(font: text-font)
 #set heading(numbering: "1.1.1.1.1")
-

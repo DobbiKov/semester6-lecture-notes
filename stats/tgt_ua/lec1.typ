@@ -17,18 +17,19 @@
     text(font: text-font, it)
   }
 }
-
 // --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 43ba1e95b0f2e64be6fac94c25d8fdb5b386caebf2cd3d4814c8bbd79975b312
 // --- CHUNK_METADATA_END ---
-= Вступ// --- CHUNK_METADATA_START ---
+= Вступ
+// --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: c87ca8d91c1d06fb49b63aa12ea9acceb250ba93a9cb8e835ba0b03bd85e09bb
 // --- CHUNK_METADATA_END ---
 == Оцінювання
 - $0.4$ Поточний контроль $+ 0.6$ Іспит.
-- Розподіл : $80\%$ проміжний іспит, $20\%$ Контрольна робота (запланована на 26/01).// --- CHUNK_METADATA_START ---
+- Розподіл : $80\%$ проміжний іспит, $20\%$ Контрольна робота (запланована на 26/01).
+// --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: f304a7eac8fabbf4c839d8e355944d0fd595aa4b05ebf113a14157388d4c230a
 // --- CHUNK_METADATA_END ---
@@ -57,7 +58,8 @@
 
 #defn(info: "Ідентифіковність")[
   Модель є ідентифікованою тоді і тільки тоді (т.т.т.), якщо відображення $theta mapsto P_theta$ є ін'єктивним.
-]// --- CHUNK_METADATA_START ---
+]
+// --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 6f02be46d3cd08ea80269742d031d50c1d27a4e2f1f43609cf4598883180fe65
 // --- CHUNK_METADATA_END ---
@@ -74,7 +76,8 @@
 
 Фундаментальні питання :
 + Як визначити хороший оцінювач ?
-+ Як побудувати хороший оцінювач ?// --- CHUNK_METADATA_START ---
++ Як побудувати хороший оцінювач ?
+// --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 14df5690760448fc7088aa24a6ce62dbfe4cff637754de078d71fea69fe6d508
 // --- CHUNK_METADATA_END ---
@@ -93,7 +96,8 @@
   Це *середньоквадратична помилка (MSE)* англійською.
 ]
 
-Кажуть, що $hat(theta)_1$ кращий за $hat(theta)_2$ тоді і тільки тоді, якщо $R(hat(theta)_1, theta) <= R(hat(theta)_2, theta)$.// --- CHUNK_METADATA_START ---
+Кажуть, що $hat(theta)_1$ кращий за $hat(theta)_2$ тоді і тільки тоді, якщо $R(hat(theta)_1, theta) <= R(hat(theta)_2, theta)$.
+// --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 0416d9d933540514f2cf5759107bc489ebdd5d6204b9f631671f44b862285c11
 // --- CHUNK_METADATA_END ---
@@ -131,7 +135,8 @@ $
     &= Var(hat(theta)) + (B(hat(theta), theta))^2 + 2(EE[hat(theta)] - theta) underbrace(EE[hat(theta) - EE[hat(theta)]], 0) \
     &= Var(hat(theta)) + B(hat(theta), theta)^2
   $
-]// --- CHUNK_METADATA_START ---
+]
+// --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 074abcf51803765b7713b0d3dcdb57d764201e2c289dc001247b518f59c18c01
 // --- CHUNK_METADATA_END ---
@@ -146,7 +151,8 @@ $
 
 #rmk[
   $hat(theta)_n$ є сильно послідовною тоді і тільки тоді, коли $hat(theta)_n -->_(n -> +infinity)^("p.s.") theta$.
-]// --- CHUNK_METADATA_START ---
+]
+// --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 082b3f3fd50fd6c42a745339d17d61c24015c6234ff322eef272ea1c43944332
 // --- CHUNK_METADATA_END ---
@@ -157,7 +163,8 @@ $Theta = RR_+^*$, $hat(theta)_n = overline(X)$.
 - Через квадратичний ризик :
   $ R(hat(theta)_n, theta) = Var(overline(X)) = theta/n -->_(n -> +infinity) 0 $
   Згідно з нерівністю Чебишова-Бінаме :
-  $ P(|hat(theta)_n - theta| > epsilon) <= (EE[(hat(theta)_n - theta)^2])/epsilon^2 = (R(hat(theta)_n, theta))/epsilon^2 -> 0 $// --- CHUNK_METADATA_START ---
+  $ P(|hat(theta)_n - theta| > epsilon) <= (EE[(hat(theta)_n - theta)^2])/epsilon^2 = (R(hat(theta)_n, theta))/epsilon^2 -> 0 $
+// --- CHUNK_METADATA_START ---
 // needs_review: True
 // src_checksum: 8d18128e5d8de85fee63298356854cece7012ba4d0ab496f74e26ab97b7b68c0
 // --- CHUNK_METADATA_END ---

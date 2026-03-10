@@ -1,6 +1,6 @@
 // --- CHUNK_METADATA_START ---
 // needs_review: True
-// src_checksum: 3e9c1b640a2061f43ea40a762ffaff63dae4b680df99ca75cc4cdf87b9f7a35e
+// src_checksum: 247cc340aa9316b2a937bb2416313d66bbe9d1cfddaad49e0965df227518ab12
 // --- CHUNK_METADATA_END ---
 // #import "@preview/lemmify:0.1.8": *
 
@@ -36,5 +36,7 @@
 #include "lec4.typ"
 #include "lec5.typ"
 #include "lec6.typ"
+
+#include "lec7.typ"
 
 

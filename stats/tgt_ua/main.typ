@@ -1,14 +1,14 @@
 // --- CHUNK_METADATA_START ---
+// src_checksum: 247cc340aa9316b2a937bb2416313d66bbe9d1cfddaad49e0965df227518ab12
 // needs_review: True
-// src_checksum: 3e9c1b640a2061f43ea40a762ffaff63dae4b680df99ca75cc4cdf87b9f7a35e
 // --- CHUNK_METADATA_END ---
 // #import "@preview/lemmify:0.1.8": *
 
 #import "preamble.typ": *
 
 #show: dobbikov.with(
-  title: [Конспект лекцій зі статистичного висновування],
-  author: "Єгор Коротенко",
+  title: [Конспекти лекцій зі статистичного висновування],
+  author: "Yehor KOROTENKO",
   date: datetime.today(),
   report-style: false,
   language: "ua"
@@ -17,7 +17,7 @@
 
 
 // #let (notation, rules) = new-theorems("group-id", (
-//   "notation": "Notation"
+//   "notation": "Позначення"
 // ))
 
 // 2. Застосувати правила до документа
@@ -26,7 +26,7 @@
 
 
 
-// --- Зміст документа ---
+// --- Зміст Документа ---
 //
 #toc
 
@@ -36,5 +36,7 @@
 #include "lec4.typ"
 #include "lec5.typ"
 #include "lec6.typ"
+
+#include "lec7.typ"
 
 

@@ -1,6 +1,6 @@
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: ec85412555d56610a6a7397199daf2830615de3739c98fad873b494b73e5b449
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 #import "preamble.typ": *
 #show math.text: it => {
@@ -18,8 +18,8 @@
   }
 }
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: ea261629f98b0b8868d993e03ac8cb53aca961ea380784787475299d7694d6cf
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 = Інформація Фішера, ефективність
 
@@ -40,8 +40,8 @@ $ hat(theta) = op("argmax")_(theta in Theta) log L_n(theta) $
 Мета: що може бути "кращим" оцінювачем?
 $-->$ регулярна модель
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: 43f867c9e008c03fa4c8c5f85c22fb172a877f9478df2e0f4d50a5d1d3da53f7
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 == Регулярна модель
 
@@ -104,8 +104,8 @@ $-->$ регулярна модель
   $f_theta(x) = 1/theta bb(1)_[0, theta] (x) = 1/theta bb(1)_[x, +infinity[ (theta)$ нерегулярна модель
 ]
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: fec51159001d31362a23a99fd60d517d14635c4487b12fe61fd822d7cb4b880b
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 == Оцінка та Інформація Фішера
 $(X_1, ..., X_n)$ н.о.р. з розподілом  $P_theta, #h(0.3em) f_theta$
@@ -160,8 +160,8 @@ overbracket(int f_theta (x) d x, = 1) = 0
   $ 
 ]
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: 9a815d0b3641e58af530b4555641f783c511528dae467c7f0067e9c0e9350726
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 #ex[
   $(X_1, ..., X_n) ~  cal(E)(theta)$, $partial/(partial theta) log L_n (theta) = n/theta - sum_(i=1)^n X_i$
@@ -191,8 +191,8 @@ overbracket(int f_theta (x) d x, = 1) = 0
   $ 
 ]
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: c85a73d5c9c7868f0d365e6a16b3b724dc1d0da05df618da87545186fa45a6c9
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 == Інформація Фішера та друга похідна
 #prop[
@@ -216,8 +216,8 @@ overbracket(int f_theta (x) d x, = 1) = 0
 
 Якщо крива дуже "гостра" в ОМВ (тобто інформація Фішера велика), то ОМВ локалізується точно
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: 2eacd4ed04abb0acd533684cde6bd097e7cb106356ccc543169a09b3888e66d2
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 == Нерівність Крамера - Рао
 Нехай $g(theta)$ — параметр, що цікавить, де $g: Theta -> RR$

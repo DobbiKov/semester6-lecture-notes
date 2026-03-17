@@ -20,6 +20,7 @@ My lecture notes taken during my semester6.
 5. [LU Visually](https://dobbikov.github.io/semester6-lecture-notes/gaussian-lu.html)
 6. [Cholesky with Schur](https://dobbikov.github.io/semester6-lecture-notes/cholesky-schur.html)
 7. [Interclassing Theorem](https://dobbikov.github.io/semester6-lecture-notes/interclassing-theorem.html)
+8. [Complex Analysis Lecture](https://dobbikov.github.io/semester6-lecture-notes/complex-analysis-lecture.pdf)
 
 
 

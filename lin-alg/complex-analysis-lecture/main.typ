@@ -105,7 +105,7 @@
     et applications à l'algèbre linéaire
   ]
   #v(0.6cm)
-  #text(size: 13pt, fill: rgb("#555"))[Notes de cours]
+  #text(size: 13pt, fill: rgb("#555"))[Cours d'Antoine Levitte. Notes de cours prises par Yehor Korotenko]
   #v(2cm)
   #line(length: 60%, stroke: 1.5pt + accent)
   #v(2cm)

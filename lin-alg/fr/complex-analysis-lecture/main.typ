@@ -2,6 +2,8 @@
 //  Analyse complexe et applications à l'algèbre linéaire — Notes de cours
 // ─────────────────────────────────────────────────────────────────────────────
 
+#import "@local/dobbikov:1.0.0": *
+
 // ── Page setup ───────────────────────────────────────────────────────────────
 #set page(
   paper: "a4",
@@ -14,77 +16,9 @@
 #set par(justify: true, leading: 0.7em)
 #set heading(numbering: "1.1")
 
-// ── Colour palette ────────────────────────────────────────────────────────────
-#let accent   = rgb("#1a4f82")   // deep blue
-#let soft-bg  = rgb("#eef3fa")   // very light blue
-#let green-bg = rgb("#eaf6ea")
-#let red-bg   = rgb("#fdf0f0")
-#let gray-bg  = rgb("#f5f5f5")
-
-// ── Theorem-like boxes ────────────────────────────────────────────────────────
-#let theorem-counter  = counter("theorem")
-#let def-counter      = counter("definition")
-#let prop-counter     = counter("proposition")
-#let rem-counter      = counter("remarque")
-#let ex-counter       = counter("exemple")
-#let obs-counter      = counter("observation")
-
-#let tbox(title, body, bg: soft-bg, border: accent) = block(
-  width: 100%,
-  radius: 4pt,
-  stroke: (left: 3pt + border, rest: 0.5pt + border.lighten(50%)),
-  fill: bg,
-  inset: (left: 12pt, right: 10pt, top: 8pt, bottom: 8pt),
-)[
-  #text(weight: "bold", fill: border)[#title] \ #v(2pt) #body
-]
-
-#let definition(title: none, body) = {
-  def-counter.step()
-  let head = if title != none [Définition (#title)] else [Définition]
-  tbox(head, body, bg: soft-bg, border: accent)
-  v(4pt)
-}
-
-#let theorem(title: none, body) = {
-  theorem-counter.step()
-  let head = if title != none [Théorème — #title] else [Théorème]
-  tbox(head, body, bg: rgb("#e8f0fb"), border: rgb("#1a3a6e"))
-  v(4pt)
-}
-
-#let proposition(title: none, body) = {
-  prop-counter.step()
-  let head = if title != none [Proposition — #title] else [Proposition]
-  tbox(head, body, bg: soft-bg, border: rgb("#2e6da4"))
-  v(4pt)
-}
-
-#let remarque(body) = {
-  rem-counter.step()
-  tbox([Remarque], body, bg: gray-bg, border: rgb("#888"))
-  v(4pt)
-}
-
-#let observation(body) = {
-  obs-counter.step()
-  tbox([Observation], body, bg: green-bg, border: rgb("#2e7d32"))
-  v(4pt)
-}
-
-#let exemple(title: none, body) = {
-  ex-counter.step()
-  let head = if title != none [Exemple — #title] else [Exemple]
-  tbox(head, body, bg: rgb("#fef9e7"), border: rgb("#b8860b"))
-  v(4pt)
-}
-
-#let proof(body) = {
-  block(inset: (left: 8pt), stroke: (left: 1.5pt + rgb("#aaa")))[
-    _Preuve._ #body #h(1fr) $square$
-  ]
-  v(4pt)
-}
+// ── Language & theorem rules ──────────────────────────────────────────────────
+#_dobbikov-lang.update(_ => "fr")
+#show: thm-rules.with(qed-symbol: $square$)
 
 // ── Figure helper ─────────────────────────────────────────────────────────────
 #let fig(path, cap, width: 60%) = {
@@ -98,6 +32,7 @@
 // ═════════════════════════════════════════════════════════════════════════════
 //  TITLE PAGE
 // ═════════════════════════════════════════════════════════════════════════════
+#let accent = rgb("#1a4f82")
 #align(center)[
   #v(1.5cm)
   #text(size: 22pt, weight: "bold", fill: accent)[
@@ -121,7 +56,7 @@
 
 == Définitions
 
-#definition(title: "Spectre et résolvante")[
+#defn("Spectre et résolvante")[
   Soit $A in M_n (CC)$.  On appelle *spectre* de $A$ l'ensemble
   $
     "Sp"(A) = {mu in CC bar.v A - mu I "n'est pas inversible"}.
@@ -134,7 +69,7 @@
   et on l'appelle la *résolvante* de $A$ en $lambda$.
 ]
 
-#remarque[
+#rmk[
   On dispose d'une expression alternative.  Posons
   $
     B_A (z) = (I - z A)^(-1), quad
@@ -161,7 +96,7 @@ $
 
 == Développement en série entière de la résolvante
 
-#proposition(title: "Poly, Prop. 4.8")[
+#prop("Poly, Prop. 4.8")[
   La série suivante converge (localement uniformément pour la norme d'opérateur)
   sur le disque $DD(0, 1/norm(A))$ :
   $
@@ -176,7 +111,7 @@ $
   width: 55%,
 )
 
-#remarque[
+#rmk[
   Au voisinage de tout pintegral.cont de son domaine de définition, $B_A$ est
   développable en série entière :
   $
@@ -200,7 +135,7 @@ $
 
 == Définition
 
-#definition(title: "Fonction holomorphe")[
+#defn("Fonction holomorphe")[
   Soit $Omega subset CC$ un ouvert et $f : Omega -> CC$.
   On dit que $f$ est *holomorphe* lorsque
   $
@@ -213,7 +148,7 @@ $
 
 == Rappel : convergence des séries entières
 
-#proposition(title: "Piqûre de rappel")[
+#prop("Piqûre de rappel")[
   Si $(|a_n|^(1\/n))_(n in NN)$ est bornée par $M > 0$, alors la série entière
   $z |-> sum_(n in NN) a_n z^n$
   converge localement uniformément sur $DD(0, 1\/M)$, et définit une fonction
@@ -227,7 +162,7 @@ $
 
 == L'opérateur $overline(partial)$
 
-#observation[
+#rmk[
   En écrivant $z = x + i y$, on calcule :
   $
     diff/(diff x) (x + i y)^n = n (x + i y)^(n-1),
@@ -242,7 +177,7 @@ $
   (aussi noté $diff/(diff overline(z))$).
 ]
 
-#proposition[
+#prop[
   Si $f$ est holomorphe, alors $overline(partial) f = 0$.
 ]
 
@@ -254,7 +189,7 @@ Les fonctions suivantes sont holomorphes :
 - l'exponentielle $z |-> exp(z)$,
 - la matrice-exponentielle $z |-> exp(z A)$.
 
-#exemple(title: "Non-exemple")[
+#ex("Non-exemple")[
   La fonction $z |-> overline(z)$ n'est *pas* holomorphe car
   $
     diff/(diff x)(x - i y) = 1 != 0 = overline(partial) overline(z).
@@ -285,7 +220,7 @@ On parcourt $gamma$ à vitesse $1$ ; on note $T = "Longueur"(gamma)$.
   width: 42%,
 )
 
-#theorem(title: "Stokes / Green-Riemann")[
+#thm("Stokes / Green-Riemann")[
   Soit $arrow(A) : Omega -> RR^2$ un champ de vecteurs $C^1$, avec
   $
     arrow(A)(x,y) = A_x (x,y) arrow(e)_x + A_y (x,y) arrow(e)_y.
@@ -322,7 +257,7 @@ On paramétrise les quatre côtés et on somme les contributions :
 
 #block(
   width: 100%,
-  fill: gray-bg,
+  fill: rgb("#f5f5f5"),
   radius: 4pt,
   inset: 10pt,
 )[
@@ -362,7 +297,7 @@ $
   = 2 i space overline(partial) f.
 $
 
-#proposition[
+#prop[
   Si $f : Omega -> CC$ est de classe $C^1$ avec $overline(partial) f = 0$, alors pour
   toute courbe $gamma$ fermée dans $Omega$,
   $
@@ -370,7 +305,7 @@ $
   $
 ]
 
-#remarque[
+#rmk[
   Vrai si on a une courbe simple et $f$ définie partout à l'intérieur.
   En général pour des contours homologues :
   $
@@ -395,7 +330,7 @@ $
 
 == Énoncé
 
-#theorem(title: "Formule de Cauchy")[
+#thm("Formule de Cauchy")[
   Soit $f in C^1(Omega, CC)$ avec $overline(partial) f = 0$.
   Soit $z_0 in Omega$.  Alors, pour toute courbe $gamma$ qui fait un tour
   (dans le sens direct) autour de $z_0$,
@@ -434,7 +369,7 @@ $
 
 == Caractérisation des fonctions holomorphes
 
-#theorem[
+#thm[
   Soit $Omega$ un ouvert de $CC$, $f : Omega -> CC$ de classe $C^1$ telle que
   $overline(partial) f = 0$.  Alors $f$ est holomorphe.
 ]
@@ -456,7 +391,7 @@ $
 
 == Projecteur spectral
 
-#proposition(title: "Projecteur sur un espace propre")[
+#prop("Projecteur sur un espace propre")[
   Soit $A in M_n (CC)$ diagonalisable, et soit $gamma$ une courbe qui fait un tour
   autour d'une valeur propre $mu$, sans encercler les autres.  Alors
   $
@@ -507,4 +442,3 @@ $
   1/(2 pi i) integral.cont_gamma 1/(mu - lambda) dif lambda = 1.
   quad square
 $
-

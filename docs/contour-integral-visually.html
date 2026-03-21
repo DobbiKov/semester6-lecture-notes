@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contour Integral Visualizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #181c27;
+    --surface2: #1f2535;
+    --border: #2a3148;
+    --accent: #e8c87a;
+    --accent2: #7ab8e8;
+    --accent3: #e87a9a;
+    --accent4: #7ae8b8;
+    --text: #d4d8e8;
+    --text-dim: #7a8099;
+    --font-serif: 'Crimson Pro', Georgia, serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-serif);
+    font-size: 17px;
+    line-height: 1.6;
+    min-height: 100vh;
+  }
+
+  header {
+    padding: 2.5rem 3rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+  }
+
+  header h1 {
+    font-size: 1.9rem;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+  }
+
+  header p {
+    color: var(--text-dim);
+    font-style: italic;
+    font-size: 1rem;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 0;
+    height: calc(100vh - 80px);
+  }
+
+  .canvas-area {
+    padding: 1.5rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .canvas-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    position: relative;
+    flex: 1;
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .sidebar {
+    border-left: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+
+  .sidebar-section {
+    padding: 1.2rem 1.4rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .sidebar-section h3 {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 1rem;
+  }
+
+  .controls {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.92rem;
+    color: var(--text-dim);
+  }
+
+  label span { color: var(--text); font-size: 0.88rem; }
+
+  select, input[type=range] {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.4rem 0.6rem;
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    cursor: pointer;
+  }
+
+  input[type=range] {
+    padding: 0;
+    accent-color: var(--accent);
+  }
+
+  .radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .radio-opt {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    padding: 0.3rem 0.5rem;
+    border-radius: 3px;
+    border: 1px solid transparent;
+    transition: border-color 0.15s;
+    font-size: 0.88rem;
+  }
+
+  .radio-opt:hover { border-color: var(--border); }
+  .radio-opt.active { border-color: var(--accent); background: rgba(232,200,122,0.06); }
+
+  .radio-opt input { accent-color: var(--accent); }
+
+  /* Result display */
+  .result-block {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 1rem;
+  }
+
+  .result-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.88rem;
+    gap: 0.5rem;
+  }
+
+  .result-row:last-child { border-bottom: none; }
+  .result-label { color: var(--text-dim); font-family: var(--font-mono); font-size: 0.78rem; }
+  .result-val { font-family: var(--font-mono); font-size: 0.82rem; }
+
+  .val-re { color: var(--accent2); }
+  .val-im { color: var(--accent3); }
+  .val-total { color: var(--accent); }
+
+  /* Step display */
+  .step-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .step-item {
+    display: grid;
+    grid-template-columns: auto 1fr 1fr;
+    gap: 0.4rem;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    padding: 0.25rem 0.4rem;
+    border-radius: 2px;
+    align-items: center;
+    opacity: 0.6;
+    transition: opacity 0.1s, background 0.1s;
+  }
+
+  .step-item.active {
+    opacity: 1;
+    background: rgba(232,200,122,0.08);
+  }
+
+  .step-idx { color: var(--text-dim); }
+  .step-re { color: var(--accent2); }
+  .step-im { color: var(--accent3); }
+
+  /* Playback */
+  .playback {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  button {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 0.45rem 0.9rem;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  button:hover { border-color: var(--accent); background: rgba(232,200,122,0.06); }
+  button.primary { border-color: var(--accent); color: var(--accent); }
+
+  .speed-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+    font-size: 0.8rem;
+    color: var(--text-dim);
+  }
+
+  .explainer {
+    font-size: 0.9rem;
+    line-height: 1.55;
+    color: var(--text-dim);
+    font-style: italic;
+  }
+
+  .explainer strong { color: var(--text); font-style: normal; }
+
+  .legend {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+  }
+
+  .legend-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.83rem;
+  }
+
+  .legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .legend-line {
+    width: 20px; height: 2px;
+    flex-shrink: 0;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Contour Integral</h1>
+  <p>∮<sub>C</sub> f(z) dz — visualizing phase-weighted accumulation</p>
+</header>
+
+<div class="layout">
+  <div class="canvas-area">
+    <div class="canvas-wrap">
+      <canvas id="cv"></canvas>
+    </div>
+  </div>
+
+  <div class="sidebar">
+
+    <div class="sidebar-section">
+      <h3>Function f(z)</h3>
+      <div class="radio-group" id="fnGroup">
+        <label class="radio-opt active">
+          <input type="radio" name="fn" value="z-1" checked> z<sup>−1</sup> &nbsp;<span style="color:var(--text-dim);font-size:0.78rem">(residue = 2πi)</span>
+        </label>
+        <label class="radio-opt">
+          <input type="radio" name="fn" value="z1"> z &nbsp;<span style="color:var(--text-dim);font-size:0.78rem">(holomorphic, = 0)</span>
+        </label>
+        <label class="radio-opt">
+          <input type="radio" name="fn" value="z2"> z² &nbsp;<span style="color:var(--text-dim);font-size:0.78rem">(holomorphic, = 0)</span>
+        </label>
+        <label class="radio-opt">
+          <input type="radio" name="fn" value="z-2"> z<sup>−2</sup> &nbsp;<span style="color:var(--text-dim);font-size:0.78rem">(= 0, no residue)</span>
+        </label>
+        <label class="radio-opt">
+          <input type="radio" name="fn" value="conj"> z̄ &nbsp;<span style="color:var(--text-dim);font-size:0.78rem">(non-holomorphic)</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>Contour</h3>
+      <div class="radio-group" id="contourGroup">
+        <label class="radio-opt active">
+          <input type="radio" name="contour" value="circle" checked> Circle (centered at 0)
+        </label>
+        <label class="radio-opt">
+          <input type="radio" name="contour" value="circle-offset"> Circle (not around 0)
+        </label>
+        <label class="radio-opt">
+          <input type="radio" name="contour" value="square"> Square
+        </label>
+      </div>
+      <div style="margin-top:0.7rem">
+        <label>Radius / size
+          <input type="range" id="radiusSlider" min="0.3" max="1.8" step="0.05" value="1.0">
+        </label>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>Animation</h3>
+      <div class="playback">
+        <button class="primary" id="playBtn">▶ Play</button>
+        <button id="resetBtn">↺ Reset</button>
+        <div class="speed-wrap">
+          speed
+          <input type="range" id="speedSlider" min="0.3" max="3" step="0.1" value="1" style="flex:1">
+        </div>
+      </div>
+      <div style="margin-top:0.7rem">
+        <label>Step <span id="stepLabel">0 / 64</span>
+          <input type="range" id="stepSlider" min="0" max="63" step="1" value="0">
+        </label>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>Running Sum ∮ f(z) dz</h3>
+      <div class="result-block">
+        <div class="result-row">
+          <span class="result-label">Re part</span>
+          <span class="result-val val-re" id="resRe">0.000</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">Im part</span>
+          <span class="result-val val-im" id="resIm">0.000</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">|integral|</span>
+          <span class="result-val val-total" id="resMag">0.000</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">arg(integral)</span>
+          <span class="result-val" id="resArg">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>Current step</h3>
+      <div class="result-block">
+        <div class="result-row">
+          <span class="result-label">z position</span>
+          <span class="result-val" id="curZ">—</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">f(z)</span>
+          <span class="result-val" id="curFz">—</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">dz (step)</span>
+          <span class="result-val" id="curDz">—</span>
+        </div>
+        <div class="result-row">
+          <span class="result-label">contribution f·dz</span>
+          <span class="result-val val-total" id="curContrib">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>Legend</h3>
+      <div class="legend">
+        <div class="legend-row">
+          <div class="legend-line" style="background:#e8c87a"></div>
+          Contour C
+        </div>
+        <div class="legend-row">
+          <div class="legend-dot" style="background:#7ae8b8"></div>
+          Current z on C
+        </div>
+        <div class="legend-row">
+          <div class="legend-line" style="background:#ffffff"></div>
+          f(z) — full vector
+        </div>
+        <div class="legend-row">
+          <div class="legend-line" style="background:#7ab8e8;opacity:0.7"></div>
+          Re(f(z)) component
+        </div>
+        <div class="legend-row">
+          <div class="legend-line" style="background:#e87a9a;opacity:0.7"></div>
+          Im(f(z)) component
+        </div>
+        <div class="legend-row">
+          <div class="legend-line" style="background:#7ae8b8"></div>
+          dz — path direction
+        </div>
+        <div class="legend-row">
+          <div class="legend-line" style="background:#e8c87a"></div>
+          f·dz — contribution
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h3>What you're seeing</h3>
+      <p class="explainer">
+        <strong>White arrow:</strong> f(z) as a full complex vector from z. <strong>Blue/pink dashed:</strong> its Re and Im components (right-angle decomposition). <strong>Teal arrow:</strong> dz, the direction of travel along C. <strong>Gold arrow (offset):</strong> f·dz, the actual contribution added to the integral at this step — it's the complex product of f(z) and dz, so its direction is the <em>sum of their phases</em>.<br><br>
+        Watch the gold f·dz arrow for z<sup>−1</sup>: it always points the same way (upward, Im axis), so contributions never cancel.
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+
+// State
+let fn = 'z-1';
+let contour = 'circle';
+let radius = 1.0;
+let N = 64;
+let currentStep = 0;
+let playing = false;
+let animFrame = null;
+let lastTime = null;
+let speed = 1.0;
+
+// Resize canvas to match display size
+function resize() {
+  const wrap = cv.parentElement;
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = wrap.clientWidth * dpr;
+  cv.height = wrap.clientHeight * dpr;
+  ctx.scale(dpr, dpr);
+  draw();
+}
+window.addEventListener('resize', resize);
+
+// Complex arithmetic helpers
+function cmul(a, b) { return { re: a.re*b.re - a.im*b.im, im: a.re*b.im + a.im*b.re }; }
+function cadd(a, b) { return { re: a.re+b.re, im: a.im+b.im }; }
+function cabs(a) { return Math.sqrt(a.re*a.re + a.im*a.im); }
+function carg(a) { return Math.atan2(a.im, a.re); }
+function fmt(x) { return (x >= 0 ? '+' : '') + x.toFixed(3); }
+function fmtc(z) { return z.re.toFixed(3) + fmt(z.im) + 'i'; }
+
+// f(z) definitions
+function evalF(z) {
+  switch(fn) {
+    case 'z-1': {
+      const d = z.re*z.re + z.im*z.im;
+      if (d < 1e-10) return { re: 0, im: 0 };
+      return { re: z.re/d, im: -z.im/d };
+    }
+    case 'z1': return { re: z.re, im: z.im };
+    case 'z2': return { re: z.re*z.re - z.im*z.im, im: 2*z.re*z.im };
+    case 'z-2': {
+      const d = (z.re*z.re + z.im*z.im)**2;
+      if (d < 1e-10) return { re: 0, im: 0 };
+      return { re: (z.re*z.re - z.im*z.im)/d, im: -2*z.re*z.im/d };
+    }
+    case 'conj': return { re: z.re, im: -z.im };
+  }
+}
+
+// Contour parametrization: returns array of z points
+function makeContour() {
+  const pts = [];
+  for (let k = 0; k <= N; k++) {
+    const t = (k / N) * 2 * Math.PI;
+    switch(contour) {
+      case 'circle':
+        pts.push({ re: radius * Math.cos(t), im: radius * Math.sin(t) });
+        break;
+      case 'circle-offset':
+        pts.push({ re: 1.5 + radius * Math.cos(t), im: radius * Math.sin(t) });
+        break;
+      case 'square': {
+        // parametrize square perimeter
+        const s = radius;
+        const u = (k / N) * 4; // 0..4
+        let x, y;
+        if (u < 1)      { x = -s + 2*s*u;    y = -s; }
+        else if (u < 2) { x = s;              y = -s + 2*s*(u-1); }
+        else if (u < 3) { x = s - 2*s*(u-2); y = s; }
+        else            { x = -s;             y = s - 2*s*(u-3); }
+        pts.push({ re: x, im: y });
+        break;
+      }
+    }
+  }
+  return pts;
+}
+
+// Compute all contributions
+function computeIntegral(pts) {
+  const contribs = [];
+  let sum = { re: 0, im: 0 };
+  const sums = [{ re: 0, im: 0 }];
+  for (let k = 0; k < N; k++) {
+    const z = pts[k];
+    const dz = { re: pts[k+1].re - z.re, im: pts[k+1].im - z.im };
+    const fz = evalF(z);
+    const contrib = cmul(fz, dz);
+    contribs.push({ z, dz, fz, contrib });
+    sum = cadd(sum, contrib);
+    sums.push({ ...sum });
+  }
+  return { contribs, sums, total: sum };
+}
+
+// Drawing
+function worldToCanvas(x, y, cx, cy, scale) {
+  return [cx + x * scale, cy - y * scale];
+}
+
+function drawArrow(ctx, x1, y1, x2, y2, color, lw = 1.5) {
+  const dx = x2 - x1, dy = y2 - y1;
+  const len = Math.sqrt(dx*dx + dy*dy);
+  if (len < 2) return;
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.fillStyle = color;
+  ctx.lineWidth = lw;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.lineTo(x2, y2);
+  ctx.stroke();
+  // arrowhead
+  const angle = Math.atan2(dy, dx);
+  const hlen = Math.min(8, len * 0.4);
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - hlen * Math.cos(angle - 0.4), y2 - hlen * Math.sin(angle - 0.4));
+  ctx.lineTo(x2 - hlen * Math.cos(angle + 0.4), y2 - hlen * Math.sin(angle + 0.4));
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function draw() {
+  const W = cv.width / (window.devicePixelRatio || 1);
+  const H = cv.height / (window.devicePixelRatio || 1);
+  ctx.clearRect(0, 0, W, H);
+
+  // Split into left (main complex plane) and right (sum plane)
+  const mainW = W * 0.62;
+  const sumW = W - mainW;
+
+  // Background
+  ctx.fillStyle = '#0f1117';
+  ctx.fillRect(0, 0, W, H);
+
+  // Separator
+  ctx.strokeStyle = '#2a3148';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(mainW, 0);
+  ctx.lineTo(mainW, H);
+  ctx.stroke();
+
+  const pts = makeContour();
+  const { contribs, sums, total } = computeIntegral(pts);
+  const step = Math.min(currentStep, N - 1);
+
+  // --- MAIN PLANE ---
+  const scale = Math.min(mainW, H) * 0.32;
+  const cx = mainW / 2;
+  const cy = H / 2;
+
+  // Grid
+  ctx.strokeStyle = '#1a1f2e';
+  ctx.lineWidth = 1;
+  for (let g = -4; g <= 4; g++) {
+    const [gx] = worldToCanvas(g, 0, cx, cy, scale);
+    const [, gy] = worldToCanvas(0, g, cx, cy, scale);
+    ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, H); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(mainW, gy); ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle = '#2a3148';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(0, cy); ctx.lineTo(mainW, cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, 0); ctx.lineTo(cx, H); ctx.stroke();
+
+  // Axis labels
+  ctx.fillStyle = '#3a4060';
+  ctx.font = '11px JetBrains Mono, monospace';
+  ctx.fillText('Re', mainW - 22, cy - 6);
+  ctx.fillText('Im', cx + 6, 14);
+
+  // Tick labels
+  ctx.fillStyle = '#3a4060';
+  ctx.font = '10px JetBrains Mono, monospace';
+  for (let g = -3; g <= 3; g++) {
+    if (g === 0) continue;
+    const [gx] = worldToCanvas(g, 0, cx, cy, scale);
+    const [, gy] = worldToCanvas(0, g, cx, cy, scale);
+    ctx.fillText(g, gx - 4, cy + 14);
+    ctx.fillText(g, cx + 4, gy + 4);
+  }
+
+  // Origin
+  const [ox, oy] = worldToCanvas(0, 0, cx, cy, scale);
+  ctx.fillStyle = '#3a4060';
+  ctx.beginPath(); ctx.arc(ox, oy, 3, 0, Math.PI * 2); ctx.fill();
+
+  // Contour path (gold)
+  ctx.strokeStyle = 'rgba(232,200,122,0.5)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([4, 3]);
+  ctx.beginPath();
+  for (let k = 0; k <= N; k++) {
+    const [px, py] = worldToCanvas(pts[k].re, pts[k].im, cx, cy, scale);
+    k === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Traversed contour (solid gold)
+  ctx.strokeStyle = '#e8c87a';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let k = 0; k <= step + 1; k++) {
+    const [px, py] = worldToCanvas(pts[k].re, pts[k].im, cx, cy, scale);
+    k === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+
+  // Current z
+  const z = pts[step];
+  const [zx, zy] = worldToCanvas(z.re, z.im, cx, cy, scale);
+
+  // Draw f(z) arrows from current z
+  if (step < N) {
+    const fz = contribs[step].fz;
+    const dz = contribs[step].dz;
+    const contrib = contribs[step].contrib;
+
+    // How big is f(z)? Scale so it's readable but not huge
+    const fmag = Math.sqrt(fz.re*fz.re + fz.im*fz.im);
+    const maxFArrow = scale * 1.1;
+    const fScale = fmag > 1e-8 ? Math.min(maxFArrow / fmag, scale * 0.9) : scale * 0.5;
+
+    const fx2 = zx + fz.re * fScale;
+    const fy2 = zy - fz.im * fScale;
+
+    // --- Re component (dashed blue, horizontal from z) ---
+    ctx.save();
+    ctx.setLineDash([4, 3]);
+    ctx.strokeStyle = '#7ab8e8';
+    ctx.lineWidth = 1.5;
+    ctx.globalAlpha = 0.7;
+    ctx.beginPath();
+    ctx.moveTo(zx, zy);
+    ctx.lineTo(fx2, zy);          // horizontal (Re part)
+    ctx.stroke();
+    // Im component (dashed pink, vertical from Re tip to f(z) tip)
+    ctx.strokeStyle = '#e87a9a';
+    ctx.beginPath();
+    ctx.moveTo(fx2, zy);
+    ctx.lineTo(fx2, fy2);         // vertical (Im part)
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+    ctx.restore();
+
+    // Small right-angle marker at the corner
+    const cornerSize = 6;
+    ctx.save();
+    ctx.strokeStyle = '#3a4060';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(fx2 - cornerSize, zy);
+    ctx.lineTo(fx2 - cornerSize, zy - cornerSize);
+    ctx.lineTo(fx2, zy - cornerSize);
+    ctx.stroke();
+    ctx.restore();
+
+    // --- Main f(z) arrow (white/bright, from z to z+f(z)) ---
+    drawArrow(ctx, zx, zy, fx2, fy2, '#ffffff', 2.5);
+
+    // --- dz arrow (teal, path direction, scaled up for visibility) ---
+    const dzScale = scale * 4;
+    drawArrow(ctx, zx, zy, zx + dz.re * dzScale, zy - dz.im * dzScale, '#7ae8b8', 2);
+
+    // --- f(z)·dz contribution arrow (gold, from origin of sum to contribution) ---
+    // Draw it offset below z so it doesn't overlap
+    const cmag = Math.sqrt(contrib.re*contrib.re + contrib.im*contrib.im);
+    const cScale = cmag > 1e-10 ? Math.min(scale * 0.8 / cmag, scale * 2) : scale;
+    const cdx = contrib.re * cScale;
+    const cdy = -contrib.im * cScale;
+    // Draw near z, offset slightly
+    const offX = zx - 20, offY = zy + 30;
+    drawArrow(ctx, offX, offY, offX + cdx, offY + cdy, '#e8c87a', 2);
+
+    // Labels
+    ctx.font = '12px JetBrains Mono, monospace';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText('f(z)', fx2 + 6, fy2 - 4);
+    ctx.fillStyle = '#7ab8e8';
+    ctx.fillText('Re', fx2 + 4, zy + 14);
+    ctx.fillStyle = '#e87a9a';
+    ctx.fillText('Im', fx2 + 6, (zy + fy2) / 2);
+    ctx.fillStyle = '#7ae8b8';
+    ctx.fillText('dz', zx + dz.re * dzScale + 4, zy - dz.im * dzScale - 4);
+    ctx.fillStyle = '#e8c87a';
+    ctx.fillText('f·dz', offX + cdx + 4, offY + cdy - 4);
+  }
+
+  // Green dot at current z
+  ctx.fillStyle = '#7ae8b8';
+  ctx.beginPath(); ctx.arc(zx, zy, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = '#0f1117';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(zx, zy, 6, 0, Math.PI * 2); ctx.stroke();
+
+  // Label
+  ctx.fillStyle = '#7ae8b8';
+  ctx.font = '11px JetBrains Mono, monospace';
+  ctx.fillText('z', zx + 8, zy - 6);
+
+  // Title
+  ctx.fillStyle = '#7a8099';
+  ctx.font = '12px Crimson Pro, serif';
+  ctx.fillText('Complex plane  ℂ', 14, 20);
+
+  // --- SUM PLANE ---
+  const sx0 = mainW + 12;
+  const sW = sumW - 24;
+  const sH = H - 24;
+  const sScale = Math.min(sW, sH) * 0.28;
+  const scx = mainW + sW / 2 + 12;
+  const scy = H / 2;
+
+  // Grid
+  ctx.strokeStyle = '#14192a';
+  ctx.lineWidth = 1;
+  for (let g = -8; g <= 8; g++) {
+    const [gx] = worldToCanvas(g, 0, scx, scy, sScale);
+    const [, gy] = worldToCanvas(0, g, scx, scy, sScale);
+    ctx.beginPath(); ctx.moveTo(sx0, gy); ctx.lineTo(mainW + sW + 12, gy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(gx, 12); ctx.lineTo(gx, H - 12); ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle = '#2a3148';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(sx0, scy); ctx.lineTo(mainW + sW + 12, scy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(scx, 12); ctx.lineTo(scx, H - 12); ctx.stroke();
+  ctx.fillStyle = '#3a4060';
+  ctx.font = '11px JetBrains Mono, monospace';
+  ctx.fillText('Re', mainW + sW - 6, scy - 6);
+  ctx.fillText('Im', scx + 5, 24);
+
+  // Full sum path (faded)
+  ctx.strokeStyle = 'rgba(232,200,122,0.12)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let k = 0; k <= N; k++) {
+    const [px, py] = worldToCanvas(sums[k].re, sums[k].im, scx, scy, sScale);
+    k === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+
+  // Running sum path
+  ctx.strokeStyle = '#e8c87a';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  for (let k = 0; k <= step + 1; k++) {
+    const [px, py] = worldToCanvas(sums[k].re, sums[k].im, scx, scy, sScale);
+    k === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+
+  // Current sum dot
+  const curSum = sums[step + 1] || sums[step];
+  const [spx, spy] = worldToCanvas(curSum.re, curSum.im, scx, scy, sScale);
+  ctx.fillStyle = '#e8c87a';
+  ctx.beginPath(); ctx.arc(spx, spy, 5, 0, Math.PI * 2); ctx.fill();
+
+  // Final value dot
+  const [fpx, fpy] = worldToCanvas(total.re, total.im, scx, scy, sScale);
+  ctx.fillStyle = 'rgba(232,200,122,0.3)';
+  ctx.beginPath(); ctx.arc(fpx, fpy, 4, 0, Math.PI * 2); ctx.fill();
+
+  // Origin dot in sum plane
+  ctx.fillStyle = '#3a4060';
+  ctx.beginPath(); ctx.arc(scx, scy, 3, 0, Math.PI * 2); ctx.fill();
+
+  // Label
+  ctx.fillStyle = '#7a8099';
+  ctx.font = '12px Crimson Pro, serif';
+  ctx.fillText('Accumulation plane', sx0 + 2, 20);
+  ctx.fillText('(running ∮ f dz)', sx0 + 2, 34);
+
+  // Update UI
+  updateUI(contribs, sums, step);
+}
+
+function updateUI(contribs, sums, step) {
+  const curSum = sums[Math.min(step + 1, sums.length - 1)];
+  document.getElementById('resRe').textContent = curSum.re.toFixed(4);
+  document.getElementById('resIm').textContent = curSum.im.toFixed(4);
+  const mag = cabs(curSum);
+  document.getElementById('resMag').textContent = mag.toFixed(4);
+  document.getElementById('resArg').textContent = mag > 1e-8 ? (carg(curSum) * 180 / Math.PI).toFixed(1) + '°' : '—';
+
+  if (step < contribs.length) {
+    const c = contribs[step];
+    document.getElementById('curZ').textContent = fmtc(c.z);
+    document.getElementById('curFz').textContent = fmtc(c.fz);
+    document.getElementById('curDz').textContent = fmtc(c.dz);
+    document.getElementById('curContrib').textContent = fmtc(c.contrib);
+  }
+
+  document.getElementById('stepLabel').textContent = step + ' / ' + N;
+  document.getElementById('stepSlider').value = step;
+}
+
+// Animation
+function tick(timestamp) {
+  if (!playing) return;
+  if (lastTime === null) lastTime = timestamp;
+  const dt = (timestamp - lastTime) / 1000;
+  lastTime = timestamp;
+
+  currentStep += dt * speed * 12;
+  if (currentStep >= N) {
+    currentStep = N - 1;
+    playing = false;
+    document.getElementById('playBtn').textContent = '▶ Play';
+    lastTime = null;
+  }
+
+  draw();
+  if (playing) animFrame = requestAnimationFrame(tick);
+}
+
+// Controls
+document.getElementById('playBtn').addEventListener('click', () => {
+  if (playing) {
+    playing = false;
+    document.getElementById('playBtn').textContent = '▶ Play';
+    cancelAnimationFrame(animFrame);
+  } else {
+    if (currentStep >= N - 1) currentStep = 0;
+    playing = true;
+    lastTime = null;
+    document.getElementById('playBtn').textContent = '⏸ Pause';
+    animFrame = requestAnimationFrame(tick);
+  }
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  playing = false;
+  cancelAnimationFrame(animFrame);
+  currentStep = 0;
+  document.getElementById('playBtn').textContent = '▶ Play';
+  draw();
+});
+
+document.getElementById('stepSlider').addEventListener('input', e => {
+  currentStep = parseInt(e.target.value);
+  draw();
+});
+
+document.getElementById('speedSlider').addEventListener('input', e => {
+  speed = parseFloat(e.target.value);
+});
+
+document.getElementById('radiusSlider').addEventListener('input', e => {
+  radius = parseFloat(e.target.value);
+  draw();
+});
+
+// Function selection
+document.querySelectorAll('input[name="fn"]').forEach(inp => {
+  inp.addEventListener('change', () => {
+    fn = inp.value;
+    currentStep = 0;
+    document.querySelectorAll('#fnGroup .radio-opt').forEach(l => l.classList.remove('active'));
+    inp.closest('.radio-opt').classList.add('active');
+    draw();
+  });
+});
+
+// Contour selection
+document.querySelectorAll('input[name="contour"]').forEach(inp => {
+  inp.addEventListener('change', () => {
+    contour = inp.value;
+    currentStep = 0;
+    document.querySelectorAll('#contourGroup .radio-opt').forEach(l => l.classList.remove('active'));
+    inp.closest('.radio-opt').classList.add('active');
+    draw();
+  });
+});
+
+// Init
+resize();
+</script>
+</body>
+</html>

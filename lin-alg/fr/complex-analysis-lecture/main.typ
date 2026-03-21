@@ -328,7 +328,6 @@ $
 = Formule de Cauchy
 // ═════════════════════════════════════════════════════════════════════════════
 
-== Énoncé
 
 #thm("Formule de Cauchy")[
   Soit $f in C^1(Omega, CC)$ avec $overline(partial) f = 0$.
@@ -339,33 +338,33 @@ $
   $
 ]
 
-== Preuve
-
-La valeur de l'intégrale ne dépend pas de $gamma$, donc on prend $gamma_epsilon$
-le cercle de rayon $epsilon$ autour de $z_0$ :
-$
-  integral.cont_(gamma_epsilon) f(z)/(z - z_0) dif z
-  = integral.cont_(gamma_epsilon) f(z_0)/(z - z_0) dif z
-  + O(epsilon dot 1/epsilon dot epsilon)
-  = O(epsilon).
-$
+#proof[
+  La valeur de l'intégrale ne dépend pas de $gamma$, donc on prend $gamma_epsilon$
+  le cercle de rayon $epsilon$ autour de $z_0$ :
+  $
+    integral.cont_(gamma_epsilon) f(z)/(z - z_0) dif z
+    = integral.cont_(gamma_epsilon) f(z_0)/(z - z_0) dif z
+    + O(epsilon dot 1/epsilon dot epsilon)
+    = O(epsilon).
+  $
 
 #fig(
-  "figures/fig_cauchy_circle.png",
-  [Le cercle $gamma_epsilon$ de rayon $epsilon$ centré en $z_0$,
-   utilisé dans la preuve de la formule de Cauchy.],
-  width: 48%,
-)
+    "figures/fig_cauchy_circle.png",
+    [Le cercle $gamma_epsilon$ de rayon $epsilon$ centré en $z_0$,
+     utilisé dans la preuve de la formule de Cauchy.],
+    width: 48%,
+  )
 
-On paramétrise $gamma_epsilon : theta |-> z_0 + epsilon e^(i theta)$,
-$theta in [0, 2pi]$, donc $gamma_epsilon'(theta) = i epsilon e^(i theta)$ et
-$
-  integral.cont_(gamma_epsilon) 1/(z - z_0) dif z
-  = integral_(theta=0)^(2pi)
-      1/(epsilon e^(i theta)) dot i epsilon e^(i theta) dif theta
-  = integral_0^(2pi) i dif theta
-  = 2 pi i.
-$
+  On paramétrise $gamma_epsilon : theta |-> z_0 + epsilon e^(i theta)$,
+  $theta in [0, 2pi]$, donc $gamma_epsilon'(theta) = i epsilon e^(i theta)$ et
+  $
+    integral.cont_(gamma_epsilon) 1/(z - z_0) dif z
+    = integral_(theta=0)^(2pi)
+        1/(epsilon e^(i theta)) dot i epsilon e^(i theta) dif theta
+    = integral_0^(2pi) i dif theta
+    = 2 pi i.
+  $
+]
 
 == Caractérisation des fonctions holomorphes
 
@@ -408,37 +407,37 @@ $
   width: 52%,
 )
 
-== Preuve
+#proof[
+  Puisque $A$ est diagonalisable, il existe $P$ inversible telle que
+  $
+    A = P^(-1) mat(mu, 0; 0, D') P,
+    quad mu in.not "Sp"(D').
+  $
+  Alors
+  $
+    (A - lambda I)^(-1)
+    = P^(-1)
+      mat((mu - lambda)^(-1), 0; 0, (D' - lambda I)^(-1))
+      P.
+  $
+  On intègre sur $gamma$ :
+  $
+    1/(2 pi i) integral.cont_gamma (A - lambda I)^(-1) dif lambda
+    &= P^(-1)
+       mat(display(1/(2 pi i) integral.cont_gamma dif lambda/(mu - lambda)), 0;
+           0, 0)
+       P \
+    &= P^(-1)
+       mat(1, 0; 0, 0)
+       P
+    = Pi_mu.
+  $
 
-Puisque $A$ est diagonalisable, il existe $P$ inversible telle que
-$
-  A = P^(-1) mat(mu, 0; 0, D') P,
-  quad mu in.not "Sp"(D').
-$
-Alors
-$
-  (A - lambda I)^(-1)
-  = P^(-1)
-    mat((mu - lambda)^(-1), 0; 0, (D' - lambda I)^(-1))
-    P.
-$
-On intègre sur $gamma$ :
-$
-  1/(2 pi i) integral.cont_gamma (A - lambda I)^(-1) dif lambda
-  &= P^(-1)
-     mat(display(1/(2 pi i) integral.cont_gamma dif lambda/(mu - lambda)), 0;
-         0, 0)
-     P \
-  &= P^(-1)
-     mat(1, 0; 0, 0)
-     P
-  = Pi_mu.
-$
-
-Le bloc inférieur est nul car $(D' - lambda I)^(-1)$ est holomorphe à l'intérieur
-de $gamma$ (puisque $mu in.not "Sp"(D')$).  Le bloc supérieur vaut $1$ par calcul
-de résidu :
-$
-  1/(2 pi i) integral.cont_gamma 1/(mu - lambda) dif lambda = 1.
-  quad square
-$
+  Le bloc inférieur est nul car $(D' - lambda I)^(-1)$ est holomorphe à l'intérieur
+  de $gamma$ (puisque $mu in.not "Sp"(D')$).  Le bloc supérieur vaut $1$ par calcul
+  de résidu :
+  $
+    1/(2 pi i) integral.cont_gamma 1/(mu - lambda) dif lambda = 1.
+    quad square
+  $
+]

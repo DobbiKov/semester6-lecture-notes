@@ -21,5 +21,6 @@ My lecture notes taken during my semester6.
 6. [Cholesky with Schur](https://dobbikov.github.io/semester6-lecture-notes/cholesky-schur.html)
 7. [Interclassing Theorem](https://dobbikov.github.io/semester6-lecture-notes/interclassing-theorem.html)
 8. [Complex Analysis Lecture](https://dobbikov.github.io/semester6-lecture-notes/complex-analysis-lecture.pdf)
-8. [Complex Analysis Lecture (Ukrainian)](https://dobbikov.github.io/semester6-lecture-notes/complex-analysis-lecture-ua.pdf)
-8. [Complex Analysis Lecture (Armenian)](https://dobbikov.github.io/semester6-lecture-notes/complex-analysis-lecture-arm.pdf)
+9. [Complex Analysis Lecture (Ukrainian)](https://dobbikov.github.io/semester6-lecture-notes/complex-analysis-lecture-ua.pdf)
+10. [Complex Analysis Lecture (Armenian)](https://dobbikov.github.io/semester6-lecture-notes/complex-analysis-lecture-arm.pdf)
+11. [Contour Integral Visually](https://dobbikov.github.io/semester6-lecture-notes/contour-integral-visually.html)

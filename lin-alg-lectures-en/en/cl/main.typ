@@ -3,94 +3,19 @@
 // Based on Antoine Levitt's course — Université Paris-Saclay
 // ─────────────────────────────────────────────────────────────────────────────
 
+#import "@local/dobbikov:1.0.0": *
 #import "@preview/cetz:0.4.2": canvas, draw
 
-// ── Page & typography ────────────────────────────────────────────────────────
-#set page(paper: "a4", margin: (top: 2.5cm, bottom: 2.5cm, left: 3cm, right: 3cm))
-#set text(font: "New Computer Modern", size: 11pt)
-#set par(justify: true, leading: 0.72em, first-line-indent: 0pt)
-#set heading(numbering: "1.1")
 #set math.equation(numbering: "(1)")
 
-// ── Theorem environments ─────────────────────────────────────────────────────
-#let thm-counter  = counter("thm")
-#let defn-counter = counter("defn")
-#let rem-counter  = counter("rem")
-
-#let make-block(accent, label-text, counter) = (body, name: none) => {
-  counter.step()
-  block(
-    width: 100%, inset: 10pt,
-    radius: 3pt,
-    stroke: (left: 3pt + accent, rest: 0.5pt + accent.lighten(60%)),
-    fill: accent.lighten(92%),
-    {
-      context {
-        let n = counter.display()
-        text(weight: "bold", fill: accent.darken(20%))[#label-text #n]
-        if name != none [ #text(style: "italic")[(#name)]]
-        [. ]
-      }
-      body
-    }
-  )
-}
-
-#let theorem    = make-block(blue.darken(10%), "Theorem", thm-counter)
-#let definition = make-block(teal.darken(10%), "Definition", defn-counter)
-#let remark     = make-block(gray.darken(20%), "Remark", rem-counter)
-
-#let proposition(body, name: none) = {
-  thm-counter.step()
-  block(
-    width: 100%, inset: 10pt, radius: 3pt,
-    stroke: (left: 3pt + blue.lighten(20%), rest: 0.5pt + blue.lighten(70%)),
-    fill: blue.lighten(95%),
-    {
-      context {
-        let n = thm-counter.display()
-        text(weight: "bold", fill: blue.darken(30%))[Proposition #n]
-        if name != none [ #text(style: "italic")[(#name)]]
-        [. ]
-      }
-      body
-    }
-  )
-}
-
-#let insight(body) = block(
-  width: 100%, inset: 12pt, radius: 4pt,
-  stroke: (left: 4pt + orange.darken(10%), rest: 0.5pt + orange.lighten(50%)),
-  fill: orange.lighten(93%),
-  {
-    text(weight: "bold", fill: orange.darken(30%))[Key Insight. ]
-    body
-  }
+#show: dobbikov.with(
+  title: [Complex Analysis and its Applications to Linear Algebra],
+  subtitle: [A self-contained introduction],
+  author: "Based on Antoine Levitt's course, Université Paris-Saclay | By Yehor Korotenko",
+  date: none,
+  report-style: true,
+  language: "en",
 )
-
-#let proof(body) = block(
-  width: 100%, inset: (left: 14pt, rest: 0pt),
-  {
-    text(style: "italic")[Proof. ]
-    body
-    h(1fr)
-    $square$
-  }
-)
-
-// ─────────────────────────────────────────────────────────────────────────────
-// TITLE
-// ─────────────────────────────────────────────────────────────────────────────
-
-#align(center)[
-  #v(1em)
-  #text(size: 22pt, weight: "bold")[Complex Analysis and its Applications\ to Linear Algebra]
-  #v(0.6em)
-  #text(size: 13pt, style: "italic")[A self-contained introduction — from first principles to the spectral projector]
-  #v(0.4em)
-  #text(size: 11pt, fill: gray.darken(30%))[Based on Antoine Levitt's course, Université Paris-Saclay]
-  #v(1.5em)
-]
 
 // ─────────────────────────────────────────────────────────────────────────────
 // INTRODUCTION
@@ -129,7 +54,7 @@ The complex plane $CC$ carries extra structure that $RR^2$ does not: *multiplica
 $ z mapsto w z quad "corresponds to" quad mat(a, -b; b, a), quad w = a + i b. $
 This is a *very* special $2 times 2$ matrix — it has only 2 free parameters instead of 4. The extra constraint is $a_(11) = a_(22)$ and $a_(12) = -a_(21)$.
 
-#definition[
+#defn[
   Let $Omega subset CC$ be open and $f : Omega -> CC$. We say $f$ is *holomorphic* on $Omega$ if every pintegral.cont $z_0 in Omega$ has a neighbourhood on which $f$ is expressible as a convergent power series:
   $ f(z) = sum_(n=0)^infinity a_n (z - z_0)^n. $
 ]
@@ -150,7 +75,7 @@ The chain rule gives natural differential operators in this new basis:
 $ partial_z = 1/2 (partial_x - i partial_y), quad overline(partial) equiv partial_(overline(z)) = 1/2 (partial_x + i partial_y). $
 These are not defined this way — they are *derived* from the change of variables. One checks immediately that $partial_z (z^n) = n z^(n-1)$, $overline(partial)(z^n) = 0$, and $overline(partial)(overline(z)) = 1$. So $overline(partial)$ is the "anti-holomorphic derivative" — it detects dependence on $overline(z)$.
 
-#theorem(name: "Cauchy-Riemann")[
+#thm("Cauchy-Riemann")[
   Let $f = u + i v$ (with $u, v$ real-valued) be $C^1$. The following are equivalent:
   + $overline(partial) f = 0$,
   + $partial_x u = partial_y v$ and $partial_y u = -partial_x v$ (Cauchy-Riemann equations),
@@ -248,7 +173,7 @@ The following are *not* holomorphic:
 - $f(z) = |z|^2 = z overline(z)$: gives $overline(partial) f = z != 0$ (except at $z = 0$)
 - $f(z) = "Re"(z) = x$: gives $overline(partial) f = 1/2 != 0$
 
-#remark[
+#rmk[
   $f(z) = |z|^2$ is complex-differentiable at $z = 0$ (the limit $|h|^2 / h = overline(h) -> 0$ as $h -> 0$), but nowhere else. Being differentiable at a single isolated pintegral.cont is *not* holomorphic — holomorphicity requires differentiability on an open neighbourhood.
 ]
 
@@ -259,10 +184,12 @@ The following are *not* holomorphic:
 = Contour Integrals
 
 == Definition
-
-A *contour* (or *curve*) in $CC$ is a $C^1$ map $gamma : [0, T] -> CC$. The *contour integral* of $f$ along $gamma$ is defined by
+#defn(info: "Contour integral")[
+A *contour* (or *curve*) in $CC$ is a $C^1$ map $gamma : [0, T] -> CC$. The
+*contour integral* of $f$ along $gamma$ is defined by
 
 $ integral_gamma f dif z := integral_0^T f(gamma(t)) dot gamma'(t) dif t. $
+]
 
 This is exactly like a real integral $integral_a^b f(x) dif x$, except that:
 - We sum over a *curve* in $CC$ rather than a segment in $RR$
@@ -327,7 +254,7 @@ $ integral.cont_(gamma_epsilon) frac(1, z - z_0) dif z = integral_0^(2pi) frac(1
 
 The $epsilon$ cancels completely — the answer $2 pi i$ is *independent of the radius*. This is the most important integral in complex analysis.
 
-#remark[
+#rmk[
   The function $1/(z - z_0)$ acts like a "vortex" centered at $z_0$: it is holomorphic everywhere except at $z_0$ itself, and integrating around $z_0$ always gives $2 pi i$ regardless of the loop shape, as long as it winds once around $z_0$.
 ]
 
@@ -395,7 +322,7 @@ Geometrically: place a tiny paddle wheel at a pintegral.cont in the fluid. If th
   caption: [Left: uniform flow has zero curl — a paddle wheel placed anywhere stays still. Right: a vortex has nonzero curl — the paddle wheel spins. The curl measures local rotation of the fluid.]
 )
 
-#theorem(name: "Stokes / Green")[
+#thm("Stokes / Green")[
   Let $Omega subset RR^2$ be a bounded open set with smooth boundary $gamma = partial Omega$ (oriented counterclockwise), and $arrow(A) : overline(Omega) -> RR^2$ a $C^1$ vector field. Then
   $ integral.cont_(partial Omega) arrow(A) dot dif arrow(T) = integral.double_Omega "rot"(arrow(A)) dif x dif y. $
 ]
@@ -407,7 +334,7 @@ The proof idea: tile $Omega$ by tiny squares of side $epsilon$. On each square, 
 Writing the complex integral $integral_gamma f dif z$ in real coordinates with $f(x,y)$ and $arrow(A)(x,y) = f(x,y) arrow(e)_x + i f(x,y) arrow(e)_y$, one computes:
 $ "rot"(arrow(A)) = i partial_x f - partial_y f = i(partial_x f + i partial_y f) = 2i overline(partial) f. $
 
-#proposition[
+#prop[
   Let $f : Omega -> CC$ be $C^1$ with $overline(partial) f = 0$. Then for every closed curve $gamma$ in $Omega$,
   $ integral.cont_gamma f dif z = 0. $
 ]
@@ -487,7 +414,7 @@ So $integral.cont_(partial square) f dif z approx 2i epsilon^2 overline(partial)
 
 == Statement
 
-#theorem(name: "Cauchy's Integral Formula")[
+#thm("Cauchy's Integral Formula")[
   Let $f : Omega -> CC$ be $C^1$ with $overline(partial) f = 0$, and let $z_0 in Omega$. For any closed curve $gamma$ that winds once counterclockwise around $z_0$ and lies entirely in $Omega$:
   $ integral.cont_gamma frac(f(z), z - z_0) dif z = 2 pi i f(z_0). $
   Equivalently:
@@ -498,8 +425,7 @@ So $integral.cont_(partial square) f dif z approx 2i epsilon^2 overline(partial)
   This formula says something astonishing: the value of a holomorphic function at a single interior pintegral.cont $z_0$ is *completely determined* by its values on the boundary loop $gamma$. In real analysis, a function's values at interior pintegral.conts are independent of boundary values. For holomorphic functions, the boundary values rigidly control everything inside — like a soap film stretched across a wire loop, where the wire (boundary) determines the film's shape (interior) completely.
 ]
 
-== Proof
-
+#proof[
 The function $g(z) = f(z)/(z - z_0)$ is holomorphic on $Omega without {z_0}$ but has a singularity at $z_0$.
 
 *Step 1: deformation.* Since $g$ is holomorphic in the annular region between $gamma$ and any small circle $gamma_epsilon$ of radius $epsilon$ around $z_0$, Stokes gives:
@@ -545,7 +471,8 @@ The big loop can be shrunk to a tiny loop without changing the integral.
 
 *Step 2: approximation.* On $gamma_epsilon$, as $epsilon -> 0$ we have $f(z) -> f(z_0)$, so:
 $ integral.cont_(gamma_epsilon) frac(f(z), z - z_0) dif z approx f(z_0) integral.cont_(gamma_epsilon) frac(1, z - z_0) dif z = f(z_0) dot 2 pi i, $
-where the last integral was computed explicitly in §3. The error in the approximation is $O(epsilon)$ and vanishes as $epsilon -> 0$, completing the proof. $square$
+where the last integral was computed explicitly in §3. The error in the approximation is $O(epsilon)$ and vanishes as $epsilon -> 0$, completing the proof. 
+]
 
 == From Cauchy's formula to power series
 
@@ -567,7 +494,7 @@ We now arrive at the linear algebra payoff. Throughout this section $A in M_n (C
 
 == The resolvent
 
-#definition[
+#defn[
   The *spectrum* of $A$ is $"Sp"(A) = {mu in CC | A - mu I "not invertible"}$. For $lambda in.not "Sp"(A)$, the *resolvent* is
   $ R_A (lambda) = (A - lambda I)^(-1). $
 ]
@@ -622,7 +549,7 @@ The singularities of $R_A (lambda)$ are precisely the eigenvalues of $A$.
   caption: [The contour $gamma$ winds once around the target eigenvalue $mu$ (blue cross), while all other eigenvalues (red crosses) remain outside $gamma$. The contour integral of the resolvent extracts the spectral projector onto the eigenspace $E_mu$.]
 )
 
-#proposition(name: "Spectral Projector")[
+#prop("Spectral Projector")[
   Let $A in M_n (CC)$ be diagonalisable, $mu$ an eigenvalue of $A$, and $gamma$ a closed curve winding once counterclockwise around $mu$ but not around any other eigenvalue. Then
   $ Pi_mu := 1/(2 pi i) integral.cont_gamma R_A (z) dif z $
   is the projector onto the eigenspace $E_mu = ker(A - mu I)$, parallel to the sum of all other eigenspaces.

@@ -24,4 +24,5 @@ My lecture notes taken during my semester6.
 9. [Complex Analysis Lecture (Ukrainian)](https://dobbikov.github.io/semester6-lecture-notes/complex-analysis-lecture-ua.pdf)
 10. [Complex Analysis Lecture (Armenian)](https://dobbikov.github.io/semester6-lecture-notes/complex-analysis-lecture-arm.pdf)
 11. [Contour Integral Visually](https://dobbikov.github.io/semester6-lecture-notes/contour-integral-visually.html)
-12. [Complex Analysis Chapter](https://dobbikov.github.io/semester6-lecture-notes/complex-analysis-chapter.pdf)
+12. [Complex Analysis Chapter](https://dobbikov.github.io/semester6-lecture-notes/complex-analysis-chapter-en.pdf)
+12. [Complex Analysis Chapter (Ukrainian)](https://dobbikov.github.io/semester6-lecture-notes/complex-analysis-chapter-ua.pdf)

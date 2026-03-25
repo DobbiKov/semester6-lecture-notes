@@ -39,7 +39,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // ВСТУП
 // ─────────────────────────────────────────────────────────────────────────────
-
 // --- CHUNK_METADATA_START ---
 // src_checksum: bd4fc42129273d9f1334f0eecc78656b2c1a6044d736065e3cb6485abd002741
 // --- CHUNK_METADATA_END ---
@@ -63,14 +62,13 @@ $ Pi_mu = 1/(2 pi i) integral.cont_gamma R_A (z) dif z, $
 // ─────────────────────────────────────────────────────────────────────────────
 // §2  ГОЛОМОРФНІ ФУНКЦІЇ
 // ─────────────────────────────────────────────────────────────────────────────
-
 // --- CHUNK_METADATA_START ---
 // src_checksum: 39429ca730c773e67d54fe69badf373c02bf648de0a15239d090d6bd662aead7
 // --- CHUNK_METADATA_END ---
 = Голоморфні функції
-
 // --- CHUNK_METADATA_START ---
-// src_checksum: 7e5281b81aacdb6652c9c1b9e20166edf514ead3e80d0e68326faa61648a8060
+// src_checksum: b12522606a44c882e22cd61870dbe2dbe7b29c926e1baf0457ce5b5d9f4a76f0
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 == Геометричний зміст комплексної диференційовності
 
@@ -97,7 +95,8 @@ $ z mapsto w z quad "відповідає" quad mat(a, -b; b, a), quad w = a + i
 ]
 
 // --- CHUNK_METADATA_START ---
-// src_checksum: a865a4676ba7e0b48c5c8765147f8243b13e99cd4bf586ba08a571e1ae3ee837
+// src_checksum: 818f5cb68710ed7e21fdf0209347d16ae0c69fd4abb5f6de545ba493aac5db53
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 == Оператор $overline(partial)$ та рівняння Коші-Рімана
 
@@ -107,7 +106,7 @@ $ x = (z + overline(z))/2, quad y = (z - overline(z))/(2i). $
 $ partial_z = 1/2 (partial_x - i partial_y), quad overline(partial) equiv partial_(overline(z)) = 1/2 (partial_x + i partial_y). $
 Вони не визначаються таким чином — вони *виводяться* зі зміни змінних. Одразу перевіряємо, що $partial_z (z^n) = n z^(n-1)$, $overline(partial)(z^n) = 0$, і $overline(partial)(overline(z)) = 1$. Отже, $overline(partial)$ — це "антиголоморфна похідна" — вона виявляє залежність від $overline(z)$.
 
-#thm("Коші-Рімана")[
+#thm("Cauchy-Riemann")[
   Нехай $f = u + i v$ (де $u, v$ — дійснозначні функції) буде класу $C^1$. Наступні твердження є еквівалентними:
   + $overline(partial) f = 0$,
   + $partial_x u = partial_y v$ і $partial_y u = -partial_x v$ (рівняння Коші-Рімана),
@@ -200,7 +199,8 @@ $ partial_z = 1/2 (partial_x - i partial_y), quad overline(partial) equiv partia
 
 
 // --- CHUNK_METADATA_START ---
-// src_checksum: 4938b8eb34578b495187d7454586971e056336e2e59278a189a79c41e5d295fd
+// src_checksum: ca01e0ee72f7542d01f53b68be2137488fea1445463c16214eafc26fa1e833b4
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 == Приклади та контрприклади
 
@@ -220,16 +220,16 @@ $ partial_z = 1/2 (partial_x - i partial_y), quad overline(partial) equiv partia
 ]
 
 // ─────────────────────────────────────────────────────────────────────────────
-// §3 КОНТУРНІ ІНТЕГРАЛИ
+// §3  КОНТУРНІ ІНТЕГРАЛИ
 // ─────────────────────────────────────────────────────────────────────────────
 
 // --- CHUNK_METADATA_START ---
 // src_checksum: 38b2150ec3f70ca0b11e71f1d5b85583a4356c7e4629db3851ef5db35aa5b76a
 // --- CHUNK_METADATA_END ---
 = Контурні інтеграли
-
 // --- CHUNK_METADATA_START ---
-// src_checksum: 8f3438964b4d59c7574ad6d5e458f181d3aac6862e2ed55b7b5bc432b6183c65
+// src_checksum: 1a8900523bc96d3df414260679505fd64f0d5bf1106ac17efbb4399150bf52dc
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 == Визначення
 #defn(info: "Контурний інтеграл")[
@@ -241,13 +241,13 @@ $ integral_gamma f dif z := integral_0^T f(gamma(t)) dot gamma'(t) dif t. $
 
 Це точно такий же, як дійсний інтеграл $integral_a^b f(x) dif x$, за винятком того, що:
 - Ми інтегруємо вздовж *кривої* у $CC$, а не відрізка в $RR$
-- У кожній точці інтегрування ми множимо $f(gamma(t))$ на $gamma'(t)$ — *швидкість* кривої, комплексне число, що кодує як швидкість, так і напрямок
+- У кожній точці ми множимо $f(gamma(t))$ на $gamma'(t)$ — *швидкість* кривої, комплексне число, що кодує як швидкість, так і напрямок
 - Результатом є комплексне число
 
 Множник $gamma'(t) dif t$ є нескінченно малим переміщенням $dif z$ уздовж кривої. На дійсному відрізку $gamma(t) = t$ ми маємо $gamma'(t) = 1$, і визначення зводиться до звичайного інтеграла.
-
 // --- CHUNK_METADATA_START ---
-// src_checksum: 050fbd617b22b32c18eaf3d775fcbf9575640226252fdff70b58a7ed5d386bd3
+// src_checksum: 609232ca62f14a6e0e8e567f6656ab1c774e0d0492c7b593f40180c575291932
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 #figure(
   canvas({
@@ -271,12 +271,12 @@ $ integral_gamma f dif z := integral_0^T f(gamma(t)) dot gamma'(t) dif t. $
     line(mid, nxt, mark: (end: ">", size: 0.22), stroke: (paint: teal.darken(20%), thickness: 1.5pt))
     content((0.1, 2.2), text(size: 9pt, fill: teal.darken(30%))[$gamma$])
 
-    // A pintegral.cont on the curve
+    // A point on the curve
     let pt = (2.2, 2.75)
     circle(pt, radius: 0.07, fill: blue.darken(20%), stroke: none)
     content((2.4, 2.95), text(size: 9pt, fill: blue.darken(30%))[$gamma(t)$])
 
-    // Velocity arrow at that pintegral.cont
+    // Velocity arrow at that point
     line((2.2, 2.75), (1.5, 2.52), mark: (end: ">", size: 0.2), stroke: (paint: orange.darken(20%), thickness: 1.5pt))
     content((1.6, 2.2), text(size: 9pt, fill: orange.darken(30%))[$gamma'(t)$])
 
@@ -289,10 +289,6 @@ $ integral_gamma f dif z := integral_0^T f(gamma(t)) dot gamma'(t) dif t. $
   }),
   caption: [Контур $gamma$ у $CC$. У кожній точці $gamma(t)$, швидкість $gamma'(t)$ задає напрямок і швидкість руху. Контурний інтеграл накопичує добутки $f(gamma(t)) dot gamma'(t) dif t$ — крихітні комплексні внески — по всій кривій.]
 )
-// --- CHUNK_METADATA_START ---
-// src_checksum: 75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070
-// --- CHUNK_METADATA_END ---
-
 
 // --- CHUNK_METADATA_START ---
 // src_checksum: ef74ff599195350c3d6926b72251d12b9b791f01bc1d3f787e1580d45c35dd5c
@@ -303,7 +299,6 @@ $ integral_gamma f dif z := integral_0^T f(gamma(t)) dot gamma'(t) dif t. $
 $ integral_(gamma_1) f dif z = integral_(gamma_2) f dif z <==> integral_(gamma_1) f dif z - integral_(gamma_2) f dif z = 0. $
 Але "$gamma_1$ з наступним $gamma_2$ у зворотному напрямку" це *замкнений контур*. Отже, незалежність від шляху еквівалентна наступному: *кожен інтеграл по замкненому контуру дорівнює нулю*:
 $ integral.cont_gamma f dif z = 0 quad "для будь-якого замкненого" gamma. $
-
 // --- CHUNK_METADATA_START ---
 // src_checksum: a5464747470a73bd55e9cf5ee19da29edd6b9b64f2e92e0b3f011b9de4ebfdd7
 // --- CHUNK_METADATA_END ---
@@ -322,14 +317,13 @@ $epsilon$ повністю скорочується — відповідь $2 pi
 // ─────────────────────────────────────────────────────────────────────────────
 // §4  ТЕОРЕМА СТОКСА ТА НУЛЬОВІ КОНТУРНІ ІНТЕГРАЛИ
 // ─────────────────────────────────────────────────────────────────────────────
-
 // --- CHUNK_METADATA_START ---
 // src_checksum: 5c0ea600b0ac1386f177ef9f0611aff88e7a5db55418817e6d421b155610a590
 // --- CHUNK_METADATA_END ---
 = Теорема Стокса та нульові інтеграли по замкненому контуру
-
 // --- CHUNK_METADATA_START ---
-// src_checksum: 8ac9d14773c19fcb732b409ca3922ede986202e5387c40dd30c329344f38cf6e
+// src_checksum: 765e782d8df74bebf69a4c3fab03efe5c3064904cc19d0ae10639ee8ed4f77f2
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 == Ротор і теорема Стокса
 
@@ -395,14 +389,11 @@ $ "rot"(arrow(A)) = partial_x A_y - partial_y A_x. $
 // --- CHUNK_METADATA_START ---
 // src_checksum: c3d96d22d309896c6c8139a3910c89d078ff388f073572de242c333d9a8e9331
 // --- CHUNK_METADATA_END ---
-
-
 #thm("Стоукс / Ґрін")[Нехай $Omega subset RR^2$ буде обмеженою відкритою множиною з гладкою межею $gamma = partial Omega$ (орієнтованою проти годинникової стрілки), а $arrow(A) : overline(Omega) -> RR^2$ — векторним полем класу $C^1$. Тоді
   $ integral.cont_(partial Omega) arrow(A) dot dif arrow(T) = integral.double_Omega "rot"(arrow(A)) dif x dif y. $
 ]
 
 Ідея доведення: розбити $Omega$ на крихітні квадрати зі стороною $epsilon$. На кожному квадраті внески від спільних внутрішніх ребер взаємно знищуються (протилежні орієнтації). Залишається зовнішня межа. На кожному крихітному квадраті підінтегральна функція приблизно постійна, що дає внесок $approx "rot"(arrow(A)) dot epsilon^2$.
-
 // --- CHUNK_METADATA_START ---
 // src_checksum: bb5961d4a0f8113fbd4fbcde8fdfc1650695502999e38af0f1d3137a4e623df9
 // --- CHUNK_METADATA_END ---
@@ -423,14 +414,12 @@ $ "rot"(arrow(A)) = i partial_x f - partial_y f = i(partial_x f + i partial_y f)
 #insight[
   Чому $overline(partial) f = 0$ дає нульові інтеграли по замкненому контуру? Тому що голоморфні функції *локально виглядають як обертання та масштабування*. Обходячи будь-який контур та множачи кожен крок на локальне обертання+масштабування, внески від протилежних сторін контуру ідеально компенсуються. Неголоморфні функції порушують цю симетрію — вони можуть розтягуватися по-різному в різних напрямках, і компенсація не відбувається. Ротор $"rot"(arrow(A)) = 2i overline(partial) f$ точно вимірює цю асиметрію.
 ]
-
 // --- CHUNK_METADATA_START ---
 // src_checksum: c22edfb7bd969a510173e858ee14a094343e282eac6437d9d5c86360c1258b0e
 // --- CHUNK_METADATA_END ---
 == Обчислення по малому квадрату
 
 Перевіримо ключову оцінку явно. Розглянемо квадрат з вершиною в $z_0 = x_0 + i y_0$ і стороною $epsilon$. Рухаючись проти годинникової стрілки, чотири сторони вносять внесок:
-
 // --- CHUNK_METADATA_START ---
 // src_checksum: 0d1df5326d873d9f081a6e3c14db52a0bca763d768f85aa044d47cac72de0423
 // --- CHUNK_METADATA_END ---
@@ -476,8 +465,6 @@ $ "rot"(arrow(A)) = i partial_x f - partial_y f = i(partial_x f + i partial_y f)
 // --- CHUNK_METADATA_START ---
 // src_checksum: 1ec58b4d494887e8587d5ae44c9b6be933d3ab5ed162f98aca35952e52d2ce75
 // --- CHUNK_METADATA_END ---
-
-
 Сума всіх чотирьох внесків становить:
 $ f(z_0) dot epsilon + f(z_0 + epsilon) dot i epsilon + f(z_0 + i epsilon) dot (-epsilon) + f(z_0) dot (-i epsilon). $
 
@@ -490,18 +477,17 @@ $ = epsilon^2 [i partial_x f - partial_y f] = epsilon^2 dot i (partial_x f + i p
 // ─────────────────────────────────────────────────────────────────────────────
 // §5 ФОРМУЛА КОШІ
 // ─────────────────────────────────────────────────────────────────────────────
-
 // --- CHUNK_METADATA_START ---
 // src_checksum: 5ad06db9469d9f856307de1d4457288e51f9a6c6523b3a7db242770ee20a501a
 // --- CHUNK_METADATA_END ---
 = Формула Коші
-
 // --- CHUNK_METADATA_START ---
-// src_checksum: 6524466fc14fd2c61841976199037ae2fca59052ee5d7937126290c4662efe52
+// src_checksum: a2bf4bd5c610826ab663d542068ea36c596f80cc103fbe352e528b387db4ee02
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 == Твердження
 
-#thm("Формула інтегралу Коші")[
+#thm("Cauchy's Integral Formula")[
   Нехай $f : Omega -> CC$ буде $C^1$ з $overline(partial) f = 0$, і нехай $z_0 in Omega$. Для будь-якої замкнутої кривої $gamma$, яка один раз обходить проти годинникової стрілки навколо $z_0$ і повністю лежить у $Omega$:
   $ integral.cont_gamma frac(f(z), z - z_0) dif z = 2 pi i f(z_0). $
   Еквівалентно:
@@ -513,7 +499,8 @@ $ = epsilon^2 [i partial_x f - partial_y f] = epsilon^2 dot i (partial_x f + i p
 ]
 
 // --- CHUNK_METADATA_START ---
-// src_checksum: 097e6c0447183e2afef39316f5587152fdc94054372512f2d197dd716498f87d
+// src_checksum: 0e54684a76783b60811289167e19700ecbc216feaa1e1c99b98b535829b47d88
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 #proof[
 Функція $g(z) = f(z)/(z - z_0)$ є голоморфною на $Omega without {z_0}$, але має особливість у $z_0$.
@@ -537,7 +524,7 @@ $ integral.cont_gamma g dif z = integral.cont_(gamma_epsilon) g dif z. $
     // Inner circle
     circle((2.3, 1.7), radius: 0.65, stroke: (paint: red.darken(20%), thickness: 1.5pt, dash: "dashed"), fill: none)
     
-    // z0 pintegral.cont
+    // z0 point
     circle((2.3, 1.7), radius: 0.07, fill: red.darken(30%), stroke: none)
     content((2.55, 1.6), text(size: 9pt, fill: red.darken(30%))[$z_0$])
 
@@ -568,7 +555,8 @@ $ integral.cont_(gamma_epsilon) frac(f(z), z - z_0) dif z approx f(z_0) integral
 
 
 // --- CHUNK_METADATA_START ---
-// src_checksum: 99d7f524bc5be5e425338f09d6f4456bd38fae87f2c6eab9f6bef537957b4918
+// src_checksum: 92a3986825c9e4d73a2dbff475b1ad60cbd915a4a5f4624553295f86af5e6796
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 == Від формули Коші до степеневих рядів
 
@@ -590,7 +578,6 @@ $ f(w) = sum_(n=0)^infinity underbrace(lr([frac(1, 2 pi i) integral.cont_gamma f
 = Застосування: Спектральний Проектор
 
 Тепер ми переходимо до результату лінійної алгебри. Протягом цього розділу $A in M_n (CC)$.
-
 // --- CHUNK_METADATA_START ---
 // src_checksum: 9cd3f34be80e1b91b146eaf49e24036f941f0796216b2422997eab11ae67c325
 // --- CHUNK_METADATA_END ---
@@ -604,12 +591,10 @@ $ f(w) = sum_(n=0)^infinity underbrace(lr([frac(1, 2 pi i) integral.cont_gamma f
 Резольвента є матричнозначною функцією від $lambda$. Вона голоморфна на $CC without "Sp"(A)$: за рядом Неймана, для $|lambda - lambda_0| < 1 slash ||R_A (lambda_0)||$,
 $ R_A (lambda) = sum_(n=0)^infinity (lambda - lambda_0)^n R_A (lambda_0)^(n+1). $
 Сингулярності $R_A (lambda)$ є саме власними значеннями $A$.
-
 // --- CHUNK_METADATA_START ---
 // src_checksum: 108a4471284842db69f7d43c318210a9ee6d439704061129eb62a5662115e1a7
 // --- CHUNK_METADATA_END ---
 == Спектральний проектор
-
 // --- CHUNK_METADATA_START ---
 // src_checksum: 9b04dc2386f63dbbad9d22f908b96d81652be0256ec168753a94536e00284d93
 // --- CHUNK_METADATA_END ---
@@ -659,8 +644,6 @@ $ R_A (lambda) = sum_(n=0)^infinity (lambda - lambda_0)^n R_A (lambda_0)^(n+1). 
 // --- CHUNK_METADATA_START ---
 // src_checksum: bd86f815ffc4a3bd56771369da29337e6b386c6b6799b17daeff95b235d7570c
 // --- CHUNK_METADATA_END ---
-
-
 #prop("Спектральний Проєктор")[
   Нехай $A in M_n (CC)$ діагоналізовна, $mu$ — власне значення $A$, а $gamma$ — замкнена крива, яка обходить $mu$ один раз проти годинникової стрілки, але не обходить жодного іншого власного значення. Тоді
   $ Pi_mu := 1/(2 pi i) integral.cont_gamma R_A (z) dif z $
@@ -684,7 +667,6 @@ $ R_A (lambda) = sum_(n=0)^infinity (lambda - lambda_0)^n R_A (lambda_0)^(n+1). 
   Отже:
   $ frac(1, 2 pi i) integral.cont_gamma R_A (z) dif z = P^(-1) mat(1, 0; 0, 0) P = Pi_mu. qed $
 ]
-
 // --- CHUNK_METADATA_START ---
 // src_checksum: aaf33b2c7400b410a9de1e3725d3c25de7c1f8b5c7ac019bcc920ed0e07b718c
 // --- CHUNK_METADATA_END ---
@@ -706,7 +688,6 @@ $ f(A) = frac(1, 2 pi i) integral.cont_C frac(f(z), z - A) dif z, $
 // ─────────────────────────────────────────────────────────────────────────────
 // §7  РЕЗЮМЕ: ЛОГІЧНИЙ ЛАНЦЮГ
 // ─────────────────────────────────────────────────────────────────────────────
-
 // --- CHUNK_METADATA_START ---
 // src_checksum: 2c7cee81e534cf04847b975f327a7e30adf8e8442c4b056cecf2ceff18cac3ea
 // --- CHUNK_METADATA_END ---

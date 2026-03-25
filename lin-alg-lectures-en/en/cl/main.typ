@@ -55,13 +55,13 @@ $ z mapsto w z quad "corresponds to" quad mat(a, -b; b, a), quad w = a + i b. $
 This is a *very* special $2 times 2$ matrix — it has only 2 free parameters instead of 4. The extra constraint is $a_(11) = a_(22)$ and $a_(12) = -a_(21)$.
 
 #defn[
-  Let $Omega subset CC$ be open and $f : Omega -> CC$. We say $f$ is *holomorphic* on $Omega$ if every pintegral.cont $z_0 in Omega$ has a neighbourhood on which $f$ is expressible as a convergent power series:
+  Let $Omega subset CC$ be open and $f : Omega -> CC$. We say $f$ is *holomorphic* on $Omega$ if every point $z_0 in Omega$ has a neighbourhood on which $f$ is expressible as a convergent power series:
   $ f(z) = sum_(n=0)^infinity a_n (z - z_0)^n. $
 ]
 
 #insight[
   Holomorphic = locally looks like multiplication by a complex number. Zooming
-  in near any pintegral.cont $z_0$, the function $f$ behaves as $f(z_0 + h)
+  in near any point $z_0$, the function $f$ behaves as $f(z_0 + h)
   approx f(z_0) + f'(z_0) dot h$ where $f'(z_0) in CC$ and the multiplication
   is *complex* multiplication — a rotation and scaling of the input
   displacement $h$. No reflections, no shears, no asymmetric stretches.
@@ -80,7 +80,7 @@ These are not defined this way — they are *derived* from the change of variabl
   + $overline(partial) f = 0$,
   + $partial_x u = partial_y v$ and $partial_y u = -partial_x v$ (Cauchy-Riemann equations),
   + The Jacobian $J f$ has the form $mat(a, -b; b, a)$ for some $a, b in RR$,
-  + $f$ is complex-differentiable at every pintegral.cont, with $f'(z_0) = a + i b$.
+  + $f$ is complex-differentiable at every point, with $f'(z_0) = a + i b$.
 ]
 
 #proof[
@@ -174,7 +174,7 @@ The following are *not* holomorphic:
 - $f(z) = "Re"(z) = x$: gives $overline(partial) f = 1/2 != 0$
 
 #rmk[
-  $f(z) = |z|^2$ is complex-differentiable at $z = 0$ (the limit $|h|^2 / h = overline(h) -> 0$ as $h -> 0$), but nowhere else. Being differentiable at a single isolated pintegral.cont is *not* holomorphic — holomorphicity requires differentiability on an open neighbourhood.
+  $f(z) = |z|^2$ is complex-differentiable at $z = 0$ (the limit $|h|^2 / h = overline(h) -> 0$ as $h -> 0$), but nowhere else. Being differentiable at a single isolated point is *not* holomorphic — holomorphicity requires differentiability on an open neighbourhood.
 ]
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -193,7 +193,7 @@ $ integral_gamma f dif z := integral_0^T f(gamma(t)) dot gamma'(t) dif t. $
 
 This is exactly like a real integral $integral_a^b f(x) dif x$, except that:
 - We sum over a *curve* in $CC$ rather than a segment in $RR$
-- At each pintegral.cont, we multiply $f(gamma(t))$ by $gamma'(t)$ — the *velocity* of the curve, a complex number encoding both speed and direction
+- At each point, we multiply $f(gamma(t))$ by $gamma'(t)$ — the *velocity* of the curve, a complex number encoding both speed and direction
 - The result is a complex number
 
 The factor $gamma'(t) dif t$ is the infinitesimal displacement $dif z$ along the curve. On a real segment $gamma(t) = t$, we have $gamma'(t) = 1$ and the definition reduces to an ordinary integral.
@@ -220,12 +220,12 @@ The factor $gamma'(t) dif t$ is the infinitesimal displacement $dif z$ along the
     line(mid, nxt, mark: (end: ">", size: 0.22), stroke: (paint: teal.darken(20%), thickness: 1.5pt))
     content((0.1, 2.2), text(size: 9pt, fill: teal.darken(30%))[$gamma$])
 
-    // A pintegral.cont on the curve
+    // A point on the curve
     let pt = (2.2, 2.75)
     circle(pt, radius: 0.07, fill: blue.darken(20%), stroke: none)
     content((2.4, 2.95), text(size: 9pt, fill: blue.darken(30%))[$gamma(t)$])
 
-    // Velocity arrow at that pintegral.cont
+    // Velocity arrow at that point
     line((2.2, 2.75), (1.5, 2.52), mark: (end: ">", size: 0.2), stroke: (paint: orange.darken(20%), thickness: 1.5pt))
     content((1.6, 2.2), text(size: 9pt, fill: orange.darken(30%))[$gamma'(t)$])
 
@@ -236,7 +236,7 @@ The factor $gamma'(t) dif t$ is the infinitesimal displacement $dif z$ along the
     circle((2.0, 1.4), radius: 0.07, fill: red.darken(20%), stroke: none)
     content((2.2, 1.3), text(size: 9pt, fill: red.darken(30%))[$z_0$])
   }),
-  caption: [A contour $gamma$ in $CC$. At each pintegral.cont $gamma(t)$, the velocity $gamma'(t)$ gives the direction and speed of travel. The contour integral accumulates the products $f(gamma(t)) dot gamma'(t) dif t$ — tiny complex contributions — around the whole curve.]
+  caption: [A contour $gamma$ in $CC$. At each point $gamma(t)$, the velocity $gamma'(t)$ gives the direction and speed of travel. The contour integral accumulates the products $f(gamma(t)) dot gamma'(t) dif t$ — tiny complex contributions — around the whole curve.]
 )
 
 == Path independence and closed loops
@@ -268,7 +268,7 @@ The $epsilon$ cancels completely — the answer $2 pi i$ is *independent of the 
 
 For a vector field $arrow(A) = A_x arrow(e)_x + A_y arrow(e)_y$ on $RR^2$, the *scalar curl* (rotationnel) measures local rotation:
 $ "rot"(arrow(A)) = partial_x A_y - partial_y A_x. $
-Geometrically: place a tiny paddle wheel at a pintegral.cont in the fluid. If the flow makes it spin, the curl is nonzero there. If the flow is locally "balanced" — as much coming from one side as the other — the curl is zero and the wheel stays still.
+Geometrically: place a tiny paddle wheel at a point in the fluid. If the flow makes it spin, the curl is nonzero there. If the flow is locally "balanced" — as much coming from one side as the other — the curl is zero and the wheel stays still.
 
 #figure(
   canvas({
@@ -422,7 +422,7 @@ So $integral.cont_(partial square) f dif z approx 2i epsilon^2 overline(partial)
 ]
 
 #insight[
-  This formula says something astonishing: the value of a holomorphic function at a single interior pintegral.cont $z_0$ is *completely determined* by its values on the boundary loop $gamma$. In real analysis, a function's values at interior pintegral.conts are independent of boundary values. For holomorphic functions, the boundary values rigidly control everything inside — like a soap film stretched across a wire loop, where the wire (boundary) determines the film's shape (interior) completely.
+  This formula says something astonishing: the value of a holomorphic function at a single interior point $z_0$ is *completely determined* by its values on the boundary loop $gamma$. In real analysis, a function's values at interior points are independent of boundary values. For holomorphic functions, the boundary values rigidly control everything inside — like a soap film stretched across a wire loop, where the wire (boundary) determines the film's shape (interior) completely.
 ]
 
 #proof[
@@ -447,7 +447,7 @@ The big loop can be shrunk to a tiny loop without changing the integral.
     // Inner circle
     circle((2.3, 1.7), radius: 0.65, stroke: (paint: red.darken(20%), thickness: 1.5pt, dash: "dashed"), fill: none)
     
-    // z0 pintegral.cont
+    // z0 point
     circle((2.3, 1.7), radius: 0.07, fill: red.darken(30%), stroke: none)
     content((2.55, 1.6), text(size: 9pt, fill: red.darken(30%))[$z_0$])
 
@@ -476,7 +476,7 @@ where the last integral was computed explicitly in §3. The error in the approxi
 
 == From Cauchy's formula to power series
 
-Cauchy's formula is a *power series generator*. Fix $z_0$ and write $w$ for a nearby pintegral.cont. Expand the Cauchy kernel in a geometric series:
+Cauchy's formula is a *power series generator*. Fix $z_0$ and write $w$ for a nearby point. Expand the Cauchy kernel in a geometric series:
 $ frac(1, z - w) = frac(1, (z - z_0) - (w - z_0)) = frac(1, z - z_0) sum_(n=0)^infinity frac((w - z_0)^n, (z - z_0)^n). $
 
 Substituting into Cauchy's formula and swapping the sum and integral (justified by uniform convergence):

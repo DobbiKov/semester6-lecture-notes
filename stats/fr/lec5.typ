@@ -161,7 +161,7 @@ $
   #image("figures/interv-confiance.png")
 ],
 [
- $I C = [B inf(X_1, ..., X_n), B sup(X_1, ..., X_n)]$ formule mathématique qui g´arantit le niveau  $1 - alpha$.
+ $I C = [B inf(X_1, ..., X_n), B sup(X_1, ..., X_n)]$ formule mathématique qui garantit le niveau  $1 - alpha$.
  On observe  $X_1 = x_1, X_2 = x_2, ..., X_n = x_n$, une réalisation de l'échantillon aléatoire. On calcule 
  $I C = [2.3; 5.1]$ de niveau de confiance $95%$ ($alpha = 5%$).
 

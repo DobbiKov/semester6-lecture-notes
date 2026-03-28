@@ -109,7 +109,7 @@ $
 == Quantile empirique
 
 #defn[
-  On définit le #underline[quantile empirique] (sampe quantile) d'ordre
+  On définit le #underline[quantile empirique] (sample quantile) d'ordre
   $alpha$, comme étant le quantile de  $hat(F)_n$: 
   $
   hat(q)_(n, alpha) = hat(F)_n^(-1)(alpha) = inf{x, hat(F)_n (x) >= alpha}

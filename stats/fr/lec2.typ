@@ -183,7 +183,6 @@ $ log L_n (hat(theta)) = sup_(theta in Theta) log L_n (theta) $
   //   caption: "remarque-max-vraisemblance-1"
   // ) <fig:remarque-max-vraisemblance-1>
 ]
-fdsa
 
 #ex[
   - $Bern(theta)$, $f_theta (x) = theta^x (1 - theta)^(1 - x)$, $X_i$ à valeurs 0-1

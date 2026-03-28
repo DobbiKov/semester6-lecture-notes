@@ -29,7 +29,6 @@ $
 
 #import "figures/repr-graphique-repartition-empirique.typ":diagram as repr-graphique-repartition-empirique
 #repr-graphique-repartition-empirique(width: 400pt)
-fdsa
 
 #prop(info: "Propriétés immédiats")[
   - $n hat(F)_n (x) = sum_(i=1)^n bb(1)_(X_i <= x)$ suit la loi binomiale$(n, F(x))$ 

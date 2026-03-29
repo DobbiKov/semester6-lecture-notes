@@ -1,7 +1,7 @@
 
 #import "preamble.typ": *
 
-= Estimation dans les échnatillons gaissiens
+= Estimation dans les échnatillons gaussiens
 
 1. Loi normale et lois dérivées
 2. Loi des estimateurs empririques

@@ -85,7 +85,7 @@ On procède avec un intervalle de confiance pour $p$.
 == Principe d'un test
  $Theta subset ]0, 1[$. On veut tester si  $p <= 0.2$ ou  $p > 0.2$.
 
-  $Theta = underbrace( Theta_0, ]0\, 0.2] ) union underbrace( Theta_1, ]0 \, 1
+  $Theta = underbrace( Theta_0, ]0\, 0.2] ) union underbrace( Theta_1, ]0.2 \, 1
   \[ )$ sous-ensembles disjoints. 
 
   On teste $H_0$:  $p in Theta_0$, $p <= 0.2$ contre  $H_1$:  $p in Theta_1$,  $p > 0.2$ 

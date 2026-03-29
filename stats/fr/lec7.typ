@@ -8,6 +8,15 @@
 3. IC des paramètres
 4. Exercice
 
+== TL&DR
+$(X_1, ..., X_d)$ des variables aléatoires i.i.d. qui suivent  $cal(N) (0, 1)$ et $X ~ cal(N) (0, 1)$,
+$
+Y = X_1^2 + ... + X_d^2 ~ chi^2 (d)
+$ 
+
+$
+X/sqrt(Y/d) ~ #math.op("Student") (d)
+$
 == Loi normale et lois dérivées
 
 

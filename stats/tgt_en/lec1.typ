@@ -1,23 +1,23 @@
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: ec85412555d56610a6a7397199daf2830615de3739c98fad873b494b73e5b449
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 #import "preamble.typ": *
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: 43ba1e95b0f2e64be6fac94c25d8fdb5b386caebf2cd3d4814c8bbd79975b312
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 = Introduction
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: c87ca8d91c1d06fb49b63aa12ea9acceb250ba93a9cb8e835ba0b03bd85e09bb
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 == Evaluation
 - $0.4$ Continuous Assessment $+ 0.6$ Exam.
 - Breakdown : $80\%$ midterm, $20\%$ Quiz (scheduled for 26/01).
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: f304a7eac8fabbf4c839d8e355944d0fd595aa4b05ebf113a14157388d4c230a
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 == Statistical Model
 
@@ -46,8 +46,8 @@
   A model is identifiable if and only if (iff) the mapping $theta mapsto P_theta$ is injective.
 ]
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: 6f02be46d3cd08ea80269742d031d50c1d27a4e2f1f43609cf4598883180fe65
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 == Estimators
 
@@ -64,8 +64,8 @@ Fundamental Questions :
 + How to define a good estimator ?
 + How to construct a good estimator ?
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: 14df5690760448fc7088aa24a6ce62dbfe4cff637754de078d71fea69fe6d508
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 == Quadratic Risk
 
@@ -84,8 +84,8 @@ Fundamental Questions :
 
 We say that $hat(theta)_1$ is better than $hat(theta)_2$ if and only if $R(hat(theta)_1, theta) <= R(hat(theta)_2, theta)$.
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: 0416d9d933540514f2cf5759107bc489ebdd5d6204b9f631671f44b862285c11
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 === Example : Poisson Model
 Let $X_1, ..., X_n$ be distributed according to a $P_theta$ Poisson law, with $theta > 0$. We seek an estimator for $theta = EE[X_i]$.
@@ -123,8 +123,8 @@ $
   $
 ]
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: 074abcf51803765b7713b0d3dcdb57d764201e2c289dc001247b518f59c18c01
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 == Consistency
 Asymptotic property. We only consider consistent estimators.
@@ -139,8 +139,8 @@ Asymptotic property. We only consider consistent estimators.
   $hat(theta)_n$ is strongly consistent if and only if $hat(theta)_n -->_(n -> +infinity)^("p.s.") theta$.
 ]
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: 082b3f3fd50fd6c42a745339d17d61c24015c6234ff322eef272ea1c43944332
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 === Example : Revisiting the Poisson model
 $Theta = RR_+^*$, $hat(theta)_n = overline(X)$.
@@ -151,8 +151,8 @@ $Theta = RR_+^*$, $hat(theta)_n = overline(X)$.
   According to Bienaymé-Chebyshev's inequality :
   $ P(|hat(theta)_n - theta| > epsilon) <= (EE[(hat(theta)_n - theta)^2])/epsilon^2 = (R(hat(theta)_n, theta))/epsilon^2 -> 0 $
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: 8d18128e5d8de85fee63298356854cece7012ba4d0ab496f74e26ab97b7b68c0
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 === "Plug-in" Method
 Let $(X_1, ..., X_n)$ be i.i.d. Poisson$(theta)$. We want to estimate $beta = P(X_i = 0) = e^(-theta)$.

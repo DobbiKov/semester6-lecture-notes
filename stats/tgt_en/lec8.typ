@@ -107,20 +107,19 @@ $
 
 
 // --- CHUNK_METADATA_START ---
-// src_checksum: 9f2d0fc5fe349f62a7a4ea6d429b798d4e60de4a2e6a672480ff39162d2952f6
+// src_checksum: a0c4bb292c6c1815c1446f87178a7a84ffe5b665b84f1e49f2cefe11a9c062eb
 // needs_review: True
 // --- CHUNK_METADATA_END ---
-
 == Principle of a test
  $Theta subset ]0, 1[$. We want to test if $p <= 0.2$ or $p > 0.2$.
 
-  $Theta = underbrace( Theta_0, ]0\, 0.2] ) union underbrace( Theta_1, ]0 \, 1
+  $Theta = underbrace( Theta_0, ]0\, 0.2] ) union underbrace( Theta_1, ]0.2 \, 1
   \[ )$ disjoint subsets. 
 
   We test $H_0$: $p in Theta_0$, $p <= 0.2$ against $H_1$: $p in Theta_1$, $p > 0.2$ 
 
-  Conclusion: 
-  - Either we retain $H_0$: ($p <= 0.2$) 
+  Conclusion:
+  - Either we retain $H_0$: ($p <= 0.2$)
   - Or we reject $H_0$ (we conclude $p > 0.2$)
 
  #defn[

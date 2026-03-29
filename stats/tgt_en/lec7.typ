@@ -1,13 +1,11 @@
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: ec85412555d56610a6a7397199daf2830615de3739c98fad873b494b73e5b449
-// --- CHUNK_METADATA_END ---
-
-#import "preamble.typ": *
-
-// --- CHUNK_METADATA_START ---
 // needs_review: True
-// src_checksum: 1ce9737cd1eb75ebb1616c3a4f16696080c06a8fcfe7d4e4db0a83a31bd84e68
+// --- CHUNK_METADATA_END ---
+#import "preamble.typ": *
+// --- CHUNK_METADATA_START ---
+// src_checksum: 847170e6cb17763a68bc0aef24c6719ed7f55da9d435218233071b9853931915
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 = Estimation in Gaussian samples
 
@@ -15,10 +13,22 @@
 2. Distribution of empirical estimators
 3. CI of parameters
 4. Exercise
-
 // --- CHUNK_METADATA_START ---
+// src_checksum: 00b50b6f25f02995473521c6ee3085dd574f71d826f22a450e544ba38c5ee9ed
 // needs_review: True
+// --- CHUNK_METADATA_END ---
+== TL;DR
+$(X_1, ..., X_d)$ i.i.d. random variables following $cal(N) (0, 1)$ and $X ~ cal(N) (0, 1)$,
+$
+Y = X_1^2 + ... + X_d^2 ~ chi^2 (d)
+$ 
+
+$
+X/sqrt(Y/d) ~ #math.op("Student") (d)
+$
+// --- CHUNK_METADATA_START ---
 // src_checksum: f84224cbfe080d5c5ac13e8318c137691542974f40044ffaeb0eb232ad0cab53
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 == Normal distribution and derived distributions
 
@@ -86,10 +96,9 @@ Central moments: symmetric density with respect to $mu$
     calc.pow(x, half-k - 1) * calc.exp(-x / 2) / (calc.pow(2, half-k) * gamma(half-k))
   }
 }
-
 // --- CHUNK_METADATA_START ---
+// src_checksum: c6fe5e4fd172c194d4bee7b68440c55375bd66c2070887c05d84b156c4f2548b
 // needs_review: True
-// src_checksum: 04c2d836906cc497c61b9e77f6b76c08b5273497a6fdba9e03d6bb53230251fe
 // --- CHUNK_METADATA_END ---
 #align(center)[
 #canvas({
@@ -178,15 +187,17 @@ centered moments:  $E[(X - mu)^k]$
   if $X ~ cal(N) (0, 1)$ and $Y ~ chi^2 (d)$ are independent, the distribution of $Z = X/sqrt(Y/d)$ is called Student's t-distribution with $d$ df.
 ]
 
-#rmk[
-  if $d -> +infinity$, Student's t-distribution converges to the distribution  $cal(N) (0, 1)$
-
 // --- CHUNK_METADATA_START ---
+// src_checksum: 370b939294593d7e8f2ff34d31d034319901091d5137938091fcd363505f7089
 // needs_review: True
-// src_checksum: b80b824cadc3ecfe5c7560b39a57d1e40bddfb00d984158c7590ef38bfe2b79a
 // --- CHUNK_METADATA_END ---
+#rmk[
+  if $d -> +infinity$, the Student distribution converges to the distribution $cal(N) (0, 1)$
+
    $
-   Y/d =^(cal(L))_"def" 1/d sum_(i=1)^d U_i^2 "where" U_i ~ cal(N) (0, 1) "are mutually independent, such that" X \
+   Y/d =^(cal(L))_"def" 1/d sum_(i=1)^d U_i^2 "
+
+  #rmk[ where " U_i ~ cal(N) (0, 1) " are mutually independent from " X \
    -->^P_"LGN" E(U_i^2) = 1
    $
    therefore (LAC)
@@ -195,19 +206,25 @@ centered moments:  $E[(X - mu)^k]$
    $ by Slutsky's Lemma $Z -->^cal(L) 1 dot X ~ cal(N) (0, 1)$
 ]
 
-We introduce $(X_1, ..., X_n)$ i.i.d.  $cal(N) (mu, sigma^2)$ where  $mu$ and $sigma^2$ are unknown parameters.
-- $arrow.hook$  $mu = E[X_i]$ $arrow.squiggly$  $hat(mu) = overline(X)$
-- $arrow.hook$  $sigma^2 = Var(X_i)$ $arrow.squiggly$  $hat(sigma^2) = 1/n sum(X_i - overline(X))^2$
+ We introduce $(X_1, ..., X_n)$ i.i.d. $cal(N) (mu, sigma^2)$ where $mu$ and $sigma^2$ are unknown parameters.
+- $arrow.hook$ $mu = E[X_i]$ $arrow.squiggly$ $hat(mu) = overline(X)$
+- $arrow.hook$ $sigma^2 = Var(X_i)$ $arrow.squiggly$ $hat(sigma^2) = 1/n sum(X_i - overline(X))^2$
+
+
 
 Let $S_n^2 = 1/(n-1) sum_(i=1)^n (X-i - overline(X))^2$ #underline[unbiased]
 
 // --- CHUNK_METADATA_START ---
+// src_checksum: 2c88d062c5fd4325aa0f0a45d8400b1ace61a40148986f838a0c3302d8144a2f
 // needs_review: True
-// src_checksum: 9a4a4d5421c6b0bf7e573748a257afa25ef3402e7eac17f43df864f9a0e6a965
 // --- CHUNK_METADATA_END ---
-== Law of Empirical Estimators
+== Empirical estimators law
 
-#thm(info: [law of $hat(mu)$ and $hat(sigma)^2$])[
+// --- CHUNK_METADATA_START ---
+// src_checksum: fbb7bc5c00ecbd43e2b26733287df95dd715290aac7d7353c8b993ce2c2f1ace
+// needs_review: True
+// --- CHUNK_METADATA_END ---
+#thm(info: [law of $hat(mu)$ and  $hat(sigma)^2$])[
   - $overline(X)$ and $sum_(i=1)^n (X_i - overline(X))^2$ are random variables #underline[independent]
   -  $overline(X) ~ cal(N) (mu, sigma^2/n)$
   -  $1/(sigma^2) sum_(i=1)^n (X_i - overline(X))^2 ~ chi^2 (n-1) => (n hat(sigma)^2)/(sigma^2) ~ chi^2 (n-1)$ and $((n-1) S_n^2)/sigma^2 ~ chi^2 (n-1)$
@@ -227,34 +244,29 @@ Let $S_n^2 = 1/(n-1) sum_(i=1)^n (X-i - overline(X))^2$ #underline[unbiased]
                       &= underbrace( e^(mu u + ( sigma^2 u^2 )/(2 n)), M_(overline(X)) (u) ) underbrace( e^(sigma^2/2 sum_i (t_i - overline(t))^2), M_T (t_1, ..., t_n) )
   $
 
-// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: bd56c18a2539d6830958d81e9002ce1643cb701dbb7470653cb3187d0c165f83
-// --- CHUNK_METADATA_END ---
   $
   1/sigma^2 sum_(i=1)^n (X_i - mu)^2 &= 1/sigma^2 sum_(i=1)^n (X_i - overline(X))^2 + n/sigma^2 (overline(X) - mu)^2 + 2/sigma^2 sum_i (X_i - overline(X))(overline(X) - mu) \
                                      &= 1/sigma^2 sum_(i=1)^n (X_i - overline(X))^2 + n/sigma^2 (overline(X) - mu)^2 + 2/sigma^2 (overline(X) - mu) underbrace( sum_i (X_i - overline(X)), =0 ) \
                                      &= underbrace( 1/sigma^2 sum_(i=1)^n (X_i - overline(X))^2, = sum_(i=1)^n ((X_i - mu)/sigma)^2 ~ chi^2 (n)) + underbrace( n/sigma^2 (overline(X) - mu)^2, = ((overline(X) - mu)/(sigma/sqrt(n)))^2 ~ chi^2 (1) ) 
-  $ 
-  $
+  $$
   "by independence" => M_(chi^2 (n)) (t) = M_? (t) M_(chi^2 (1)) (t) => M_? (t) = ((1 - 2t)^(-n/2))/((1 - 2t)^(-1/2)) = (1 - 2t)^(- (( n-1 ))/2)
-  $ 
-  which characterizes the $chi^2 (n-1)$
+  $ which characterizes the $chi^2 (n-1)$
 
    $
   (overline(X) - mu)/(S_n/sqrt(n)) = ((overline(X) - mu)/(sigma/sqrt(n)))/(S_n/sqrt(n) times sqrt(n)/sigma) = ((overline(X) - mu)/(sigma/sqrt(n)))/(sqrt((S_n^2)/sigma^2))
-  $ 
-  $
+  $$
   S_n^2/sigma^2 = ((sum (X_i - overline(X))^2)/sigma^2) ~ chi^2 (n-1)
-  $ 
-  therefore $overline(X) + S_n^2$ are independent  $underbrace(=>, "def Student")$  $#math.op("Student") (n-1)$
-]
+  $ therefore$overline(X) + S_n^2$ are independent$underbrace(=>, "def Student")$$#math.op("Student") (n-1)$]
+// --- CHUNK_METADATA_START ---
+// src_checksum: 75a11da44c802486bc6f65640aa48a730f0f684c5c07a42ba3cd1735eb3fb070
+// --- CHUNK_METADATA_END ---
+
 
 // --- CHUNK_METADATA_START ---
+// src_checksum: 230ad6cfabbf81f12ed62815dc01c3ee7a15adb44bd6036a9a9ed5630070ddff
 // needs_review: True
-// src_checksum: f419955b87016ae30fbc03aa2ed3332f60c16e0857c0555349f44fb25f8448b2
 // --- CHUNK_METADATA_END ---
-== CI of parameters
+== IC of the parameters
 Pivot. $(overline(X) - mu)/(S_n/sqrt(n)) ~_"loi exacte" #math.op("Student") (n-1)$
 #let normal-quantile(p) = {
   // Coefficients
@@ -286,10 +298,6 @@ Pivot. $(overline(X) - mu)/(S_n/sqrt(n)) ~_"loi exacte" #math.op("Student") (n-1
   let p-low  = 0.02425
   let p-high = 1 - p-low
 
-// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: 34a66cfcd07983c04382b2ece5855f71d094024b189f5b7bd4f5099a973e203d
-// --- CHUNK_METADATA_END ---
   if p < p-low {
     let q = calc.sqrt(-2 * calc.ln(p))
     let num = c0 + q*c1 + q*q*c2 + q*q*q*c3 + q*q*q*q*c4 + q*q*q*q*q*c5
@@ -312,6 +320,11 @@ Pivot. $(overline(X) - mu)/(S_n/sqrt(n)) ~_"loi exacte" #math.op("Student") (n-1
 #let q-lo = normal-quantile(_alpha / 2)
 #let q-hi = normal-quantile(1 - _alpha / 2)
 #let normal(x) = calc.exp(-x * x / 2) / calc.sqrt(2 * calc.pi)
+// --- CHUNK_METADATA_START ---
+// src_checksum: c9d77dc07332c172063cb30a34c3cea14119c35b42939210de4fc353c5cfc936
+// needs_review: True
+// --- CHUNK_METADATA_END ---
+
 #align(center)[
   #canvas({
   plot.plot(
@@ -364,12 +377,7 @@ plot.add-fill-between(
         x => if x == q-lo { normal(q-lo) } else { 0 },
       )
       plot.add(
-        
-// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: d96959401c9a2e240b5660ba1de3195f96d791cb0cc618b84c3d967083411959
-// --- CHUNK_METADATA_END ---
-domain: (q-hi, q-hi), samples: 2,
+        domain: (q-hi, q-hi), samples: 2,
         style: (stroke: ( thickness: 1pt, paint: blue, dash: "dashed" )),
         x => if x == q-hi { normal(q-hi) } else { 0 },
       )
@@ -377,21 +385,23 @@ domain: (q-hi, q-hi), samples: 2,
   )
 })]
 
-// --- CHUNK_METADATA_START ---
-// needs_review: True
-// src_checksum: fe3ec83f983a2248d631b57a22135fe41cfa98868e34e3905d5956cb9b760be6
-// --- CHUNK_METADATA_END ---
  $
    &P(q_(alpha/2) t (n-1)) <= (overline(X) - mu)/(S_n/sqrt(n)) <= q_(1 - alpha/2) t (n-1) ) \
 <=>&P(overline(X) - S_n/sqrt(n) q_(1 - alpha/2) t (n-1) <= mu <= overline(X) + S_n/sqrt(n) q_(1 - alpha/2) t (n-1)) = 1-alpha
 $ 
 
-CI $(sigma^2)$,  $( n hat(sigma)^2 )/sigma^2 ~ chi^2 (n-1)$
+ Confidence interval $(sigma^2)$, $( n hat(sigma)^2 )/sigma^2 ~ chi^2 (n-1)$
 
- $
+ 
+
+// --- CHUNK_METADATA_START ---
+// src_checksum: 75659fda8e86416ff617ba0ec3539889510c844b1133370c7b7617a4290bcda2
+// needs_review: True
+// --- CHUNK_METADATA_END ---
+$
 P(q_(alpha/2) chi^2 (n-1) <= ( n hat(sigma)^2 )/sigma^2 <= q_(1 - alpha/2) chi^2 (n-1)) = 1 -alpha \
 = P((n hat(sigma)^2)/( q_(1 - alpha/2) chi^2 (n-1) ) <= sigma^2 <= (n hat(sigma)^2)/( q_(alpha/2) chi^2 (n-1) )) = alpha - 1
-$ 
+$
 $arrow.squiggly$ CI $= [(n hat(sigma)^2)/( q_(1 - alpha/2) chi^2 (n-1)) , (n hat(sigma)^2)/( q_(alpha/2) chi^2 (n-1) )]$
 
 #rmk[
@@ -399,14 +409,13 @@ $arrow.squiggly$ CI $= [(n hat(sigma)^2)/( q_(1 - alpha/2) chi^2 (n-1)) , (n hat
 
    $
   (overline(X) - mu)/(S_n/sqrt(n)) ~ #math.op("Student") (n-1)
-  $ 
+  $
 ]
 
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: b1b4c059bc70dabb9d5bab3a45037ec98c6d54d7a51086ad8d9bee975198ddda
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 == Exercise
 - Show that $(hat(mu), hat(sigma^2))$ are the MLEs of $mu$ and $sigma^2$
 - $R(S_n^2, sigma^2) > R(hat(sigma_n)^2, sigma^2)$ where $R$ represents a risk
-

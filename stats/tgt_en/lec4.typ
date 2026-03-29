@@ -1,11 +1,11 @@
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: b847744a1a0b38c4a68a842a1c9b662503616079d7bb62a4fb1135b6bc70c36d
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 #import "preamble.typ": *
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: f50245ab868ac4c9a0c2b2505204781ac8a8cf0d66ca9f4924235a079162fcf4
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 = Asymptotic study of estimators
 
@@ -20,8 +20,8 @@ Asymptotic: $n -> +infinity$,
 n Var(hat(theta)_n) -->_(n -> +infinity) 1/(I(theta))
 $
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: 713139145d99aac2e688a7163c7942fee95fc5b6aec171c544f70201d9529081
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 == Convergences
 $(X_n)_(n >= 0)$ sequence of real random variables $(RR^d)$
@@ -61,8 +61,8 @@ $(X_n)_(n >= 0)$ sequence of real random variables $(RR^d)$
     $ 
 ]
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: 79aafe1277bc71b7f9e4a7f2123b7a2a9f8aee571979653b9f6966ad52d35b12
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 == Consistency of Estimators
 #defn[
@@ -101,8 +101,8 @@ $(X_n)_(n >= 0)$ sequence of real random variables $(RR^d)$
   Therefore $1/n sum X_i^2 - (overline(X))^2 -->^P tau^2 + mu^2 - mu^2 = tau^2$
 ]
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: c185422258ac1db52f4e8867eb0f0d89c71cac9789c409994bd5d7b9c245cb2c
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 == Asymptotic normality of $hat(theta)_n$ for $theta$. 
 
@@ -150,8 +150,8 @@ $(X_1, ..., X_n)$ i.i.d., with expectation $theta$, $hat(theta) = overline(X)$ w
   Therefore $hat(tau)_n^2$ is an asymptotically normal estimator
 ]
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: 83f34bc0268e8062ba8ad9008b42125418ed0cfe4fd927b3d8246065326d240a
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 #rmk[
   $sqrt(n) (hat(theta)_n - theta) -->^(cal(L))_(n -> +infinity) cal(N)(0, tau^2) <==> (sqrt(n)(hat(theta)_n - theta))/tau -->^(cal(L))_(n -> +infinity) cal(N)(0, 1)$
@@ -165,8 +165,8 @@ $(X_1, ..., X_n)$ i.i.d., with expectation $theta$, $hat(theta) = overline(X)$ w
   $
 ]
 // --- CHUNK_METADATA_START ---
-// needs_review: True
 // src_checksum: c82a5690416cb70cd2ab7d2889a786e73cb0659dff9fe911c194a0684e37c371
+// needs_review: True
 // --- CHUNK_METADATA_END ---
 == $delta$-method 
 $hat(theta)$ asymptotically normal estimator: what is the asymptotic distribution of $g(theta)$?

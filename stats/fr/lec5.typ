@@ -186,16 +186,13 @@ $
 
 Par définition des quantiles gaussiens, $q_alpha = Phi^(-1) (alpha)$ où  $Phi$ f.r. de  $cal(N) (0, 1)$
 
-#grid(columns: (50%, 50%),
-[
-$
+#math.equation(numbering: "(1)", block: true, $
 P(q_(alpha/2) <= (sqrt(n) (hat(theta) - theta))/sigma(theta) <= q_(1 - alpha/2)) -->_(n -> +infinity) 1 - alpha
-$ 
-],
-[
-  #image("figures/methode-pivotale.png")
+$ )<eq:intervalle-de-confiance>
+
+#align(center)[
+  #image(width: 50%, "figures/methode-pivotale.png")
 ]
-)
 
 - *pivot ou statistique pivotale* = $(sqrt(n) (hat(theta) - theta))/(hat(sigma))$ statistique centrée réduite issue de  $hat(theta)$, où  $sigma^2(theta)$ estimé par  $hat(sigma)^2$, #underline[consistant] pour estimer $sigma^2(theta)$. 
 
@@ -209,3 +206,12 @@ P(q_(alpha/2) <= (sqrt(n) (hat(theta) - theta))/hat(sigma)(theta) <= q_(1 - alph
 P(hat(theta) - 1/(sqrt(n))hat(sigma)q_(1 - alpha/2) <= theta <= hat(theta) - 1/(sqrt(n)) hat(sigma) q_(alpha/2)) --> 1 - alpha
   $ 
 
+#rmk(info: [pourquoi $alpha/2$?])[
+  On peut observer que les quantiles dans @eq:intervalle-de-confiance sont
+  d'ordre $alpha/2$ et  $1-alpha/2$. Pour comprendre pourquoi, il suffit
+  d'effectuer un calcul simple. D'abord, on note $( sqrt(n) (hat(theta)
+  - theta) )/sigma(theta) =: Z ~ cal(N) (0, 1)$.    
+  $
+  P(q_(alpha/2) <= Z <= q_(1 - alpha/2)) = P(Z <= q_(1 - alpha/2)) - P(Z <= q_(alpha/2)) = 1 - alpha/2 - alpha/2 = 1 - alpha
+  $ 
+]

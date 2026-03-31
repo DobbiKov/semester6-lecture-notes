@@ -57,7 +57,7 @@ the same as the test of $H_0$: $theta = theta_0$ against $H_1$: $theta <
 // src_checksum: df949013b3b40d44aa1fc775ddcd83870eef96655d0f4cf36bbf6d01aaeaa000
 // needs_review: True
 // --- CHUNK_METADATA_END ---
-==$P$-value
+== $P$-value
 #ex[
   $(X_1, ..., X_n)$ i.i.d. following $cal(N) (0, 1)$; test $H_0$: $theta = 0$, against $H_1$: $theta > 1$
 
@@ -80,7 +80,8 @@ the same as the test of $H_0$: $theta = theta_0$ against $H_1$: $theta <
   If $(X_1, ..., X_n)$ i.i.d., $cal(R) = {T(X) > c_alpha}$. For a realization $x = (x_1, ..., x_n)$ of $X = (X_1, ..., X_n)$, we call it the $p$-value of the test with region $cal(R)$:
   $
   #math.op("pval") &= inf {alpha in [0,1], T(X) > c_alpha} \
-                   &= inf {alpha, H_0 "
+                   &= inf {alpha, H_0 " is rejected on level" alpha}
+  $
   p-value ($phi(X) = bb(1)_(cal(R)) (X)$) - significance level, critical probability
 ]
 #ex[

@@ -65,6 +65,18 @@ $X = (X_1, ..., X_n)$ i.i.d. de loi  $P_theta$
                    &= inf {alpha, H_0 " est rejetée au niveau " alpha}
   $ 
   pvalue ($phi(X) = bb(1)_(cal(R)) (X)$) - niveau de significativité probabilité critique
+]<pvaleur>
+
+  La @pvaleur peut sembler assez abstraite mais elle a une application assez
+  intuitive. $T(X)$ dépend de notre échantillon observée et  $c_alpha$ dépend
+  de la loi (sous $H_0$) et de $alpha$ (important: indépendant des données observée).
+
+  Une propriétée improtante est que  $c_alpha$ est croissante en fonction de  $alpha$. Finalement, on calcule  $T(x_1, ..., x_n) in RR$, on cherche le plus petit alpha (équivalent à chercher le plus grand $c_alpha$ tel que  $T(x_1, ..., x_n) > c_alpha$). Puis $P(T(x_1, ..., x_n) > c_alpha) = alpha = #math.op("pval")$ d'après @pvaleur.
+#insight[
+  Pvaleur nous dit: quelle est la probabilité d'avoir telles données
+  aussi loin de notre région où on conserve $H_0$. Plus  $alpha$ est petit,
+  moins des valeurs extrêmes ($T(x_1, ..., x_n)$ observées), donc plus est la
+  tendance à rejetter $H_0$.
 ]
 #ex[
   $

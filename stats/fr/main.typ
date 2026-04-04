@@ -22,9 +22,25 @@
 
 
 
+#align(center)[
+  #smallcaps[*Avant-propos*]
+  \
+  Ce document proviens des notes de cours d'Inférence Statistique prises par
+  Yehor Korotenko aux lectures faites par Madame Marie-Anne Poursat. Le
+  document contient toutes les définition, théorèmes et les preuves mais peu
+  d'expliquations mais les notes sont assez seces en soit. 
+
+  Ces notes doivent servirent plutôt comme une référence ou un rappel rapide
+  (CheatSheet). L'utilisation est conseillé avec les visites des lectures. Ces
+  notes peuvent être retravillées et être complétées en livre complet mais rien
+  est promis.
+]
 // --- Document Content ---
 //
+\
+// #outline()
 #toc
+
 
 #include "lec1.typ"
 #include "lec2.typ"

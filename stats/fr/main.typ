@@ -52,4 +52,5 @@
 #include "lec8.typ"
 #include "lec9.typ"
 #include "lec10.typ"
+#include "lec11.typ"
 

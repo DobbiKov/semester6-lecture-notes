@@ -118,3 +118,5 @@ où $F$ de loi $#math.op("Student") (n_1 + n_2 - 2)$
   $ donc on ne rejette pas $H_0$
   1. $|T^"obs"| < c_alpha = 2.101$ on ne rejette pas  $H_0$, les 2 échantillons n'ont pas des moyennes différentes.
 ]
+
+

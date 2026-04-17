@@ -994,6 +994,827 @@ function TokenTerminationAnim({ color }) {
 }
 
 // ═══════════════════════════════════════════════
+// ANIMATION: Lamport mutex — 3(n-1) complexity breakdown
+// ═══════════════════════════════════════════════
+function LamportComplexityAnim({ color }) {
+  const N = 5;
+  const xs = [70, 130, 200, 270, 340];
+  const cy = 110;
+  const me = 0; // P1 is the entering process
+  const steps = [
+    { desc: "Process P1 wants to enter the critical section. We count the messages emitted during ONE complete entry/exit cycle in Lamport's algorithm.", phase: 0, sent: 0 },
+    { desc: "Phase 1 — diffusion de la demande. P1 broadcasts (D, C₁, 1) to the n−1 = 4 other processes. Cost: n − 1 messages.", phase: 1, sent: 4 },
+    { desc: "Phase 2 — acquittements. Every other process answers with (Acq, C₁, i). Cost: n − 1 more messages. These acquittements are needed by P1 to know its own ts is the smallest.", phase: 2, sent: 4+4 },
+    { desc: "Phase 3 — diffusion de la sortie. After using the CS, P1 broadcasts (sortie, C₁′) to everyone. Cost: n − 1 messages.", phase: 3, sent: 4+4+4 },
+    { desc: "Total = 3 × (n − 1) messages per entry, regardless of graph. Over a complete graph this is O(n); over a ring each broadcast takes up to n−1 hops → O(n²) in link-hops.", phase: 4, sent: 12, done: true },
+  ];
+  const anim = useAnimation(steps, 1900);
+  const s = anim.step, st = steps[s];
+  // Colors per phase arrow
+  const phaseCol = { 1: "#E8A838", 2: "#4ECDC4", 3: "#22D3EE" };
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 400 230" style={{ width: "100%", maxHeight: 240 }}>
+          <defs>
+            <marker id="lcD" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#E8A838"/></marker>
+            <marker id="lcA" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#4ECDC4"/></marker>
+            <marker id="lcS" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#22D3EE"/></marker>
+          </defs>
+          {xs.map((x, i) => (
+            <g key={i}>
+              <circle cx={x} cy={cy} r="16" fill={i===me?`${color}40`:"#1e293b"} stroke={color} strokeWidth={i===me?2.5:1.5}/>
+              <text x={x} y={cy+4} textAnchor="middle" fill={color} fontSize="10" fontWeight={i===me?"bold":"normal"} fontFamily="monospace">P{i+1}</text>
+            </g>
+          ))}
+          {/* Phase 1 arrows (D) */}
+          {st.phase >= 1 && xs.map((x, i) => i!==me && (
+            <line key={`d${i}`} x1={xs[me]+14} y1={cy-8} x2={x-12} y2={cy-8} stroke="#E8A838" strokeWidth="1.6" markerEnd="url(#lcD)" opacity={st.phase===1?1:0.35}/>
+          ))}
+          {/* Phase 2 arrows (Acq) — reply */}
+          {st.phase >= 2 && xs.map((x, i) => i!==me && (
+            <line key={`a${i}`} x1={x-12} y1={cy+10} x2={xs[me]+14} y2={cy+10} stroke="#4ECDC4" strokeWidth="1.6" markerEnd="url(#lcA)" opacity={st.phase===2?1:0.35}/>
+          ))}
+          {/* Phase 3 arrows (sortie) */}
+          {st.phase >= 3 && xs.map((x, i) => i!==me && (
+            <line key={`s${i}`} x1={xs[me]+14} y1={cy+26} x2={x-12} y2={cy+26} stroke="#22D3EE" strokeWidth="1.6" markerEnd="url(#lcS)" opacity={st.phase===3?1:0.35}/>
+          ))}
+          {/* Legend */}
+          <rect x="15" y="170" width="370" height="45" fill="#0D1525" stroke={C.line}/>
+          <text x="22" y="185" fill="#E8A838" fontSize="10" fontFamily="monospace">■ diffusion demande: (n−1)</text>
+          <text x="22" y="198" fill="#4ECDC4" fontSize="10" fontFamily="monospace">■ acquittements:      (n−1)</text>
+          <text x="22" y="211" fill="#22D3EE" fontSize="10" fontFamily="monospace">■ diffusion sortie:    (n−1)</text>
+          <text x="250" y="198" fill="#f1f5f9" fontSize="13" fontFamily="monospace" fontWeight="bold">= 3(n−1)</text>
+          {st.done && <text x="250" y="211" fill="#22D3EE" fontSize="10" fontFamily="monospace">total: {st.sent} msgs</text>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Ricart-Agrawala explicit-token
+// ═══════════════════════════════════════════════
+function RATokenAnim({ color }) {
+  // Triangle of 3 processes with explicit token array [e1|e2|e3]
+  const cx = 200, cy = 100, R = 60;
+  const N = 3;
+  const pos = Array.from({length:N}, (_,i) => {
+    const a = (i * 2 * Math.PI) / N - Math.PI / 2;
+    return { x: cx + R * Math.cos(a), y: cy + R * Math.sin(a) };
+  });
+  const steps = [
+    { desc: "In Lamport's algorithm the privilège to enter CS is implicit (smallest timestamp). Ricart & Agrawala make it EXPLICIT via an object called 'jeton' — an array jeton[i] = number of past entries of Pi.", owner: 0, jeton: [0,0,0], demandes: [0,0,0], req: null },
+    { desc: "Initial state: jeton = [0 | 0 | 0] held by P1. No pending requests. Array cells all zero. At most one token exists in the whole system (invariant).", owner: 0, jeton: [0,0,0], demandes: [0,0,0], req: null },
+    { desc: "P2 wants to enter. It broadcasts (demande, k=5) where 5 = number of P2's past entries + 1 = 'my counter of requests'. P1 and P3 receive it.", owner: 0, jeton: [0,0,0], demandes: [0,5,0], req: {from: 1, k: 5} },
+    { desc: "When P1 (token holder) receives the demande: it checks 'is the requester's counter > jeton[j]?' (meaning: does the requester have more pending entries than it already used?). 5 > 0 → yes → P1 sends the token to P2.", owner: 1, jeton: [0,0,0], demandes: [0,5,0], req: null, transfer: true },
+    { desc: "P2 receives the token, enters the CS. On exit it increments jeton[2] := jeton[2] + 1 = 1. The token now carries information about P2's cumulative usage.", owner: 1, jeton: [0,1,0], demandes: [0,0,0], req: null, inCS: 1 },
+    { desc: "Message complexity: at most 2(n−1) messages per entry (versus 3(n−1) in Lamport). Token makes the release phase implicit: no need to broadcast sortie.", owner: 1, jeton: [0,1,0], demandes: [0,0,0], req: null, done: true },
+  ];
+  const anim = useAnimation(steps, 1800);
+  const s = anim.step, st = steps[s];
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 400 210" style={{ width: "100%", maxHeight: 220 }}>
+          {[[0,1],[1,2],[2,0]].map(([i,j],k) => (
+            <line key={k} x1={pos[i].x} y1={pos[i].y} x2={pos[j].x} y2={pos[j].y} stroke={C.line} strokeWidth="1" opacity="0.4"/>
+          ))}
+          {pos.map((p, i) => {
+            const hasToken = st.owner === i;
+            const isCS = st.inCS === i;
+            const col = isCS ? "#22D3EE" : color;
+            return (
+              <g key={i}>
+                <circle cx={p.x} cy={p.y} r="20" fill={hasToken?`${col}40`:"#1e293b"} stroke={col} strokeWidth={hasToken?3:1.8}/>
+                <text x={p.x} y={p.y+4} textAnchor="middle" fill={col} fontSize="11" fontWeight="bold" fontFamily="monospace">P{i+1}</text>
+                {st.demandes[i] > 0 && <text x={p.x} y={p.y+32} textAnchor="middle" fill="#E8A838" fontSize="9" fontFamily="monospace">dem={st.demandes[i]}</text>}
+              </g>
+            );
+          })}
+          {/* Token */}
+          {(() => {
+            const p = pos[st.owner];
+            return (
+              <g>
+                <rect x={p.x-38} y={p.y-52} width="80" height="28" rx="4" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2">
+                  <animate attributeName="opacity" from="0.3" to="1" dur="0.4s"/>
+                </rect>
+                <text x={p.x} y={p.y-36} textAnchor="middle" fill="#0f172a" fontSize="10" fontFamily="monospace" fontWeight="bold">jeton [{st.jeton.join("|")}]</text>
+              </g>
+            );
+          })()}
+          {st.req && (
+            <g>
+              <text x={pos[st.req.from].x - 10} y={pos[st.req.from].y + 45} fill="#ef4444" fontSize="9" fontFamily="monospace">(demande, {st.req.k})</text>
+            </g>
+          )}
+          {st.transfer && <text x="200" y="185" textAnchor="middle" fill="#22D3EE" fontSize="10" fontFamily="monospace">token transferred P1 → P2</text>}
+          {st.done && <text x="200" y="200" textAnchor="middle" fill="#22D3EE" fontSize="11" fontWeight="bold" fontFamily="monospace">2(n−1) messages per entry</text>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Byzantine Generals (n=4, f=1)
+// ═══════════════════════════════════════════════
+function ByzantineGeneralsAnim({ color }) {
+  // 4 nodes A, B, C (byzantine), D
+  const nodes = [
+    {x: 90,  y: 60,  label: "A",  byz: false},
+    {x: 310, y: 60,  label: "B",  byz: false},
+    {x: 90,  y: 170, label: "D",  byz: false},
+    {x: 310, y: 170, label: "C",  byz: true},
+  ];
+  // Table of values received by each receiver (rows) from each sender (cols)
+  const steps = [
+    { desc: "Setup: 4 processes. Each has an initial value (A=1, B=1, D=1, C is byzantine). Goal: every correct process decides the same value, and if all correct had the same initial value, they decide it.", row: null, matrix: null },
+    { desc: "Round 1: each process broadcasts its initial value. Correct A, B, D all send 1. C (byzantine) can lie — sending whatever it wants to each neighbour, possibly different values.", row: null, matrix: null, broadcasting: true },
+    { desc: "Suppose C sends 1 to A and to B, but 0 to D. Look at each process's 'received' vector.", row: null, matrix: {A:[1,1,1,"-"], B:[1,1,0,"-"], D:[1,0,0,"-"]} },
+    { desc: "Row A = (1,1,1) → majority = 1. Row B = (1,1,0) → majority = 1. Row D = (1,0,0) → majority = 0.  A and B vote 1, D votes 0 — DISAGREEMENT!", row: null, matrix: {A:[1,1,1,"-"], B:[1,1,0,"-"], D:[1,0,0,"-"]}, conflict: true },
+    { desc: "Naïve vote fails: single round is not enough with byzantine faults. Need more rounds of message exchange (Lamport-Shostak-Pease). It can be shown: n ≥ 3f + 1 is necessary.", row: null, matrix: {A:[1,1,1,"-"], B:[1,1,0,"-"], D:[1,0,0,"-"]} },
+    { desc: "FLP (1985): in an asynchronous system, consensus is impossible even with ONE crash failure. With synchrony (bounded msg delays), f+1 phases suffice for crash-only faults (flood-set algorithm).", row: null, matrix: null, impossible: true },
+  ];
+  const anim = useAnimation(steps, 2000);
+  const s = anim.step, st = steps[s];
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 400 230" style={{ width: "100%", maxHeight: 240 }}>
+          {/* Edges */}
+          {[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]].map(([i,j], k) => (
+            <line key={k} x1={nodes[i].x} y1={nodes[i].y} x2={nodes[j].x} y2={nodes[j].y} stroke={C.line} strokeWidth="1" opacity="0.5"/>
+          ))}
+          {/* Nodes */}
+          {nodes.map((n, i) => (
+            <g key={i}>
+              <circle cx={n.x} cy={n.y} r="22" fill={n.byz?"#ef444440":`${color}30`} stroke={n.byz?"#ef4444":color} strokeWidth={n.byz?2.5:2}/>
+              <text x={n.x} y={n.y+4} textAnchor="middle" fill={n.byz?"#ef4444":color} fontSize="13" fontWeight="bold" fontFamily="monospace">{n.label}</text>
+              {n.byz && <text x={n.x} y={n.y-28} textAnchor="middle" fill="#ef4444" fontSize="9" fontFamily="monospace">BYZANTINE</text>}
+            </g>
+          ))}
+          {/* Broadcasting arrows from C */}
+          {st.broadcasting && [0,1,2].map(i => {
+            const a = nodes[3], b = nodes[i];
+            const mx = (a.x+b.x)/2, my = (a.y+b.y)/2;
+            const val = i === 2 ? "0" : "1";
+            return (
+              <g key={i}>
+                <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="#ef4444" strokeWidth="1.6" strokeDasharray="4" opacity="0.7"/>
+                <text x={mx} y={my} fill="#ef4444" fontSize="9" fontFamily="monospace" fontWeight="bold">→{val}</text>
+              </g>
+            );
+          })}
+          {/* Matrix */}
+          {st.matrix && (() => {
+            const x0 = 160, y0 = 85;
+            const rows = ["A","B","D"];
+            return (
+              <g>
+                <rect x={x0-8} y={y0-18} width="95" height={18 + 16*4} fill="#0D1525" stroke={C.line}/>
+                <text x={x0+6} y={y0-5} fill="#94a3b8" fontSize="8" fontFamily="monospace">A</text>
+                <text x={x0+26} y={y0-5} fill="#94a3b8" fontSize="8" fontFamily="monospace">B</text>
+                <text x={x0+46} y={y0-5} fill="#94a3b8" fontSize="8" fontFamily="monospace">C</text>
+                <text x={x0+66} y={y0-5} fill="#94a3b8" fontSize="8" fontFamily="monospace">D</text>
+                {rows.map((r, i) => (
+                  <g key={r}>
+                    <text x={x0-4} y={y0+12+16*i} fill="#f1f5f9" fontSize="9" fontFamily="monospace" fontWeight="bold">{r}</text>
+                    {st.matrix[r].map((v, j) => (
+                      <text key={j} x={x0+6+j*20} y={y0+12+16*i} fill={v === "-" ? "#475569" : (st.conflict && r === "D" && j===2 ? "#ef4444" : "#f1f5f9")} fontSize="9" fontFamily="monospace">{v}</text>
+                    ))}
+                  </g>
+                ))}
+              </g>
+            );
+          })()}
+          {st.conflict && <text x="200" y="215" textAnchor="middle" fill="#ef4444" fontSize="11" fontWeight="bold" fontFamily="monospace">⚠ DISAGREEMENT — naive vote fails</text>}
+          {st.impossible && <text x="200" y="215" textAnchor="middle" fill="#E8A838" fontSize="11" fontWeight="bold" fontFamily="monospace">FLP: impossible if async</text>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: FLP Impossibility
+// ═══════════════════════════════════════════════
+function FLPAnim({ color }) {
+  const steps = [
+    { desc: "Setting: asynchronous system (no bound on message delay, no timeouts). At most one crash failure. Processes want to AGREE on a single bit value.", scenario: 0 },
+    { desc: "Imagine P1 proposes 0 and P2 proposes 1. A correct consensus protocol must terminate with agreement. But who crashed? There is no way to tell 'P2 crashed' apart from 'P2 is just slow'.", scenario: 1 },
+    { desc: "Fisher-Lynch-Paterson (1985) prove: no deterministic algorithm can guarantee TERMINATION + AGREEMENT + VALIDITY in this model. The proof uses a bivalent-configuration argument.", scenario: 2 },
+    { desc: "Consequences: practical consensus protocols (Paxos, Raft, PBFT) use randomisation, failure detectors, or partial synchrony assumptions to circumvent FLP. There is no fully-async deterministic consensus.", scenario: 3, done: true },
+  ];
+  const anim = useAnimation(steps, 1800);
+  const s = anim.step, st = steps[s];
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 400 210" style={{ width: "100%", maxHeight: 220 }}>
+          <circle cx="130" cy="100" r="30" fill={`${color}30`} stroke={color} strokeWidth="2"/>
+          <text x="130" y="96" textAnchor="middle" fill={color} fontSize="12" fontWeight="bold" fontFamily="monospace">P1</text>
+          <text x="130" y="110" textAnchor="middle" fill="#f1f5f9" fontSize="10" fontFamily="monospace">val=0</text>
+          <circle cx="270" cy="100" r="30" fill={st.scenario>=1?"#ef444430":`${color}30`} stroke={st.scenario>=1?"#ef4444":color} strokeWidth="2"/>
+          <text x="270" y="96" textAnchor="middle" fill={st.scenario>=1?"#ef4444":color} fontSize="12" fontWeight="bold" fontFamily="monospace">P2</text>
+          <text x="270" y="110" textAnchor="middle" fill="#f1f5f9" fontSize="10" fontFamily="monospace">val=1</text>
+          {st.scenario >= 1 && <>
+            <text x="270" y="60" textAnchor="middle" fill="#ef4444" fontSize="10" fontFamily="monospace">crashed?</text>
+            <text x="270" y="150" textAnchor="middle" fill="#E8A838" fontSize="10" fontFamily="monospace">or just slow?</text>
+          </>}
+          <line x1="160" y1="100" x2="240" y2="100" stroke={C.line} strokeWidth="2" strokeDasharray="5"/>
+          <text x="200" y="92" textAnchor="middle" fill={C.text} fontSize="9" fontFamily="monospace">async channel</text>
+          {st.scenario >= 2 && (
+            <g>
+              <rect x="20" y="155" width="360" height="45" fill="#0D1525" stroke="#ef4444"/>
+              <text x="200" y="172" textAnchor="middle" fill="#ef4444" fontSize="11" fontWeight="bold" fontFamily="monospace">FLP theorem (1985)</text>
+              <text x="200" y="188" textAnchor="middle" fill="#f1f5f9" fontSize="10" fontFamily="monospace">termination ∧ agreement ∧ validity impossible</text>
+            </g>
+          )}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Flood-Set Consensus (f+1 phases)
+// ═══════════════════════════════════════════════
+function FloodSetAnim({ color }) {
+  // 4 processes, f = 1 (so 2 phases). Illustrate ω growth.
+  const nodes = [
+    {x: 80,  y: 60,  label: "P1"},
+    {x: 320, y: 60,  label: "P2"},
+    {x: 80,  y: 170, label: "P3"},
+    {x: 320, y: 170, label: "P4"},
+  ];
+  const steps = [
+    { desc: "Synchronous model, f = 1 possible crash. Initial values: P1=1, P2=2, P3=1, P4=3. Algorithm runs f+1 = 2 phases. ω starts as {own value}.", omegas: [{1:true}, {2:true}, {1:true}, {3:true}], phase: 0, crashed: [] },
+    { desc: "Phase 1: every process broadcasts its ω to all. Nothing crashes. Each receives all four sets; union them.", omegas: [{1:true,2:true,3:true}, {1:true,2:true,3:true}, {1:true,2:true,3:true}, {1:true,2:true,3:true}], phase: 1, crashed: [] },
+    { desc: "After phase 1: all ω are equal. The 'lemma' states once ω's are equal, they stay equal. So even if P2 crashes in phase 2, nothing changes for the rest.", omegas: [{1:true,2:true,3:true}, {1:true,2:true,3:true}, {1:true,2:true,3:true}, {1:true,2:true,3:true}], phase: 1, crashed: [], same: true },
+    { desc: "Phase 2: broadcast again. Suppose P2 crashes before sending. Still ω unchanged for P1,P3,P4.", omegas: [{1:true,2:true,3:true}, null, {1:true,2:true,3:true}, {1:true,2:true,3:true}], phase: 2, crashed: [1] },
+    { desc: "Decision rule: if |ω| = 1 decide the unique x, else decide 0 (or any default). Here |ω| = 3 (contains {1,2,3}) → every correct process decides 0. Consensus achieved.", omegas: [{1:true,2:true,3:true}, null, {1:true,2:true,3:true}, {1:true,2:true,3:true}], phase: 3, crashed: [1], decided: 0 },
+    { desc: "Why f+1 phases? Among f+1 phases, at least ONE has no crash → during that phase every correct process receives the same ω's → ω's equalise. Proof via pigeonhole + lemma.", omegas: [{1:true,2:true,3:true}, null, {1:true,2:true,3:true}, {1:true,2:true,3:true}], phase: 3, crashed: [1], decided: 0, done: true },
+  ];
+  const anim = useAnimation(steps, 1900);
+  const s = anim.step, st = steps[s];
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 400 220" style={{ width: "100%", maxHeight: 240 }}>
+          {[[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]].map(([i,j], k) => (
+            <line key={k} x1={nodes[i].x} y1={nodes[i].y} x2={nodes[j].x} y2={nodes[j].y} stroke={C.line} strokeWidth="1" opacity="0.3"/>
+          ))}
+          {nodes.map((n, i) => {
+            const crashed = st.crashed.includes(i);
+            const omega = st.omegas[i];
+            return (
+              <g key={i}>
+                <circle cx={n.x} cy={n.y} r="24" fill={crashed?"#ef444420":`${color}30`} stroke={crashed?"#ef4444":color} strokeWidth="2" opacity={crashed?0.5:1}/>
+                <text x={n.x} y={n.y+4} textAnchor="middle" fill={crashed?"#ef4444":color} fontSize="12" fontWeight="bold" fontFamily="monospace">{n.label}</text>
+                {crashed && <text x={n.x} y={n.y-30} textAnchor="middle" fill="#ef4444" fontSize="9" fontFamily="monospace">✗ crashed</text>}
+                {omega && <text x={n.x} y={n.y+42} textAnchor="middle" fill="#22D3EE" fontSize="9" fontFamily="monospace">ω=&#123;{Object.keys(omega).join(",")}&#125;</text>}
+              </g>
+            );
+          })}
+          <rect x="155" y="95" width="90" height="38" rx="4" fill="#0D1525" stroke={C.line}/>
+          <text x="200" y="110" textAnchor="middle" fill={color} fontSize="10" fontFamily="monospace" fontWeight="bold">phase {st.phase}/2</text>
+          {st.decided !== undefined && <text x="200" y="126" textAnchor="middle" fill="#22D3EE" fontSize="10" fontFamily="monospace">decide {st.decided}</text>}
+          {st.same && <text x="200" y="210" textAnchor="middle" fill="#22D3EE" fontSize="10" fontFamily="monospace">ω's equalised — lemma kicks in</text>}
+          {st.done && <text x="200" y="210" textAnchor="middle" fill="#22D3EE" fontSize="11" fontWeight="bold" fontFamily="monospace">★ CONSENSUS: decide 0</text>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Consistent Cut (snapshot concept)
+// ═══════════════════════════════════════════════
+function ConsistentCutAnim({ color }) {
+  // Space-time diagram: 3 processes with events; show vertical cut
+  const procs = [{y: 55, label: "P1"}, {y: 115, label: "P2"}, {y: 175, label: "P3"}];
+  const events = [
+    {p:0, x: 60}, {p:0, x: 130}, {p:0, x: 220}, {p:0, x: 320},
+    {p:1, x: 95}, {p:1, x: 180}, {p:1, x: 260}, {p:1, x: 350},
+    {p:2, x: 75}, {p:2, x: 165}, {p:2, x: 275}, {p:2, x: 355},
+  ];
+  // Messages: (from-event-index, to-event-index, type: 'preOK','postOK','crossBAD')
+  const msgs = [
+    {fx: 60, fy: 55, tx: 180, ty: 115, type: "ok"},    // pre → pre
+    {fx: 130, fy: 55, tx: 275, ty: 175, type: "cut"},  // pre → post (transit across cut)
+    {fx: 165, fy: 175, tx: 260, ty: 115, type: "ok"},  // pre → post (but after cut on receiver) — depends on cut
+    {fx: 320, fy: 55, tx: 355, ty: 175, type: "post"}, // post → post
+  ];
+  const cutX = 200;
+  const steps = [
+    { desc: "Space-time diagram of 3 processes. We want a global snapshot: each process records its local state s★ at some point.", cut: false, showMsgs: false, label: null },
+    { desc: "Draw a vertical 'cut' at some virtual time. Events to the LEFT are pre-shot, to the RIGHT are post-shot. Our cut separates past and future.", cut: true, showMsgs: false, label: "cut" },
+    { desc: "Look at messages crossing the cut. TYPE A (green): send pre-shot, receive pre-shot — harmless. TYPE B (yellow): send pre, receive post — a message in transit (allowed, will be recorded as channel state).", cut: true, showMsgs: true, label: "analyse" },
+    { desc: "TYPE C (red): send POST-shot, receive PRE-shot. This would mean the receiver knew about an event that hasn't happened yet → causally impossible.", cut: true, showMsgs: true, label: "bad", highlightBad: true },
+    { desc: "Coherent cut = a cut that does NOT contain any red arrow. Formally: the pre-shot set is closed under the happened-before relation → . Every snapshot algorithm must produce a coherent cut.", cut: true, showMsgs: true, label: "coherent", highlightBad: false },
+    { desc: "Def: snapshot is POSSIBLE iff ∀p,q: send_{p,q} ⊇ received_{q,p} (no receive without send). SIGNIFICANT iff the recorded configuration C★ is reachable by some execution. Chandy-Lamport produces snapshots that are possible + coherent + significant.", cut: true, showMsgs: true, label: "defs", highlightBad: false },
+  ];
+  const anim = useAnimation(steps, 1900);
+  const s = anim.step, st = steps[s];
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 400 230" style={{ width: "100%", maxHeight: 240 }}>
+          <defs>
+            <marker id="ccok" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#22D3EE"/></marker>
+            <marker id="cccut" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#E8A838"/></marker>
+            <marker id="ccbad" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#ef4444"/></marker>
+            <marker id="ccpost" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#94a3b8"/></marker>
+          </defs>
+          {procs.map((p, i) => (
+            <g key={i}>
+              <text x="15" y={p.y+4} fill={C.text} fontSize="11" fontFamily="monospace">{p.label}</text>
+              <line x1="40" y1={p.y} x2="380" y2={p.y} stroke={C.line} strokeWidth="2"/>
+            </g>
+          ))}
+          {events.map((e, i) => (
+            <circle key={i} cx={e.x} cy={procs[e.p].y} r="4" fill={e.x < cutX ? color : "#94a3b8"}/>
+          ))}
+          {/* Cut */}
+          {st.cut && (
+            <g>
+              <line x1={cutX} y1="25" x2={cutX} y2="210" stroke="#4ECDC4" strokeWidth="2.5" strokeDasharray="5"/>
+              <text x={cutX-18} y={20} fill="#4ECDC4" fontSize="10" fontFamily="monospace">S★</text>
+              <text x={cutX-60} y={222} fill="#22D3EE" fontSize="9" fontFamily="monospace" opacity="0.8">pre-shot</text>
+              <text x={cutX+10} y={222} fill="#94a3b8" fontSize="9" fontFamily="monospace" opacity="0.8">post-shot</text>
+            </g>
+          )}
+          {/* Messages */}
+          {st.showMsgs && msgs.map((m, k) => {
+            let col, marker;
+            if (m.type === "ok")      { col = "#22D3EE"; marker = "ccok"; }
+            else if (m.type === "cut") { col = "#E8A838"; marker = "cccut"; }
+            else if (m.type === "post"){ col = "#94a3b8"; marker = "ccpost"; }
+            else                       { col = "#ef4444"; marker = "ccbad"; }
+            const isBad = m.type === "bad";
+            return <line key={k} x1={m.fx} y1={m.fy+3} x2={m.tx} y2={m.ty-3} stroke={col} strokeWidth="1.8" markerEnd={`url(#${marker})`} strokeDasharray={m.type==="cut"?"0":(isBad?"3":"0")} opacity={(st.highlightBad && !isBad)?0.25:0.9}/>;
+          })}
+          {/* Hypothetical bad arrow — right-to-left crossing the cut */}
+          {st.showMsgs && (
+            <g>
+              <line x1="260" y1="58" x2="165" y2="172" stroke="#ef4444" strokeWidth="2" strokeDasharray="3" markerEnd="url(#ccbad)" opacity={st.highlightBad ? 1 : 0.35}/>
+              <text x="195" y="108" fill="#ef4444" fontSize="9" fontFamily="monospace" opacity={st.highlightBad?1:0.5}>forbidden: post → pre</text>
+            </g>
+          )}
+          {/* Legend */}
+          <rect x="10" y="5" width="115" height="42" rx="4" fill="#0D1525" stroke={C.line} opacity={st.showMsgs?1:0}/>
+          <text x="16" y="18" fill="#22D3EE" fontSize="8" fontFamily="monospace" opacity={st.showMsgs?1:0}>─ pre → pre</text>
+          <text x="16" y="30" fill="#E8A838" fontSize="8" fontFamily="monospace" opacity={st.showMsgs?1:0}>─ pre → post (ok)</text>
+          <text x="16" y="42" fill="#ef4444" fontSize="8" fontFamily="monospace" opacity={st.showMsgs?1:0}>─ post → pre (BAD)</text>
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Chandy-Lamport (FIFO channels, marker)
+// ═══════════════════════════════════════════════
+function ChandyLamportAnim({ color }) {
+  // 3 nodes triangle, FIFO channels
+  const nodes = [
+    {x: 120, y: 55, label: "P1"},
+    {x: 300, y: 55, label: "P2"},
+    {x: 210, y: 170, label: "P3"},
+  ];
+  const edges = [[0,1],[1,2],[2,0],[1,0],[2,1],[0,2]];
+  const steps = [
+    { desc: "Graph with FIFO channels (both directions). Initially no snapshot taken. Application messages flow freely.", taken: [false,false,false], markers: [] },
+    { desc: "Layer above triggers snapshot at P1. Rule: P1 records its local state s★₁ and immediately sends a MARKER on every outgoing channel.", taken: [true,false,false], markers: [{from:0,to:1,r:0.2},{from:0,to:2,r:0.2}], recording: 0 },
+    { desc: "P2 receives its first marker (from P1). Since taken=false, P2 records s★₂ and sends markers on all its outgoing channels. Channel state 1→2 is empty (no pending app messages before marker thanks to FIFO).", taken: [true,true,false], markers: [{from:1,to:2,r:0.3},{from:1,to:0,r:0.3},{from:0,to:2,r:0.5}], recording: 1, chanState: "ch(1→2)=∅" },
+    { desc: "P3 receives marker from P1. It records s★₃ and emits markers on all outgoing channels. All three local states are now frozen.", taken: [true,true,true], markers: [{from:2,to:0,r:0.3},{from:2,to:1,r:0.3},{from:1,to:0,r:0.5}], recording: 2 },
+    { desc: "After a snapshot starts, every channel state is measured as the sequence of app messages received between 'marker of that channel has not yet arrived' and 'marker arrived'. FIFO guarantees this set is well-defined.", taken: [true,true,true], markers: [], done: true },
+    { desc: "Result: local states s★₁,s★₂,s★₃ + channel states form a COHERENT SNAPSHOT. No global clock needed, no synchronisation — each node acts autonomously on marker receive.", taken: [true,true,true], markers: [], done: true },
+  ];
+  const anim = useAnimation(steps, 1800);
+  const s = anim.step, st = steps[s];
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 400 220" style={{ width: "100%", maxHeight: 240 }}>
+          {edges.map((e, i) => {
+            const a = nodes[e[0]], b = nodes[e[1]];
+            const dx = b.x - a.x, dy = b.y - a.y;
+            const len = Math.sqrt(dx*dx+dy*dy);
+            // Offset so that two parallel arrows are visible
+            const ox = -dy/len*5, oy = dx/len*5;
+            return <line key={i} x1={a.x+ox} y1={a.y+oy} x2={b.x+ox} y2={b.y+oy} stroke={C.line} strokeWidth="1.2" opacity="0.5"/>;
+          })}
+          {nodes.map((n, i) => {
+            const recording = st.taken[i];
+            return (
+              <g key={i}>
+                <circle cx={n.x} cy={n.y} r="22" fill={recording ? `${color}40` : "#1e293b"} stroke={color} strokeWidth={recording?3:1.8}/>
+                <text x={n.x} y={n.y+4} textAnchor="middle" fill={color} fontSize="11" fontWeight="bold" fontFamily="monospace">{n.label}</text>
+                {recording && <text x={n.x} y={n.y-28} textAnchor="middle" fill="#22D3EE" fontSize="9" fontFamily="monospace">s★ saved</text>}
+              </g>
+            );
+          })}
+          {/* Markers in flight */}
+          {st.markers.map((m, k) => {
+            const a = nodes[m.from], b = nodes[m.to];
+            const mx = a.x + (b.x - a.x) * m.r;
+            const my = a.y + (b.y - a.y) * m.r;
+            return (
+              <g key={k}>
+                <rect x={mx-18} y={my-8} width="32" height="16" rx="3" fill="#E8A838" stroke="#fff" strokeWidth="1">
+                  <animate attributeName="opacity" from="0.3" to="1" dur="0.4s"/>
+                </rect>
+                <text x={mx-2} y={my+4} textAnchor="middle" fill="#0f172a" fontSize="8" fontFamily="monospace" fontWeight="bold">⚑mk</text>
+              </g>
+            );
+          })}
+          {st.chanState && <text x="200" y="210" textAnchor="middle" fill="#22D3EE" fontSize="10" fontFamily="monospace">{st.chanState}</text>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Lai-Yang (non-FIFO, color piggybacking)
+// ═══════════════════════════════════════════════
+function LaiYangAnim({ color }) {
+  const procs = [{y: 55, label: "P1"}, {y: 115, label: "P2"}, {y: 175, label: "P3"}];
+  const steps = [
+    { desc: "Lai-Yang handles NON-FIFO channels. Instead of a marker, every application message is tagged with a boolean 'taken'. Initially: taken = false on every process.", taken: [false,false,false], msgs: [{from:0,to:1,x1:60,x2:120,tag:false}] },
+    { desc: "P1 decides to take a snapshot: records s★₁, sets taken₁ := true. All FUTURE messages sent by P1 will carry taken = true (i.e. they are post-shot).", taken: [true,false,false], msgs: [{from:0,to:1,x1:60,x2:120,tag:false},{from:0,to:2,x1:150,x2:220,tag:true}] },
+    { desc: "P2 receives a message with tag=true and its own taken=false → immediately records s★₂, flips taken₂:=true, THEN handles the message.", taken: [true,true,false], msgs: [{from:0,to:1,x1:60,x2:120,tag:false},{from:0,to:2,x1:150,x2:220,tag:true},{from:1,to:2,x1:245,x2:305,tag:true}] },
+    { desc: "P3 receives a tagged message too → records s★₃, flips taken₃:=true. A snapshot is installed across the whole system even without FIFO channels.", taken: [true,true,true], msgs: [{from:0,to:1,x1:60,x2:120,tag:false},{from:0,to:2,x1:150,x2:220,tag:true},{from:1,to:2,x1:245,x2:305,tag:true}], done: true },
+    { desc: "Trade-off vs Chandy-Lamport: one extra bit per application message (piggyback), no extra control messages. Works over any (reliable) channel.", taken: [true,true,true], msgs: [{from:0,to:1,x1:60,x2:120,tag:false},{from:0,to:2,x1:150,x2:220,tag:true},{from:1,to:2,x1:245,x2:305,tag:true}], done: true },
+  ];
+  const anim = useAnimation(steps, 1800);
+  const s = anim.step, st = steps[s];
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 400 230" style={{ width: "100%", maxHeight: 240 }}>
+          <defs>
+            <marker id="lyPre" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#94a3b8"/></marker>
+            <marker id="lyPost" markerWidth="7" markerHeight="5" refX="6" refY="2.5" orient="auto"><polygon points="0 0,7 2.5,0 5" fill="#E8A838"/></marker>
+          </defs>
+          {procs.map((p, i) => (
+            <g key={i}>
+              <text x="14" y={p.y+4} fill={st.taken[i]?"#22D3EE":C.text} fontSize="11" fontFamily="monospace">{p.label}</text>
+              <line x1="40" y1={p.y} x2="380" y2={p.y} stroke={C.line} strokeWidth="2"/>
+              {st.taken[i] && <text x={14} y={p.y+16} fill="#22D3EE" fontSize="8" fontFamily="monospace">taken</text>}
+            </g>
+          ))}
+          {st.msgs.map((m, k) => {
+            const fromY = procs[m.from].y, toY = procs[m.to].y;
+            const col = m.tag ? "#E8A838" : "#94a3b8";
+            const marker = m.tag ? "lyPost" : "lyPre";
+            return (
+              <g key={k}>
+                <line x1={m.x1} y1={fromY+3} x2={m.x2} y2={toY-3} stroke={col} strokeWidth="1.8" markerEnd={`url(#${marker})`}/>
+                <text x={(m.x1+m.x2)/2-16} y={(fromY+toY)/2} fill={col} fontSize="8" fontFamily="monospace">tag={m.tag?"T":"F"}</text>
+              </g>
+            );
+          })}
+          <rect x="290" y="10" width="100" height="38" rx="4" fill="#0D1525" stroke={C.line}/>
+          <text x="296" y="24" fill="#94a3b8" fontSize="8" fontFamily="monospace">─ pre-shot (F)</text>
+          <text x="296" y="38" fill="#E8A838" fontSize="8" fontFamily="monospace">─ post-shot (T)</text>
+          {st.done && <text x="200" y="215" textAnchor="middle" fill="#22D3EE" fontSize="11" fontWeight="bold" fontFamily="monospace">snapshot complete — 1 bit / msg</text>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Safra (Async termination with counters)
+// ═══════════════════════════════════════════════
+function SafraCountersAnim({ color }) {
+  const N = 4;
+  const cx = 190, cy = 110, R = 70;
+  const pos = Array.from({length:N}, (_,i) => {
+    const a = (i * 2 * Math.PI) / N - Math.PI / 2;
+    return { x: cx + R * Math.cos(a), y: cy + R * Math.sin(a) };
+  });
+  const steps = [
+    { desc: "Safra extends Dijkstra to asynchronous channels. Each process keeps me = (msgs sent) − (msgs received). The token carries c (color) and q (running sum of me).", me: [0,0,0,0], tokenAt: 0, q: 0, color_: "white", colors: ["white","white","white","white"], passive: [true,true,true,true] },
+    { desc: "P0 sends a work message to P2. P0.me = 0+1 = 1. The message is still in transit → Σ me = 1 ≠ 0 will detect it.", me: [1,0,0,0], tokenAt: 0, q: 0, color_: "white", colors: ["white","white","white","white"], passive: [true,false,true,true], msg: {from:0,to:2} },
+    { desc: "P2 receives the message: me = 0-1 = -1 and colour turns BLACK (rule R3 of Dijkstra). P2 is now ACTIVE.", me: [1,0,-1,0], tokenAt: 0, q: 0, color_: "white", colors: ["white","white","black","white"], passive: [true,false,false,true] },
+    { desc: "P2 finishes its work and becomes passive. P0 launches the token: envoyer(tok, white, 0) → P3 (suivant on the ring).", me: [1,0,-1,0], tokenAt: 3, q: 0, color_: "white", colors: ["white","white","black","white"], passive: [true,true,true,true] },
+    { desc: "P3 passive, colour white: relays (tok, white, q + me) = (tok, white, 0+0) → P2. q = 0.", me: [1,0,-1,0], tokenAt: 2, q: 0, color_: "white", colors: ["white","white","black","white"], passive: [true,true,true,true] },
+    { desc: "P2 is BLACK: taints the token. envoyer(tok, black, q+me) = (tok, black, 0+(-1)). Resets its own colour to white.", me: [1,0,-1,0], tokenAt: 1, q: -1, color_: "black", colors: ["white","white","white","white"], passive: [true,true,true,true] },
+    { desc: "P1 relays: (tok, black, -1 + 0) = (tok, black, -1) → P0.", me: [1,0,-1,0], tokenAt: 0, q: -1, color_: "black", colors: ["white","white","white","white"], passive: [true,true,true,true] },
+    { desc: "Token returns to P0 BLACK → contaminated round, restart.", me: [1,0,-1,0], tokenAt: 0, q: -1, color_: "black", colors: ["white","white","white","white"], passive: [true,true,true,true], restart: true },
+    { desc: "Second round, all white: after full tour, q = me[0]+me[1]+me[2]+me[3] = 1+0+(-1)+0 = 0. Combined with 'token white' and 'P0 white/passive' → TERMINATION ANNOUNCED.", me: [1,0,-1,0], tokenAt: 0, q: 0, color_: "white", colors: ["white","white","white","white"], passive: [true,true,true,true], done: true },
+  ];
+  const anim = useAnimation(steps, 1700);
+  const s = anim.step, st = steps[s];
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 400 230" style={{ width: "100%", maxHeight: 240 }}>
+          <circle cx={cx} cy={cy} r={R} fill="none" stroke={C.line} strokeWidth="1" strokeDasharray="3" opacity="0.3"/>
+          {pos.map((p, i) => {
+            const pc = st.colors[i] === "black" ? "#1e293b" : `${color}25`;
+            const border = st.colors[i] === "black" ? "#f1f5f9" : color;
+            return (
+              <g key={i}>
+                <circle cx={p.x} cy={p.y} r="18" fill={pc} stroke={border} strokeWidth="2"/>
+                <text x={p.x} y={p.y+4} textAnchor="middle" fill={st.colors[i]==="black"?"#fff":color} fontSize="11" fontWeight="bold" fontFamily="monospace">P{i}</text>
+                <text x={p.x+22} y={p.y-8} fill={st.me[i]===0?"#94a3b8":"#22D3EE"} fontSize="9" fontFamily="monospace">me={st.me[i]}</text>
+                <text x={p.x+22} y={p.y+8} fill={st.passive[i]?"#94a3b8":"#E8A838"} fontSize="8" fontFamily="monospace">{st.passive[i]?"passive":"ACTIVE"}</text>
+              </g>
+            );
+          })}
+          {/* Work message */}
+          {st.msg && (() => {
+            const a = pos[st.msg.from], b = pos[st.msg.to];
+            return <line x1={a.x} y1={a.y} x2={b.x} y2={b.y} stroke="#ef4444" strokeWidth="2" strokeDasharray="4" markerEnd="url(#ca)"/>;
+          })()}
+          {/* Token */}
+          {(() => {
+            const p = pos[st.tokenAt];
+            const tc = st.color_ === "white" ? "#fff" : "#1e293b";
+            const ts = st.color_ === "white" ? color : "#f1f5f9";
+            return (
+              <g>
+                <rect x={p.x-40} y={p.y+24} width="38" height="18" rx="3" fill={tc} stroke={ts} strokeWidth="2"/>
+                <text x={p.x-35} y={p.y+36} fill={st.color_==="white"?"#0f172a":"#fff"} fontSize="9" fontFamily="monospace" fontWeight="bold">tok q={st.q}</text>
+              </g>
+            );
+          })()}
+          <rect x="305" y="12" width="90" height="68" rx="4" fill="#0D1525" stroke={C.line}/>
+          <text x="312" y="26" fill={color} fontSize="9" fontFamily="monospace" fontWeight="bold">termination</text>
+          <text x="312" y="40" fill="#94a3b8" fontSize="8" fontFamily="monospace">iff tok=white</text>
+          <text x="312" y="52" fill="#94a3b8" fontSize="8" fontFamily="monospace">  ∧ P0=white</text>
+          <text x="312" y="64" fill="#94a3b8" fontSize="8" fontFamily="monospace">  ∧ me+q = 0</text>
+          {st.restart && <text x={cx} y={215} textAnchor="middle" fill="#ef4444" fontSize="11" fontFamily="monospace">↻ tainted → restart</text>}
+          {st.done && <text x={cx} y={215} textAnchor="middle" fill="#22D3EE" fontSize="12" fontWeight="bold" fontFamily="monospace">★ ANNOUNCE TERMINATION</text>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Mattern Credit (diffusing computation)
+// ═══════════════════════════════════════════════
+function MatternCreditAnim({ color }) {
+  const cx = 200, cy = 125;
+  const leader = {x: cx, y: cy};
+  const workers = [
+    {x: cx-95, y: cy-55}, {x: cx-95, y: cy+55},
+    {x: cx+95, y: cy-55}, {x: cx+95, y: cy+55},
+  ];
+  const steps = [
+    { desc: "Star topology. The leader (P0) starts with crédit = 1. All others are passive with crédit = 0. Invariant: sum of credits (processes + messages) = 1.", credit: [1, 0, 0, 0, 0], ret: 0 },
+    { desc: "Leader sends work to P1. Piggyback credit/2 = 1/2 on the message; keep 1/2 for itself. P1 will become active on reception.", credit: [0.5, 0, 0, 0, 0], ret: 0, flying: [{to:1, c: 0.5}] },
+    { desc: "P1 receives (msg, 1/2). Its crédit := 0 + 1/2 = 1/2. P1 becomes ACTIVE.", credit: [0.5, 0.5, 0, 0, 0], ret: 0, active:[false,true,false,false,false] },
+    { desc: "P1 does its computation, becomes PASSIVE. It returns its credit to the leader as a 'ret' message: envoyer(ret, 1/2) to P0; local credit := 0.", credit: [0.5, 0, 0, 0, 0], ret: 0, flying: [{to: 0, c: 0.5, ret: true}] },
+    { desc: "Leader receives ret(1/2). Accumulator: ret := 0 + 1/2 = 1/2. But ret ≠ 1, so application not yet terminated (or: leader itself still has credit 1/2).", credit: [0.5, 0, 0, 0, 0], ret: 0.5 },
+    { desc: "Leader now also becomes passive: sends its remaining 1/2 credit back as ret message to itself → ret := 1/2 + 1/2 = 1.", credit: [0, 0, 0, 0, 0], ret: 1, done: true },
+    { desc: "ret = 1 ⇒ all credits have come home ⇒ no active process, no message in transit ⇒ ANNOUNCE TERMINATION. Works over arbitrary graphs / async channels.", credit: [0, 0, 0, 0, 0], ret: 1, done: true },
+  ];
+  const anim = useAnimation(steps, 1700);
+  const s = anim.step, st = steps[s];
+  const nodes = [leader, ...workers];
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 400 250" style={{ width: "100%", maxHeight: 250 }}>
+          {workers.map((w, i) => (
+            <line key={i} x1={leader.x} y1={leader.y} x2={w.x} y2={w.y} stroke={C.line} strokeWidth="1" opacity="0.5"/>
+          ))}
+          {nodes.map((n, i) => {
+            const isLeader = i === 0;
+            const isActive = st.active && st.active[i];
+            const col = isLeader ? color : (isActive ? "#E8A838" : "#4ECDC4");
+            return (
+              <g key={i}>
+                <circle cx={n.x} cy={n.y} r="20" fill={isLeader?`${col}40`:`${col}25`} stroke={col} strokeWidth="2"/>
+                <text x={n.x} y={n.y-2} textAnchor="middle" fill={col} fontSize="10" fontWeight="bold" fontFamily="monospace">P{i}</text>
+                <text x={n.x} y={n.y+10} textAnchor="middle" fill="#f1f5f9" fontSize="9" fontFamily="monospace">c={st.credit[i]}</text>
+                {isLeader && <text x={n.x} y={n.y+38} textAnchor="middle" fill="#22D3EE" fontSize="10" fontFamily="monospace">ret={st.ret}</text>}
+              </g>
+            );
+          })}
+          {st.flying && st.flying.map((m, k) => {
+            const src = m.ret ? nodes[m.to === 0 ? 1 : m.to] : nodes[0];
+            const dst = nodes[m.to];
+            const mx = (src.x + dst.x)/2, my = (src.y + dst.y)/2;
+            const col = m.ret ? "#22D3EE" : "#E8A838";
+            return (
+              <g key={k}>
+                <rect x={mx-18} y={my-9} width="36" height="18" rx="3" fill="#0D1525" stroke={col} strokeWidth="1.5">
+                  <animate attributeName="opacity" from="0.3" to="1" dur="0.4s"/>
+                </rect>
+                <text x={mx} y={my+4} textAnchor="middle" fill={col} fontSize="9" fontFamily="monospace" fontWeight="bold">{m.ret?"ret":"msg"}{m.c}</text>
+              </g>
+            );
+          })}
+          <rect x="10" y="10" width="105" height="62" rx="4" fill="#0D1525" stroke={C.line}/>
+          <text x="18" y="25" fill={color} fontSize="9" fontFamily="monospace" fontWeight="bold">invariant</text>
+          <text x="18" y="39" fill="#94a3b8" fontSize="8" fontFamily="monospace">Σ credits = 1</text>
+          <text x="18" y="51" fill="#94a3b8" fontSize="8" fontFamily="monospace">active ⇒ c&gt;0</text>
+          <text x="18" y="63" fill="#94a3b8" fontSize="8" fontFamily="monospace">msg    ⇒ c&gt;0</text>
+          {st.done && <text x={cx} y={235} textAnchor="middle" fill="#22D3EE" fontSize="12" fontWeight="bold" fontFamily="monospace">★ ret = 1 → TERMINATED</text>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Chang-Roberts (Leader Election, unidirectional ring)
+// ═══════════════════════════════════════════════
+function ChangRobertsAnim({ color }) {
+  // 6 processes, IDs chosen to showcase min propagation
+  const ids = [53, 22, 77, 1024, 96, 101];
+  const minId = Math.min(...ids);
+  const N = ids.length;
+  const cx = 200, cy = 120, R = 85;
+  const pos = ids.map((_, i) => {
+    const a = (i * 2 * Math.PI) / N - Math.PI / 2;
+    return { x: cx + R * Math.cos(a), y: cy + R * Math.sin(a) };
+  });
+  // steps: each describes ring state (participant flags, current msg in flight)
+  const steps = [
+    { desc: "Oriented ring of 6 processes (clockwise). Each has a unique ID. None is participant yet.", parts: [0,0,0,0,0,0], msgs: [] },
+    { desc: "All wake up: each sends (+, mon_numero) to its successor. 6 messages in flight.", parts: [1,1,1,1,1,1], msgs: ids.map((v,i) => ({from:i, val:v})) },
+    { desc: "Rule on reception: if val < mon_numero, forward val. If val > mon_numero, swallow (drop). If val = mon_numero → I am leader.", parts: [1,1,1,1,1,1], msgs: [{from:0,val:53},{from:1,val:22},{from:2,val:77},{from:3,val:1024},{from:4,val:96},{from:5,val:101}] },
+    { desc: "P0(id=53) receives 101 from P5 → 101>53, DROPPED. P1(id=22) receives 53 from P0 → 53>22, DROPPED. Only smaller IDs survive.", parts: [1,1,1,1,1,1], msgs: [{from:1,val:22},{from:2,val:77,dying:true},{from:3,val:1024,dying:true},{from:4,val:96,dying:true}] },
+    { desc: "After extinction of large IDs, the message carrying 22 (the minimum) keeps circulating. Others are gone.", parts: [1,1,1,1,1,1], msgs: [{from:2,val:22}] },
+    { desc: "22 keeps progressing around the ring: P3 sees 22 < 1024 → forward. P4 sees 22 < 96 → forward. P5 sees 22 < 101 → forward.", parts: [1,1,1,1,1,1], msgs: [{from:5,val:22}] },
+    { desc: "22 returns to its origin (P1). val = mon_numero → P1 declares itself LEADER. Protocol terminates.", parts: [1,1,1,1,1,1], msgs: [], leader: 1 },
+  ];
+  const anim = useAnimation(steps, 1600);
+  const s = anim.step, st = steps[s];
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 400 240" style={{ width: "100%", maxHeight: 260 }}>
+          {/* Ring arrows */}
+          {pos.map((p, i) => {
+            const q = pos[(i+1) % N];
+            return <line key={i} x1={p.x} y1={p.y} x2={q.x} y2={q.y} stroke={C.line} strokeWidth="1.5" strokeDasharray="3" opacity="0.5"/>;
+          })}
+          {/* Nodes */}
+          {pos.map((p, i) => {
+            const isLeader = st.leader === i;
+            const isMin = ids[i] === minId;
+            const nodeColor = isLeader ? "#22D3EE" : (isMin ? color : `${color}99`);
+            return (
+              <g key={i}>
+                <circle cx={p.x} cy={p.y} r="20" fill={isLeader ? `${nodeColor}40` : "#1e293b"} stroke={nodeColor} strokeWidth={isLeader ? 3 : 2}/>
+                <text x={p.x} y={p.y+4} textAnchor="middle" fill={nodeColor} fontSize="11" fontWeight="bold" fontFamily="monospace">{ids[i]}</text>
+                {isLeader && <text x={p.x} y={p.y-28} textAnchor="middle" fill="#22D3EE" fontSize="10" fontFamily="monospace">★ LEADER</text>}
+                {isMin && !isLeader && <text x={p.x} y={p.y-28} textAnchor="middle" fill={color} fontSize="9" fontFamily="monospace">min</text>}
+              </g>
+            );
+          })}
+          {/* Messages in flight */}
+          {st.msgs.map((m, k) => {
+            const a = pos[m.from], b = pos[(m.from+1)%N];
+            const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+            const col = m.dying ? "#ef4444" : (m.val === minId ? "#22D3EE" : color);
+            return (
+              <g key={k}>
+                <circle cx={mx} cy={my} r="11" fill={col} opacity={m.dying ? 0.4 : 0.9}>
+                  {!m.dying && <animate attributeName="r" from="6" to="11" dur="0.3s"/>}
+                </circle>
+                <text x={mx} y={my+3} textAnchor="middle" fill="#fff" fontSize="9" fontWeight="bold" fontFamily="monospace">{m.val}</text>
+                {m.dying && <text x={mx+14} y={my+3} fill="#ef4444" fontSize="9" fontFamily="monospace">✗</text>}
+              </g>
+            );
+          })}
+          {/* Rule box */}
+          <rect x="300" y="10" width="95" height="62" rx="4" fill="#0D1525" stroke={C.line} strokeWidth="1"/>
+          <text x="307" y="24" fill={color} fontSize="9" fontFamily="monospace" fontWeight="bold">rules</text>
+          <text x="307" y="37" fill="#22D3EE" fontSize="8" fontFamily="monospace">v &lt; me → fwd</text>
+          <text x="307" y="49" fill="#ef4444" fontSize="8" fontFamily="monospace">v &gt; me → drop</text>
+          <text x="307" y="61" fill="#f1f5f9" fontSize="8" fontFamily="monospace">v = me → LEAD</text>
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Peterson Election (bidirectional, O(n log n))
+// ═══════════════════════════════════════════════
+function PetersonElectionAnim({ color }) {
+  // 8 processes with IDs; highlight which die each phase
+  const N = 8;
+  const ids = [19, 54, 45, 15, 22, 67, 36, 34];
+  const minId = Math.min(...ids);
+  const cx = 200, cy = 130, R = 95;
+  const pos = ids.map((_, i) => {
+    const a = (i * 2 * Math.PI) / N - Math.PI / 2;
+    return { x: cx + R * Math.cos(a), y: cy + R * Math.sin(a) };
+  });
+  // Peterson phase: each survivor receives from one side; if received value < own → becomes victim.
+  // Round robin: phase1 dir=+, phase2 dir=-, etc. After each pair of phases, survivors halve.
+  const steps = [
+    { desc: "Bidirectional ring, 8 alive processes. Peterson alternates directions (+/−) in phases. Victims receive a value strictly smaller than theirs; survivors relay.", alive: [1,1,1,1,1,1,1,1], phase: 0 },
+    { desc: "Phase 1 (+): each sends own numero to right neighbour. A process receiving a value < own becomes VICTIM. Victims stop competing — they only relay.", alive: [1,1,1,1,1,1,1,1], phase: 1, victims: [1,3,5,7] },
+    { desc: "Phase 2 (−): survivors send own numero in the opposite direction. Again, recipients of smaller values become victims. Key lemma: every 2 phases the number of survivors is halved.", alive: [1,0,1,0,1,0,1,0], phase: 2, victims: [4,6] },
+    { desc: "After 2 phases: 4 survivors remain. Continue alternating directions.", alive: [1,0,0,0,1,0,1,0], phase: 3 },
+    { desc: "Phase 3+4: again halved → 2 survivors.", alive: [1,0,0,0,1,0,0,0], phase: 4 },
+    { desc: "Phase 5: only 2 alive. One more halving → 1 survivor.", alive: [1,0,0,0,0,0,0,0], phase: 5 },
+    { desc: "A process receives its own numero back → declares itself LEADER. Complexity: O(log n) phases × O(n) msgs = O(n log n).", alive: [1,0,0,0,0,0,0,0], phase: 6, leader: 0 },
+  ];
+  const anim = useAnimation(steps, 1600);
+  const s = anim.step, st = steps[s];
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 400 280" style={{ width: "100%", maxHeight: 280 }}>
+          <circle cx={cx} cy={cy} r={R} fill="none" stroke={C.line} strokeWidth="1.5" strokeDasharray="3" opacity="0.4"/>
+          {pos.map((p, i) => {
+            const alive = st.alive[i];
+            const isLeader = st.leader === i;
+            const col = isLeader ? "#22D3EE" : (alive ? color : "#475569");
+            return (
+              <g key={i}>
+                <circle cx={p.x} cy={p.y} r={alive?18:14} fill={alive?`${col}30`:"#1e293b"} stroke={col} strokeWidth={isLeader?3:1.8} opacity={alive?1:0.5}/>
+                <text x={p.x} y={p.y+4} textAnchor="middle" fill={col} fontSize="10" fontWeight={alive?"bold":"normal"} fontFamily="monospace">{ids[i]}</text>
+                {!alive && <text x={p.x} y={p.y+4} textAnchor="middle" fill="#ef4444" fontSize="14" opacity="0.5">✗</text>}
+                {isLeader && <text x={p.x} y={p.y-26} textAnchor="middle" fill="#22D3EE" fontSize="10" fontFamily="monospace">★ LEADER</text>}
+              </g>
+            );
+          })}
+          {/* Stats box */}
+          <rect x="10" y="10" width="110" height="48" rx="4" fill="#0D1525" stroke={C.line}/>
+          <text x="18" y="25" fill={color} fontSize="9" fontFamily="monospace" fontWeight="bold">phase {st.phase}</text>
+          <text x="18" y="40" fill="#f1f5f9" fontSize="9" fontFamily="monospace">alive: {st.alive.filter(x=>x).length}/8</text>
+          <text x="18" y="52" fill="#94a3b8" fontSize="9" fontFamily="monospace">dir: {st.phase%2===1?"+":"−"}</text>
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
+// ANIMATION: Chang-Roberts Worst Case
+// ═══════════════════════════════════════════════
+function ChangRobertsWorstAnim({ color }) {
+  const N = 7;
+  const ids = [7, 6, 5, 4, 3, 2, 1];
+  const cx = 200, cy = 120, R = 80;
+  const pos = ids.map((_, i) => {
+    const a = (i * 2 * Math.PI) / N - Math.PI / 2;
+    return { x: cx + R * Math.cos(a), y: cy + R * Math.sin(a) };
+  });
+  const steps = [
+    { desc: "Worst case: IDs arranged in strictly decreasing order along the ring direction. Naive intuition says 'good', but each large ID travels far before dying.", k: 0, msgTotal: 0 },
+    { desc: "Process with id=7 sends its msg. It travels 1 hop before meeting id=6 > 1 hop to id=5... wait. Actually: 7 will travel until it finds a smaller successor. The decreasing arrangement makes each k travel k hops before being dropped.", k: 1, msgTotal: 7 },
+    { desc: "id=6: travels 6 hops before it meets id=7 > it → dropped. (Contributes 6 to total.)", k: 2, msgTotal: 7+6 },
+    { desc: "id=5 → 5 hops, id=4 → 4 hops, …, id=2 → 2 hops. id=1 (the min) → n hops to complete the tour.", k: 6, msgTotal: 7+6+5+4+3+2 },
+    { desc: "Total messages = Σ k (k=1..n) = n(n+1)/2 = O(n²). This matches the upper bound, so Chang-Roberts is tight.", k: 7, msgTotal: 28, done: true },
+  ];
+  const anim = useAnimation(steps, 1500);
+  const s = anim.step, st = steps[s];
+  return (
+    <div>
+      <AnimContainer narration={st.desc} color={color}>
+        <svg viewBox="0 0 400 220" style={{ width: "100%", maxHeight: 220 }}>
+          <circle cx={cx} cy={cy} r={R} fill="none" stroke={C.line} strokeWidth="1" strokeDasharray="3" opacity="0.4"/>
+          {pos.map((p, i) => (
+            <g key={i}>
+              <circle cx={p.x} cy={p.y} r="17" fill="#1e293b" stroke={color} strokeWidth="1.8"/>
+              <text x={p.x} y={p.y+4} textAnchor="middle" fill={color} fontSize="10" fontWeight="bold" fontFamily="monospace">{ids[i]}</text>
+            </g>
+          ))}
+          {/* Cost display */}
+          <rect x="310" y="15" width="85" height="80" rx="4" fill="#0D1525" stroke={C.line}/>
+          <text x="316" y="30" fill={color} fontSize="9" fontFamily="monospace" fontWeight="bold">cost</text>
+          <text x="316" y="44" fill="#f1f5f9" fontSize="9" fontFamily="monospace">step {st.k}/7</text>
+          <text x="316" y="58" fill="#22D3EE" fontSize="10" fontFamily="monospace">Σ = {st.msgTotal}</text>
+          <text x="316" y="74" fill="#94a3b8" fontSize="8" fontFamily="monospace">n(n+1)/2</text>
+          <text x="316" y="86" fill="#94a3b8" fontSize="8" fontFamily="monospace">= O(n²)</text>
+          {st.done && <text x={cx} y={215} textAnchor="middle" fill="#22D3EE" fontSize="12" fontWeight="bold" fontFamily="monospace">tight bound Θ(n²)</text>}
+        </svg>
+      </AnimContainer>
+      <Controls anim={anim} color={color} />
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════
 // MAP: visual key → animation component
 // ═══════════════════════════════════════════════
 const ANIM_MAP = {
@@ -1008,12 +1829,25 @@ const ANIM_MAP = {
   "bellman-ford": BellmanFordAnim,
   "centralised-mutex": CentralisedMutexAnim,
   "lamport-mutex": LamportMutexAnim,
+  "lamport-complexity": LamportComplexityAnim,
   "ricart-agrawala": RicartAgrawalaAnim,
+  "ra-token": RATokenAnim,
   "token-ring": TokenRingAnim,
   "fault-types": FaultTypesAnim,
   replication: ReplicationAnim,
   "termination-problem": TerminationProblemAnim,
   "token-termination": TokenTerminationAnim,
+  "safra-counters": SafraCountersAnim,
+  "mattern-credit": MatternCreditAnim,
+  "chang-roberts": ChangRobertsAnim,
+  "chang-roberts-worst": ChangRobertsWorstAnim,
+  "peterson-election": PetersonElectionAnim,
+  "consistent-cut": ConsistentCutAnim,
+  "chandy-lamport": ChandyLamportAnim,
+  "lai-yang": LaiYangAnim,
+  "byzantine-generals": ByzantineGeneralsAnim,
+  "flp": FLPAnim,
+  "flood-set": FloodSetAnim,
 };
 
 // ─── DATA (unchanged from before) ───
@@ -1095,12 +1929,26 @@ const PILLARS = [
         definition: "Broadcast REQUEST. Receivers reply immediately if not competing or lower priority; defer reply otherwise. Enter on N-1 replies. Exit: send deferred replies.",
         intuition: "Smart ticket system — only hold your reply if you have priority. Saves the separate RELEASE phase.",
         example: "P1(3) vs P2(5). P2 replies immediately. P1 defers. P1 enters, then sends deferred reply.",
-        complexity: "2(N-1) msgs per entry" },
+        complexity: "2(N-1) msgs per entry",
+        exercise: { q: "Show why a process entering CS cannot be bypassed by another request with a larger timestamp.", a: "Because Lamport's extended clock makes timestamps unique (pair (ts, pid)). A process with a smaller (ts, pid) received ALL replies and nobody can 'overtake' it: any concurrent requester with a larger timestamp will defer its reply until the smaller finishes, so the smaller progresses first." } },
+      { id: "lamp-complexity", title: "Lamport Mutex — Complexity 3(n−1)", visual: "lamport-complexity",
+        definition: "One CS entry in Lamport's algorithm costs exactly 3(n−1) messages: (n−1) for broadcasting the request, (n−1) for the replies/acquittements, (n−1) for the release broadcast.",
+        intuition: "A full round-trip plus a goodbye: 'Everyone: I want in. (n−1 shouts) — Ack. (n−1 replies) — I'm done. (n−1 shouts).'",
+        example: "n = 5: 4 + 4 + 4 = 12 messages for ONE critical-section entry. On a complete graph each shout costs 1 hop (O(n) link-hops). On an arbitrary graph / ring each diffusion may take up to n−1 hops → O(n²) link-hops.",
+        complexity: "3(n−1) messages; O(n) or O(n²) hops depending on topology",
+        exercise: { q: "Why does Ricart-Agrawala reduce the cost from 3(n−1) to 2(n−1)?", a: "Because the third phase (diffusion sortie) is absorbed into the deferred replies: instead of broadcasting a dedicated 'release' message, on exit you simply send the replies you had deferred to the pending requesters. Reply + release become one message." } },
+      { id: "ra-token", title: "Ricart-Agrawala with Explicit Token", visual: "ra-token",
+        definition: "An evolution of RA where the 'privilège' to enter CS is made concrete as a unique object (jeton) — an integer array jeton[i] counting how many times Pi has entered the CS. Requester broadcasts (demande, k = own-entry-counter + 1). When a token-holder sees k > jeton[j], it sends the token to the requester.",
+        intuition: "Instead of reasoning about whose timestamp is smallest, you physically pass a clipboard. The clipboard records everyone's past entries — the holder can objectively decide who deserves it next.",
+        example: "Three processes, token held by P1 = [0|0|0]. P2 broadcasts (demande, 1). 1 > jeton[2] = 0 → P1 sends the token to P2. After P2's CS, token becomes [0|1|0].",
+        complexity: "≤ 2(n−1) messages per CS entry. Token ensures safety; fairness holds because the demande counter is strictly increasing.",
+        exercise: { q: "Prove that two processes never hold the jeton at the same time.", a: "The system is initialised with the token at a single process. The only way to pass the token is via an explicit message. Upon receiving the token, the sender stops owning it (it performs envoyer(jeton, j) before enabling local CS logic). Since sends are uniquely matched to receives and the token is never duplicated, exactly one process holds it at any moment — hence mutual exclusion." } },
       { id: "tok-m", title: "Token-based Algorithm", visual: "token-ring",
         definition: "Token circulates on logical ring. Only token holder enters CS. Pass if not needed.",
         intuition: "Talking stick in a circle. Hold to speak, pass when done.",
         example: "P1→P2 (P2 holds, enters CS)→P3→P1.",
-        complexity: "Best: 0 msgs. Worst: N-1 msgs" },
+        complexity: "Best: 0 msgs. Worst: N-1 msgs",
+        exercise: { q: "In a token-ring mutex, what happens if the token is lost (channel fault)?", a: "The protocol halts: no process can enter CS. Recovery requires a regeneration protocol — usually an election (e.g. Chang-Roberts) designates a process which re-issues a new token. This shows why fault-tolerant mutex needs detection + election layers." } },
     ],
   },
   {
@@ -1119,21 +1967,128 @@ const PILLARS = [
     ],
   },
   {
+    id: "election", title: "Leader Election", color: "#F59E0B", icon: "👑",
+    subtopics: [
+      { id: "cr", title: "Chang-Roberts (Selective Extinction)", visual: "chang-roberts",
+        definition: "On an oriented unidirectional ring, each awake process sends its identifier clockwise. On reception of (+, v): if v < me → forward, if v > me → drop (swallow), if v = me → I am leader. Asynchronous, safety and liveness guaranteed if identifiers are unique integers.",
+        intuition: "A whisper game where only the softest voice survives. Loud voices get shushed by quieter neighbours; the quietest voice is never shushed and eventually hears itself.",
+        example: "Ring (53, 22, 77, 1024, 96, 101). 22 is the minimum. Messages carrying 77, 1024, 96, 101 all die when they meet someone smaller. Only 22 completes a full tour → 22 declares itself LEADER.",
+        complexity: "Worst case Θ(n²) messages (IDs in strictly decreasing order); best case O(n log n).",
+        exercise: { q: "Give a configuration of 7 processes for which Chang-Roberts emits exactly 28 messages.", a: "Arrange identifiers in strictly decreasing order along the ring direction, e.g. (7,6,5,4,3,2,1). Then id=k survives k hops before being swallowed. Total = 7+6+5+4+3+2+1 = 28 = n(n+1)/2. This is the tight worst case (n=7)." } },
+      { id: "cr-worst", title: "Chang-Roberts — Worst Case Θ(n²)", visual: "chang-roberts-worst",
+        definition: "The n(n+1)/2 bound is TIGHT: there exist executions reaching it. The key is to arrange identifiers so each ID k survives exactly k hops before extinction.",
+        intuition: "Every loud voice goes as far as it can before meeting someone louder.",
+        example: "Ring of 7 with IDs [7,6,5,4,3,2,1] in clockwise order. id=7 travels 7 hops (wraps the whole ring), id=6 travels 6, …, id=1 travels 1. Σ = 28.",
+        complexity: "Θ(n²) msgs; matches the upper bound of n·n.",
+        exercise: { q: "What is the BEST-case message complexity of Chang-Roberts on an oriented ring of n processes?", a: "If the smallest identifier is placed such that only its own message completes a full tour (n messages) and all other messages die after just 1 hop (each of the n−1 'larger' processes sends one message that's immediately dropped), the cost is n + (n−1) = 2n−1 = O(n). In general, with IDs in increasing order we get O(n log n) on average." } },
+      { id: "peterson", title: "Peterson's Algorithm (O(n log n))", visual: "peterson-election",
+        definition: "Bidirectional oriented ring. Execution proceeds in phases alternating + and − directions. A 'victim' is a process that receives a value strictly smaller than its own in a phase; victims become mere relays. Survivors start the next phase by sending their numero in the opposite direction. Key lemma: every 2 phases, the number of survivors is divided by at least 2.",
+        intuition: "A bracket tournament bouncing back and forth on a ring: each round eliminates half the contenders until only one remains.",
+        example: "Ring of 8 processes. After 2 phases: 4 survivors. After 4 phases: 2. After 5-6 phases: 1. That survivor receives its own numero → leader.",
+        complexity: "O(log n) phases × O(n) msgs/phase = O(n log n) total. Strictly better than Chang-Roberts.",
+        exercise: { q: "Why is Peterson's division-by-2 lemma only guaranteed every TWO phases, not every single phase?", a: "In one phase, direction is fixed. A surviving process a just saw b < a coming from one side. After the phase, a sends in the opposite direction. To pair a with a unique victim c requires looking at TWO consecutive phases: one gives b < a (receive), the next gives c ≤ b < a (c is then a victim). The injection c ↦ c' between survivors at the end of phases (i,i+1) and victims during those phases gives |survivors_end| ≤ |alive_start|/2." } },
+    ],
+  },
+  {
     id: "termination", title: "Termination Detection", color: "#22D3EE", icon: "🏁",
     subtopics: [
       { id: "prob", title: "The Termination Problem", visual: "termination-problem",
         definition: "Terminated = all idle + no messages in transit. Challenge: no global view. A message in transit can reactivate an idle process.",
         intuition: "Office: everyone looks idle but there's a task in the mailroom about to wake someone up.",
         example: "P1,P2 idle. Message m in transit to P2. Naive check says done — wrong!",
-        complexity: null },
-      { id: "ds", title: "Token-based Detection (Dijkstra-Safra)", visual: "token-termination",
-        definition: "Token on ring. Tainted (black) if process sent message since last token visit. Full white round + all idle → terminated. Else reset.",
-        intuition: "Night watchman patrol. Everyone sleeping + no one stirred (white token) = building empty. If disturbed → patrol again.",
-        example: "Round 1: P3 tainted → black token → retry. Round 2: all clean → white → terminated!",
-        complexity: "O(N) msgs/round" },
+        complexity: null,
+        exercise: { q: "Why can we not simply ask every process 'are you idle?' and conclude termination when all say yes?", a: "Because by the time the last 'yes' arrives, a message could already be in transit and will reactivate a process. Termination requires a consistent view of BOTH process states AND channel contents — the naive scan ignores channels." } },
+      { id: "ds", title: "Token-based Detection (Dijkstra, Synchronous)", visual: "token-termination",
+        definition: "Dijkstra's 6 rules on an oriented ring with instantaneous communications. Each process and the token are coloured white or black. Rule R3: a process that receives work becomes black. Rule R5: a black process blackens the token when transmitting. R6: if the token returns white to P0 and P0 is white, announce termination.",
+        intuition: "Night-watchman patrol. White token + everyone white = nothing happened → building is empty. Any disturbance turns something black, forcing a second tour.",
+        example: "Round 1: P3 had sent a message → becomes black → blackens the token → tainted → reset. Round 2: nothing disturbed → white token returns → TERMINATION.",
+        complexity: "2(n−1) control messages latency after real termination (max 2 tours).",
+        exercise: { q: "What property of the channels is required for Dijkstra's algorithm to work correctly?", a: "Instantaneous / synchronous transmissions. Otherwise, a message 'in flight' is not captured by the token — the token could return white after both processes involved turned white but before the message is delivered. This gives FALSE termination. To lift this assumption, use counters (Safra) or credit (Mattern)." } },
+      { id: "safra", title: "Safra (Async, counters)", visual: "safra-counters",
+        definition: "Safra extends Dijkstra for asynchronous channels. Each process maintains me = (#sent) − (#received). The token carries a running sum q. Announce iff token returns white ∧ P0 white & passive ∧ q + me_{P0} = 0.",
+        intuition: "Books-keeping: the sum of all 'sent − received' across the ring equals the number of messages currently in transit. Termination needs zero in-transit.",
+        example: "4 processes, P0 sends 1 msg to P2 then becomes passive. Token traverses: q accumulates me's. First tour sees me_{P2} = −1 (received + not yet matched) → q = −1 → tainted → retry. After P2 processes, q = 0 → announce.",
+        complexity: "O(n) per control round; at most 2 tours after true termination.",
+        exercise: { q: "Why must the token carry a running sum q rather than each process telling P0 its local me?", a: "Because the token's job is to create a consistent snapshot of 'sum of me's' along a cut. A direct telegram model would require simultaneous reports. By accumulating q = Σ me along its path, the token produces a coherent sum at the exact moment it returns to P0. This is a micro-instance of the snapshot principle." } },
+      { id: "mattern-credit", title: "Mattern Credit (Diffusing Computation)", visual: "mattern-credit",
+        definition: "Star-shaped (or arbitrary-graph) termination detection without a ring. The leader starts with crédit = 1. On every send, piggyback half of your credit on the message. On receive, add the incoming credit to your own. On becoming passive, return your credit to the leader. Leader announces when returned credit equals 1.",
+        intuition: "Banknote split in halves: every work message carries a fragment of the 'energy'. When all fragments come back to the treasury, the system has cooled down entirely.",
+        example: "Leader has c = 1; sends msg with c = 1/2, keeps 1/2. Worker returns its 1/2 on becoming passive. Leader becomes passive, returns its own 1/2. Total accumulated = 1 → ANNOUNCE.",
+        complexity: "O(1) state per process (a rational), O(#messages) credit-transfer ops.",
+        exercise: { q: "Give the invariant that proves correctness of Mattern's credit algorithm.", a: "I1: Σ (credits on processes) + Σ (credits on messages in transit) = 1 always. I2: crédit(p) > 0 ⇔ p is active OR p has pending outgoing messages not yet acknowledged. So ret = 1 at the leader ⇔ every credit has returned ⇔ no active process and no message in transit ⇔ termination." } },
+    ],
+  },
+  {
+    id: "snapshot", title: "Global Snapshots", color: "#06B6D4", icon: "📸",
+    subtopics: [
+      { id: "cut", title: "Consistent Cut (Concept)", visual: "consistent-cut",
+        definition: "A global state is obtained by drawing a CUT across the space-time diagram. A cut is COHERENT if the set of pre-shot events is closed under the happened-before relation →: no message is received before being sent. Equivalently, for all p,q: send_{p,q} ⊇ received_{q,p}.",
+        intuition: "A photograph of the distributed system where no arrow of causality points 'from the future into the past'. Messages may be crossing the cut — they're recorded as channel contents — but none may violate causality.",
+        example: "Messages with send pre-shot and receive post-shot are CHANNEL contents (legal). Messages with send post-shot but receive pre-shot would mean the receiver 'knew' about a future event — IMPOSSIBLE in a coherent cut.",
+        complexity: null,
+        exercise: { q: "Is any vertical line in the space-time diagram a coherent cut?", a: "No. A vertical line corresponds to a unique real time, but processes can be on asynchronous clocks. For instance a message sent at t=5 on P1 might be received at t=3 on P2 (by P2's clock). A naive 'real-time vertical' can contain a post → pre arrow. Coherent cuts must be defined by causal closure, not by physical time." } },
+      { id: "chandy-lamport", title: "Chandy-Lamport (FIFO channels)", visual: "chandy-lamport",
+        definition: "Assumes FIFO channels. On receiving a SNAPSHOT signal: record your local state, then send a MARKER on every outgoing channel. On receiving a MARKER on channel c: if first marker, record local state + record channel c as empty, send markers on all outgoing channels; else record channel c state = messages received on c since you recorded your local state.",
+        intuition: "The marker acts as a fire-wall: any application message arriving BEFORE the marker on channel c is pre-shot on c; anything after is post-shot. FIFO guarantees this separation is clean per channel.",
+        example: "Triangle P1-P2-P3. P1 records s★₁, sends markers to P2,P3. P2 first marker from P1 → records s★₂, channel 1→2 = ∅, sends markers. Similarly P3. Result: coherent snapshot.",
+        complexity: "O(|E|) marker messages; requires FIFO channels.",
+        exercise: { q: "Why does Chandy-Lamport require FIFO?", a: "If a channel could reorder messages, a later application message could arrive before an earlier one that was already supposed to be pre-shot. The marker boundary would no longer cleanly separate pre- from post-shot messages on that channel. Lai-Yang avoids this by tagging each application message with its pre/post flag." } },
+      { id: "lai-yang", title: "Lai-Yang (Non-FIFO, Piggybacking)", visual: "lai-yang",
+        definition: "Works over any reliable channel (no FIFO required). Each process keeps a bit taken ∈ {false,true}. Every application message is tagged with the sender's current taken value. On receiving a tagged message with c = true while taken = false, the receiver first records its local state and flips taken := true, then processes the message.",
+        intuition: "Instead of a separate marker, every application message carries a 'pre/post' stamp. The first 'post' message a process sees triggers its snapshot.",
+        example: "P1 initiates: records s★₁, taken₁ = true. P1 sends msg(tag=T) to P2. P2 sees tag=T while taken=false → snapshot, taken := T, then process msg. Works even if the msg was reordered.",
+        complexity: "0 extra control messages; 1 bit piggyback per application message.",
+        exercise: { q: "How is channel state recorded in Lai-Yang?", a: "Channel state = set of messages received with tag=false AFTER the receiver has set taken=true. These are application messages sent before the sender took its snapshot but received after the receiver took its own. Since every message carries its tag, the receiver can identify them unambiguously — no FIFO needed." } },
+    ],
+  },
+  {
+    id: "consensus", title: "Consensus & Byzantine FT", color: "#EF4444", icon: "⚔",
+    subtopics: [
+      { id: "byzantine", title: "Byzantine Generals Problem", visual: "byzantine-generals",
+        definition: "n processes, each with an initial value. Goal: (i) every correct process decides a value, (ii) no two correct processes decide differently, (iii) if all correct have the same initial value v, they decide v. Up to f Byzantine (arbitrary) faults. Necessary: n ≥ 3f + 1.",
+        intuition: "Generals besieging a city must agree on 'attack or retreat'. A traitor can send 'attack' to some and 'retreat' to others — loyal generals must still converge. It takes enough honest witnesses to outvote any lie.",
+        example: "n = 4, f = 1. Byzantine C sends 1 to A,B and 0 to D. After one round: A sees (1,1,1), votes 1; B sees (1,1,0), votes 1; D sees (1,0,0), votes 0 → disagreement. Need more rounds.",
+        complexity: "Lamport-Shostak-Pease: f+1 rounds, O(n^(f+1)) messages. Better algorithms exist (PBFT etc.).",
+        exercise: { q: "Why is n = 3f + 1 necessary?", a: "Intuition: in each round, a correct process sees at most n − 1 − f honest neighbours (it excludes itself and the f byzantines). It must outvote the byzantines, i.e. honest_count > 2 × byz_count. That gives n − 1 − f > 2f, i.e. n > 3f + 1 − 1 = 3f. The formal impossibility proof (Pease-Shostak-Lamport) constructs indistinguishable scenarios when n ≤ 3f." } },
+      { id: "flp", title: "FLP Impossibility", visual: "flp",
+        definition: "Fisher-Lynch-Paterson (1985): in an ASYNCHRONOUS system, consensus is impossible with even ONE crash fault, for ANY deterministic algorithm. Termination + agreement + validity cannot be simultaneously guaranteed.",
+        intuition: "Without bounds on message delay or timeouts, you can never distinguish 'crashed' from 'very slow'. Any algorithm that waits for the slow one may wait forever; any algorithm that gives up on it may be wrong.",
+        example: "2 processes, P2 proposes 1 then disappears. Did P2 crash or is the network slow? P1 cannot tell.",
+        complexity: null,
+        exercise: { q: "How do practical consensus protocols (Paxos, Raft, PBFT) circumvent FLP?", a: "They weaken either the failure or the synchrony assumption. Paxos & Raft assume 'partial synchrony': periods of network stability during which timeouts work. PBFT uses view-changes triggered by timeouts — also partial synchrony. Randomised protocols (Ben-Or) trade determinism for probabilistic termination. None violate FLP; they only add assumptions." } },
+      { id: "flood-set", title: "Flood-Set Consensus (Synchronous, f+1 phases)", visual: "flood-set",
+        definition: "Synchronous model, at most f crash failures (f < n). Each process owns a set ω initialised to {own value}. For f+1 phases, each process broadcasts ω and updates ω := ω ∪ (received ω's). Decision rule: if |ω| = 1 decide its element, otherwise decide a default (e.g. 0).",
+        intuition: "You ask everyone 'what do you know?' for f+1 rounds. Because only f can crash, at least one round finishes silently — after that round, every correct has the same ω.",
+        example: "n=4, f=1, inits (1,2,1,3). Phase 1: broadcast. Everyone's ω = {1,2,3}. Phase 2: re-broadcast; P2 may crash, but ω's already agree. |ω|=3 > 1 → all correct decide 0.",
+        complexity: "(f+1) × n × n = O(f n²) messages. Necessary f+1 rounds is tight.",
+        exercise: { q: "Prove the 'if at some point ω's are equal, they stay equal' lemma.", a: "Suppose at the start of phase k, ω_i = ω for every correct i. In phase k each correct broadcasts ω and receives ω from every other correct (crashed processes send nothing). Union: ω_i ← ω ∪ ω ∪ … ∪ ω = ω. So after phase k, every correct still has ω. By induction ω is preserved. Now pigeonhole: among f+1 phases, at least ONE has no crash, so every correct receives from every other correct, making their ω's equal from that phase onward." } },
     ],
   },
 ];
+
+// ─── Exercise Block (collapsible solution) ───
+function ExerciseBlock({ q, a, color, keyId }) {
+  const [open, setOpen] = useState(false);
+  // Reset whenever the subtopic changes
+  useEffect(() => { setOpen(false); }, [keyId]);
+  return (
+    <div style={{ border: `1px solid ${color}33`, borderRadius: 8, overflow: "hidden" }}>
+      <div style={{ padding: "14px 18px", background: `${color}10` }}>
+        <div style={{ fontSize: 11, color, fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1, marginBottom: 6 }}>QUESTION</div>
+        <p style={{ margin: 0, color: "#e2e8f0" }}>{q}</p>
+      </div>
+      <button onClick={() => setOpen(!open)} style={{ display: "block", width: "100%", padding: "8px 18px", textAlign: "left", background: "#111827", border: "none", borderTop: `1px solid ${color}22`, color: open ? color : "#94a3b8", cursor: "pointer", fontSize: 12, fontFamily: "'JetBrains Mono', monospace", transition: "all 0.2s" }}>
+        {open ? "▼ Hide solution" : "▶ Show solution"}
+      </button>
+      {open && (
+        <div style={{ padding: "14px 18px", background: "#0B1121", borderTop: `1px solid ${color}22` }}>
+          <div style={{ fontSize: 11, color: "#4ECDC4", fontFamily: "'JetBrains Mono', monospace", letterSpacing: 1, marginBottom: 6 }}>SOLUTION</div>
+          <p style={{ margin: 0, color: "#cbd5e1", lineHeight: 1.7 }}>{a}</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ─── Section Component ───
 function Section({ title, icon, children, color }) {
@@ -1250,6 +2205,12 @@ function App() {
                   <div style={{ display: "inline-block", background: "#1e293b", borderRadius: 6, padding: "10px 18px", fontFamily: "'JetBrains Mono', monospace", fontSize: 13, color: "#22D3EE" }}>
                     {subtopic.complexity}
                   </div>
+                </Section>
+              )}
+
+              {subtopic.exercise && (
+                <Section title="Exercise" icon="🧠" color={pillar.color}>
+                  <ExerciseBlock q={subtopic.exercise.q} a={subtopic.exercise.a} color={pillar.color} keyId={studiedKey}/>
                 </Section>
               )}
             </div>

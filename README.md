@@ -12,6 +12,10 @@ My lecture notes taken during my semester6.
 5. [Algo Visually](https://dobbikov.github.io/semester6-lecture-notes/algo.html)
 6. [Algo CheatSheet](https://dobbikov.github.io/semester6-lecture-notes/algo-cheatsheet.pdf)
 7. [Equa Diff CheatSheet](https://dobbikov.github.io/semester6-lecture-notes/equa-diff-cheatsheet.pdf)
+8. [Algorithmique Distribuée Poly](https://dobbikov.github.io/semester6-lecture-notes/poly-algo.pdf)
+9. [CheatSheet Algo Distribuée](https://dobbikov.github.io/semester6-lecture-notes/final-cheatsheet-algo.pdf)
+
+
 
 ### Thoughts
 1. [Orthogonal Matrices](https://dobbikov.github.io/semester6-lecture-notes/orthogonal-matrices.pdf)
@@ -27,3 +31,4 @@ My lecture notes taken during my semester6.
 11. [Contour Integral Visually](https://dobbikov.github.io/semester6-lecture-notes/contour-integral-visually.html)
 12. [Complex Analysis Chapter](https://dobbikov.github.io/semester6-lecture-notes/complex-analysis-chapter-en.pdf)
 12. [Complex Analysis Chapter (Ukrainian)](https://dobbikov.github.io/semester6-lecture-notes/complex-analysis-chapter-ua.pdf)
+

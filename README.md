@@ -14,6 +14,9 @@ My lecture notes taken during my semester6.
 7. [Equa Diff CheatSheet](https://dobbikov.github.io/semester6-lecture-notes/equa-diff-cheatsheet.pdf)
 8. [Algorithmique Distribuée Poly](https://dobbikov.github.io/semester6-lecture-notes/poly-algo.pdf)
 9. [CheatSheet Algo Distribuée](https://dobbikov.github.io/semester6-lecture-notes/final-cheatsheet-algo.pdf)
+10. [CheatSheet Stats](https://dobbikov.github.io/semester6-lecture-notes/stats-cheatsheet2.pdf)
+11. [CheatSheet Linear Algebra](https://dobbikov.github.io/semester6-lecture-notes/cheatsheet_algebre_lineaire.pdf)
+12. [Connections Linear Algebra](https://dobbikov.github.io/semester6-lecture-notes/connexions_concepts_linalg.pdf)
 
 
 

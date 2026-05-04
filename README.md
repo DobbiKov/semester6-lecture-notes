@@ -17,6 +17,7 @@ My lecture notes taken during my semester6.
 10. [CheatSheet Stats](https://dobbikov.github.io/semester6-lecture-notes/stats-cheatsheet2.pdf)
 11. [CheatSheet Linear Algebra](https://dobbikov.github.io/semester6-lecture-notes/cheatsheet_algebre_lineaire.pdf)
 12. [Connections Linear Algebra](https://dobbikov.github.io/semester6-lecture-notes/connexions_concepts_linalg.pdf)
+13. [Stats Partiel 2026 Solution](https://dobbikov.github.io/semester6-lecture-notes/stats-partiel-2026-solution.pdf)
 
 
 
